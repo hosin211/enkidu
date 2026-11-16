@@ -374,17 +374,48 @@ impl Shell {
     pub fn with_changes_and_files(
         tabs: Vec<Tab>,
         terminals: Vec<Entity<TerminalView>>,
-        mut changes: Vec<(enkidu_core::git::Change, String)>,
+        changes: Vec<(enkidu_core::git::Change, String)>,
         files: Vec<String>,
         layout: enkidu_model::ui::DiffLayout,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Shell {
         let frame = cx.new(|_| demo::frame(&tabs, 0));
+        let ui = Ui { diff_layout: layout, ..Ui::default() };
+        Shell::reviewing(frame, None, terminals, changes, files, ui, window, cx)
+    }
+
+    /// For the picture of the whole window: `frame` with a given Work index, so the Work tab has its count and the
+    /// tabs their pull requests, and the workspace on screen with `changes` to review, laid out as `ui` says.
+    pub fn with_work_and_changes(
+        frame: Entity<Frame>,
+        work: Entity<Work>,
+        terminals: Vec<Entity<TerminalView>>,
+        changes: Vec<(enkidu_core::git::Change, String)>,
+        ui: Ui,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Shell {
+        Shell::reviewing(frame, Some(work), terminals, changes, demo::files(), ui, window, cx)
+    }
+
+    /// The window on `frame` with `changes` to review in the workspace on screen, each with its diff, and `files`
+    /// as the ones git would list there.
+    #[allow(clippy::too_many_arguments)]
+    fn reviewing(
+        frame: Entity<Frame>,
+        work: Option<Entity<Work>>,
+        terminals: Vec<Entity<TerminalView>>,
+        mut changes: Vec<(enkidu_core::git::Change, String)>,
+        files: Vec<String>,
+        ui: Ui,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Shell {
         let sample = cx.new(|_| Terminals::sample(terminals.clone()));
-        let ui = cx.new(|_| Ui { diff_layout: layout, ..Ui::default() });
+        let ui = cx.new(|_| ui);
         let mut shell =
-            Shell::build(frame.clone(), sample.clone(), terminals, false, Some(ui.clone()), None, window, cx);
+            Shell::build(frame.clone(), sample.clone(), terminals, false, Some(ui.clone()), work, window, cx);
         // git's list comes in the order a tree of its folders lists it
         changes.sort_by(|(a, _), (b, _)| enkidu_core::names::in_tree_order(&a.path, &b.path));
         let workspace = frame.read(cx).current_workspace().map(|w| w.id.clone()).unwrap_or_default();

@@ -10,7 +10,7 @@ Your tickets and pull requests are one board. Each task gets a workspace of its 
 window stands over all of them: you see which Claude is working, which one needs you and which one is done, you
 review what each changed, and you try it in the one dev environment your system can run.
 
-![The window: a project's workspaces as tabs with their lamps, Claude in a terminal, the changes beside it](docs/pictures/window.png)
+![The window: a project's workspaces as tabs with their lamps and pull requests, the changes with the tree of the changed files, and Claude in a terminal under them](docs/pictures/window.png)
 
 Enkidu is one native program, written in Rust and drawn with [GPUI](https://gpui.rs), so that it feels smooth and
 stays light. There is no browser inside it. It is used every day on one Mac and has not been tried on many others,

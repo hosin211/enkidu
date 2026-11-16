@@ -67,6 +67,43 @@ pub fn terminal_output() -> Vec<u8> {
     out.into_bytes()
 }
 
+/// Output for a kept terminal in the picture of the whole window: Claude at work on the sample's fix (the stock that
+/// counts twice after a return, SH-21533 in the sample Work index), `columns` wide, with its prompt under it. Only
+/// what such a session shows: the lines of `terminal_output` that test the drawing (wide letters, ligatures) are
+/// not in it.
+pub fn working_session(columns: usize) -> Vec<u8> {
+    let coral = "\x1b[38;2;232;132;95m";
+    let dim = "\x1b[38;2;124;129;140m";
+    let green = "\x1b[32m";
+    let red = "\x1b[31m";
+    let amber = "\x1b[33m";
+    let bold = "\x1b[1m";
+    let reset = "\x1b[0m";
+    let rule = "─".repeat(columns);
+    let lines = [
+        format!("{dim}>{reset} the stock counts twice after a return (SH-21533). fix it, and add a test"),
+        String::new(),
+        format!("{coral}●{reset} {bold}Update{reset}(src/orders/stock.py)"),
+        format!("  {dim}⎿  Updated src/orders/stock.py with 3 additions and 1 removal{reset}"),
+        format!("      {red}48 -        item.stock += line.quantity{reset}"),
+        format!("      {green}48 +        if not line.restocked:{reset}"),
+        format!("      {green}49 +            item.stock += line.quantity{reset}"),
+        format!("      {green}50 +            line.restocked = True{reset}"),
+        String::new(),
+        format!("{coral}●{reset} A returned order is counted once now. The new test returns one order twice."),
+        String::new(),
+        format!("{amber}✶{reset} Running the tests… {dim}(12s · esc to interrupt){reset}"),
+        String::new(),
+        format!("{dim}{rule}{reset}"),
+        format!("{dim}>{reset} "),
+        format!("{dim}{rule}{reset}"),
+    ];
+    let mut out = lines.join("\r\n");
+    // the cursor waits in the prompt, after "> ": up one row, to the third column
+    out.push_str("\x1b[1A\x1b[3G\x1b[?25h");
+    out.into_bytes()
+}
+
 /// A sample frame for pictures and screen tests: the project "shop" with these tabs (the one at `selected` on
 /// screen), and "enkidu" with one workspace that needs you, so its tab shows the red count.
 pub fn frame(tabs: &[Tab], selected: usize) -> enkidu_model::frame::Frame {

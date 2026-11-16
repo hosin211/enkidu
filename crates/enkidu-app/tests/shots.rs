@@ -352,6 +352,56 @@ fn tree_row(window: &gpui_kit::Window, id: &'static str, path: &str) -> Option<u
     (0..60usize).find(|ix| window.try_find((id, *ix)).is_some_and(|row| row.label() == Some(path)))
 }
 
+thread_local! {
+    /// The terminal of the window `at_work` opened, for the step that fills it once it has its width.
+    static AT_WORK: std::cell::RefCell<Option<Arc<enkidu_term::Terminal>>> = const { std::cell::RefCell::new(None) };
+}
+
+/// The whole window at work, for the first picture of the README (item 30.3): the Work tab with its count, six
+/// workspaces with their lamps and pull requests, the changes above in one column with the tree of the changed files
+/// beside them, and Claude under them.
+fn at_work(options: WindowOptions, cx: &mut App) -> AnyWindowHandle {
+    gpui_kit::open_window(options, cx, |window, cx| {
+        let (mut frame, mut index) = (work_frame(false), work_sample());
+        // two more workspaces of the shop, each with the pull request the sample index has for its branch
+        for (id, name, branch, status, pr) in [
+            ("w6", "sh-21376-bundle-units", "feature/SH-21376-bundle-units", "idle", 2375),
+            ("w7", "django-5.2.8", "chore/django-5.2.8", "done", 2415),
+        ] {
+            let mut workspace = frame.workspaces[0].clone();
+            workspace.id = id.into();
+            workspace.name = name.into();
+            workspace.path = format!("/Users/demo/enkidu/workspaces/shop/{name}");
+            workspace.branch = branch.into();
+            workspace.session_id = format!("s-{id}");
+            frame.workspaces.push(workspace);
+            frame.statuses.insert(id.into(), status.into());
+            let mut link =
+                index.links.iter().find(|link| link.b == "workspace:w2").cloned().expect("the link of a workspace");
+            (link.a, link.b) = (format!("pr:demo-org/shop#{pr}"), format!("workspace:{id}"));
+            index.links.push(link);
+        }
+        // the one without a pull request has changes too: its tab says how many files
+        frame.changed.insert("w4".into(), enkidu_model::frame::Changes { files: 3, additions: 27, deletions: 6 });
+        let work = cx.new(|_| enkidu_app::work::store::Work::given(index, &frame, enkidu_testkit::WORK_SAMPLE_NOW));
+        let frame = cx.new(|_| frame);
+        let terminal =
+            Arc::new(enkidu_term::Terminal::kept(enkidu_term::GridSize::new(120, 36), enkidu_term::Palette::enkidu()));
+        AT_WORK.with(|kept| *kept.borrow_mut() = Some(terminal.clone()));
+        cx.new(|cx| {
+            let view = cx.new(|cx| enkidu_app::terminal_view::TerminalView::new(terminal, None, cx));
+            let ui = enkidu_model::ui::Ui {
+                diff_layout: enkidu_model::ui::DiffLayout::Unified,
+                terminal_height: 384,
+                ..Default::default()
+            };
+            Shell::with_work_and_changes(frame, work, vec![view], enkidu_app::demo::tree_changes(), ui, window, cx)
+        })
+    })
+    .expect("a window drawn offscreen")
+    .0
+}
+
 /// The frame the sample Work index matches: shop (its pr-remarks-2175 Live) and enkidu, five workspaces with their
 /// lamps.
 fn work_frame(open: bool) -> enkidu_model::frame::Frame {
@@ -1207,6 +1257,34 @@ const STATES: &[State] = &[
                 window.defer(cx, |window, cx| {
                     window.render_frame(cx);
                     window.click("changed-kind-option:vue", cx);
+                });
+            });
+        }),
+    },
+    // the whole window at work (item 30.3), README's first picture: the fix's diff on screen and its file marked in
+    // the tree, Claude's session as wide as its terminal came out
+    State {
+        name: "main",
+        size: Size { width: px(1600.), height: px(1000.) },
+        open: at_work,
+        then: Some(|window, cx| {
+            if let Some(terminal) = AT_WORK.with(|kept| kept.borrow_mut().take()) {
+                terminal.feed(&enkidu_app::demo::working_session(terminal.size().cols as usize));
+            }
+            window.defer(cx, |window, cx| {
+                window.render_frame(cx);
+                if let Some(ix) = tree_row(window, "change-row", "src/orders/stock.py") {
+                    window.click(("change-row", ix), cx);
+                }
+                window.defer(cx, |window, cx| {
+                    window.render_frame(cx);
+                    let down = gpui_kit::ScrollDelta::Pixels(gpui_kit::point(px(0.), px(-200.)));
+                    window.scroll("diff-view", down, cx);
+                    // typing goes to Claude: the terminal has the keyboard, and the pointer rests there
+                    window.defer(cx, |window, cx| {
+                        window.render_frame(cx);
+                        window.click("terminal", cx);
+                    });
                 });
             });
         }),
