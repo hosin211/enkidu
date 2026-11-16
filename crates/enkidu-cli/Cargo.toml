@@ -1,0 +1,20 @@
+[package]
+name = "enkidu-cli"
+description = "enkidu, the command Claude and you use in a terminal to talk to Enkidu."
+version.workspace = true
+# This crate's edition: its code builds as it is.
+edition = "2021"
+publish.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "enkidu"
+path = "src/main.rs"
+
+[dependencies]
+enkidu-core = { path = "../enkidu-core" }
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+serde_json.workspace = true

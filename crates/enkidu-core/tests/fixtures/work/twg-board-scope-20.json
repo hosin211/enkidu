@@ -1,0 +1,144 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.board.scope.query",
+ "request": {
+  "boardId": "20",
+  "site": "example.atlassian.net"
+ },
+ "data": {
+  "id": 20,
+  "name": "Integrations",
+  "type": "kanban",
+  "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/20/configuration",
+  "location": {
+   "type": "project",
+   "key": "SH",
+   "id": "10303",
+   "self": "https://example.atlassian.net/rest/api/2/project/10303",
+   "name": "Shop Main"
+  },
+  "filter": {
+   "id": "10461",
+   "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/filter/10461"
+  },
+  "subQuery": {
+   "query": "fixVersion in unreleasedVersions() OR fixVersion is EMPTY"
+  },
+  "columnConfig": {
+   "columns": [
+    {
+     "name": "Backlog",
+     "statuses": [
+      {
+       "id": "10000",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10000"
+      }
+     ]
+    },
+    {
+     "name": "Analysis",
+     "statuses": [
+      {
+       "id": "10111",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10111"
+      },
+      {
+       "id": "10154",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10154"
+      },
+      {
+       "id": "10151",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10151"
+      }
+     ]
+    },
+    {
+     "name": "Selected for development",
+     "statuses": [
+      {
+       "id": "10112",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10112"
+      },
+      {
+       "id": "10113",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10113"
+      }
+     ]
+    },
+    {
+     "name": "On Hold",
+     "statuses": [
+      {
+       "id": "10116",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10116"
+      }
+     ]
+    },
+    {
+     "name": "In Progress",
+     "statuses": [
+      {
+       "id": "3",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/3"
+      },
+      {
+       "id": "10002",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10002"
+      }
+     ]
+    },
+    {
+     "name": "Done",
+     "statuses": [
+      {
+       "id": "10130",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10130"
+      },
+      {
+       "id": "10001",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10001"
+      }
+     ]
+    },
+    {
+     "name": "QA Review",
+     "statuses": [
+      {
+       "id": "10162",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10162"
+      }
+     ]
+    },
+    {
+     "name": "Live",
+     "statuses": [
+      {
+       "id": "10115",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10115"
+      }
+     ]
+    },
+    {
+     "name": "B\u00e8ta ",
+     "statuses": []
+    }
+   ],
+   "constraintType": "none"
+  },
+  "ranking": {
+   "rankCustomFieldId": 10104
+  }
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.board-scope",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "agile-v1",
+   "resourceType": "jira.board-scope"
+  }
+ }
+}

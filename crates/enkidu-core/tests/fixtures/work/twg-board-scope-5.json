@@ -1,0 +1,142 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.board.scope.query",
+ "request": {
+  "boardId": "5",
+  "site": "example.atlassian.net"
+ },
+ "data": {
+  "id": 5,
+  "name": "Shop Dev",
+  "type": "scrum",
+  "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/5/configuration",
+  "location": {
+   "type": "project",
+   "key": "SH",
+   "id": "10303",
+   "self": "https://example.atlassian.net/rest/api/2/project/10303",
+   "name": "Shop Main"
+  },
+  "filter": {
+   "id": "10437",
+   "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/filter/10437"
+  },
+  "columnConfig": {
+   "columns": [
+    {
+     "name": "On Hold",
+     "statuses": [
+      {
+       "id": "10116",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10116"
+      }
+     ]
+    },
+    {
+     "name": "To Do",
+     "statuses": [
+      {
+       "id": "10112",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10112"
+      },
+      {
+       "id": "10113",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10113"
+      },
+      {
+       "id": "10000",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10000"
+      },
+      {
+       "id": "10111",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10111"
+      },
+      {
+       "id": "10154",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10154"
+      },
+      {
+       "id": "10151",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10151"
+      }
+     ]
+    },
+    {
+     "name": "In Progress",
+     "statuses": [
+      {
+       "id": "3",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/3"
+      }
+     ]
+    },
+    {
+     "name": "Code Review",
+     "statuses": [
+      {
+       "id": "10002",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10002"
+      }
+     ]
+    },
+    {
+     "name": "QA Review",
+     "statuses": [
+      {
+       "id": "10162",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10162"
+      },
+      {
+       "id": "10168",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10168"
+      }
+     ]
+    },
+    {
+     "name": "Done",
+     "statuses": [
+      {
+       "id": "10001",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10001"
+      },
+      {
+       "id": "10152",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10152"
+      },
+      {
+       "id": "10130",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10130"
+      },
+      {
+       "id": "10115",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10115"
+      }
+     ]
+    }
+   ],
+   "constraintType": "issueCount"
+  },
+  "estimation": {
+   "type": "field",
+   "field": {
+    "fieldId": "timeoriginalestimate",
+    "displayName": "Original estimate"
+   }
+  },
+  "ranking": {
+   "rankCustomFieldId": 10104
+  }
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.board-scope",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "agile-v1",
+   "resourceType": "jira.board-scope"
+  }
+ }
+}

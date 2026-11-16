@@ -1,0 +1,18 @@
+{
+  "ok": false,
+  "error": {
+    "code": "AUTH_REQUIRED",
+    "kind": "twg",
+    "mode": "oauth",
+    "statusCode": 401,
+    "message": "authentication required. No valid credentials found.",
+    "summary": "You're not signed in. Run `twg login --force` to authenticate with your Atlassian account.",
+    "remediation": {
+      "command": "twg login --force",
+      "env": [
+        "TWG_TOKEN",
+        "TWG_USER"
+      ]
+    }
+  }
+}

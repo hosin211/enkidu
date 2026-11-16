@@ -1,0 +1,15 @@
+[package]
+name = "enkidu-term"
+description = "The terminal behind Enkidu's terminal view: the engine, the pty, keys and paste. No GPUI."
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+alacritty_terminal.workspace = true
+portable-pty.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+libc.workspace = true

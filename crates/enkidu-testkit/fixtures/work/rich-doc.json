@@ -1,0 +1,72 @@
+{
+  "type": "doc",
+  "content": [
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "the spec", "marks": [{ "type": "link", "attrs": { "href": "https://example.com/spec" } }] },
+      { "type": "text", "text": " says what accounting needs. Ask " },
+      { "type": "mention", "attrs": { "text": "@Mira" } },
+      { "type": "text", "text": " about the columns; the import is " },
+      { "type": "status", "attrs": { "text": "IN REVIEW" } },
+      { "type": "text", "text": "." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "What to build" }] },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "text": "An " },
+        { "type": "text", "text": "Export to CSV", "marks": [{ "type": "strong" }] },
+        { "type": "text", "text": " action on the order list." }
+      ] }] },
+      { "type": "listItem", "content": [
+        { "type": "paragraph", "content": [
+          { "type": "text", "text": "Numbers use " },
+          { "type": "text", "text": "decimal_separator", "marks": [{ "type": "code" }] },
+          { "type": "text", "text": " from the outlet:" }
+        ] },
+        { "type": "bulletList", "content": [
+          { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "a comma in France" }] }] }
+        ] }
+      ] }
+    ] },
+    { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "Steps" }] },
+    { "type": "orderedList", "attrs": { "order": 9 }, "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Filter the list" }] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Export" }] }] }
+    ] },
+    { "type": "taskList", "content": [
+      { "type": "taskItem", "attrs": { "state": "DONE" }, "content": [{ "type": "text", "text": "Columns as asked" }] },
+      { "type": "taskItem", "attrs": { "state": "TODO" }, "content": [{ "type": "text", "text": "Fast enough for a month of orders" }] }
+    ] },
+    { "type": "codeBlock", "attrs": { "language": "python" }, "content": [{ "type": "text", "text": "def export(orders):\n    return csv(orders)" }] },
+    { "type": "blockquote", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Accounting imports these with a comma in France." }] }] },
+    { "type": "panel", "attrs": { "panelType": "warning" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Don't change the order of the columns: the import depends on it." }] }] },
+    { "type": "panel", "attrs": { "panelType": "info" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Cancelled orders are left out." }] }] },
+    { "type": "table", "content": [
+      { "type": "tableRow", "content": [
+        { "type": "tableHeader", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Column" }] }] },
+        { "type": "tableHeader", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Kind" }] }] }
+      ] },
+      { "type": "tableRow", "content": [
+        { "type": "tableCell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "total" }] }] },
+        { "type": "tableCell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "a number, with the outlet's separator" }] }] }
+      ] },
+      { "type": "tableRow", "content": [
+        { "type": "tableCell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "date" }] }] },
+        { "type": "tableCell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "the day of delivery" }] }] }
+      ] }
+    ] },
+    { "type": "mediaSingle", "content": [{ "type": "media", "attrs": { "id": "m1", "type": "file" } }] },
+    { "type": "expand", "attrs": { "title": "More about the format" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "UTF-8, one header row." }] }] },
+    { "type": "rule" },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "Words can be " },
+      { "type": "text", "text": "slanted", "marks": [{ "type": "em" }] },
+      { "type": "text", "text": ", " },
+      { "type": "text", "text": "struck", "marks": [{ "type": "strike" }] },
+      { "type": "text", "text": " or " },
+      { "type": "text", "text": "underlined", "marks": [{ "type": "underline" }] },
+      { "type": "text", "text": "; see " },
+      { "type": "inlineCard", "attrs": { "url": "https://example.com/import" } },
+      { "type": "text", "text": "." }
+    ] }
+  ]
+}

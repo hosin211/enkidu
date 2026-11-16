@@ -1,0 +1,26 @@
+[package]
+name = "enkidu-diff"
+description = "The diff view: gpui-kit's (gpui-component 0.9.1, Apache-2.0) diff module, copied and adapted. It keeps the place on screen when its files change and keeps a file's header in view."
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license = "Apache-2.0"
+
+[dependencies]
+gpui-kit.workspace = true
+similar = { workspace = true }
+smallvec.workspace = true
+unicode-segmentation.workspace = true
+unicode-width.workspace = true
+
+[dev-dependencies]
+gpui-kit = { workspace = true, features = ["test-support"] }
+
+# The timed guard of item 3.4 (a 700-file diff), with the real text system and no window. It needs the main thread,
+# so it has its own main (`harness = false`), and it runs only when named, in a release build:
+# `cargo test --release -p enkidu-diff --test big_diff` (sh scripts/check.sh does).
+[[test]]
+name = "big_diff"
+path = "tests/big_diff.rs"
+harness = false
+test = false

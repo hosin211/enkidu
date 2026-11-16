@@ -1,0 +1,38 @@
+{
+ "data": {
+  "node": {
+   "statusCheckRollup": {
+    "state": "FAILURE",
+    "contexts": {
+     "totalCount": 3,
+     "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "Mw"
+     },
+     "nodes": [
+      {
+       "__typename": "CheckRun",
+       "name": "SonarCloud Code Analysis",
+       "conclusion": "CANCELLED",
+       "status": "COMPLETED",
+       "detailsUrl": "https://ci.example.com/sonar"
+      },
+      {
+       "__typename": "CheckRun",
+       "name": "Security scan: check code",
+       "conclusion": "SUCCESS",
+       "status": "COMPLETED",
+       "detailsUrl": "https://ci.example.com/scan"
+      },
+      {
+       "__typename": "StatusContext",
+       "context": "CodeRabbit",
+       "state": "SUCCESS",
+       "targetUrl": null
+      }
+     ]
+    }
+   }
+  }
+ }
+}

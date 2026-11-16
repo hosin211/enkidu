@@ -1,0 +1,25 @@
+{
+ "data": {
+  "node": {
+   "comments": {
+    "totalCount": 1,
+    "pageInfo": {
+     "hasNextPage": false,
+     "endCursor": "Y3Vyc29yOmZpeHR1cmU6MjU1N2JmZmExYjc4"
+    },
+    "nodes": [
+     {
+      "id": "PRRC_622289392f2c7395cc",
+      "author": {
+       "login": "person-1",
+       "__typename": "User"
+      },
+      "body": "Text 1 (595 chars)",
+      "createdAt": "2026-09-29T15:27:23Z",
+      "url": "https://github.com/example-org/shop/pull/2177#discussion_r5234802891"
+     }
+    ]
+   }
+  }
+ }
+}

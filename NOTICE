@@ -1,0 +1,82 @@
+Enkidu
+
+This product includes code copied from other projects. Each is named here with its license and where the copy
+lives. Code is copied in only from Apache-2.0 or MIT sources, with the notice kept in this file.
+
+1. GPUI Kit's diff view
+
+   Source:    the crate `gpui-component`, version 0.9.1 (crates.io), directory `src/diff`
+              https://github.com/longbridge/gpui-kit
+   Copyright: Copyright 2024 - 2026 Longbridge <https://longbridge.com>
+   License:   Apache License, Version 2.0 (a copy is in crates/enkidu-diff/LICENSE-APACHE)
+   Copied to: crates/enkidu-diff/src (12 Nov 2026)
+   Changed:   yes. Every change is marked `enkidu:` in the code: it names GPUI through gpui-kit, has its own key
+              context and action names, its own English words in place of gpui-component's translations, takes
+              syntax colors only from the application's highlighter, detects languages by this application's
+              own list, and is formatted with this repository's rustfmt settings. Later changes (keeping the place on
+              screen when the files change, a header that stays in view) are described in crates/enkidu-diff/src/lib.rs.
+
+2. The Vesper theme's color rules
+
+   Source:    the Vesper theme for VS Code, https://github.com/raunofreiberg/vesper, as packaged in
+              `@shikijs/themes` 4.6.0 (`dist/vesper.mjs`; MIT, Copyright (c) 2021 Pine Wu, Copyright (c) 2023
+              Anthony Fu)
+   Copyright: Copyright (c) 2023 Rauno Freiberg
+   License:   MIT License
+   Copied to: crates/enkidu-syntax/src/vesper.rs (12 Nov 2026): the theme's scope selectors and their colors, as a table
+   Changed:   no. The table is the theme's rules that carry a color, in the theme's order. Two more rules, for
+              scopes that syntect's grammars name differently, are in crates/enkidu-syntax/src/lib.rs (`ADAPTED`).
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+   documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+   to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+   the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+   THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+   CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE.
+
+3. The colors of JetBrains' dark editor scheme
+
+   Source:    the IntelliJ Platform, https://github.com/JetBrains/intellij-community:
+              `platform/platform-resources/src/themes/islands/IslandSchemeDark.xml` and
+              `python/python-code-insight/resources/colorSchemes/PythonDarcula.xml`, read on 14 Nov 2026
+   Copyright: Copyright 2000-2026 JetBrains s.r.o. and contributors
+   License:   Apache License, Version 2.0 (a copy is in crates/enkidu-diff/LICENSE-APACHE)
+   Copied to: crates/enkidu-syntax/src/ide.rs (14 Nov 2026): eighteen color values, each named there after the
+              scheme's own attribute
+   Changed:   yes. Only the color values are theirs. Which token gets which color is written new, as rules for
+              syntect's grammars; no italics or bold are taken.
+
+The grammars that color code are not copied in: they come with the crates `syntect` and `two-face` (the set the
+program `bat` carries), each grammar under its own license; `two_face::acknowledgement` lists them.
+
+The installed app carries one program that is not built here (`scripts/install.sh` copies it beside the app's
+own program when `scripts/fetch-ty.sh` has fetched it; none of its code is in this repository):
+
+4. ty, the language server asked where a Python name is defined
+
+   Source:    https://github.com/astral-sh/ty, the version pinned in `scripts/fetch-ty.sh`, as its makers publish it
+              on PyPI (their own signed program for this Mac)
+   Copyright: Copyright (c) 2025 Astral Software Inc.
+   License:   MIT License
+   Changed:   no. The program is started as `ty server` and spoken to over the Language Server Protocol.
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+   documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+   to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all copies or substantial portions
+   of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+   THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+   CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE.

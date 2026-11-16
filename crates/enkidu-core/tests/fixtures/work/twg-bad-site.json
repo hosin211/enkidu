@@ -1,0 +1,12 @@
+{
+ "ok": false,
+ "error": {
+  "code": "TWG_TOOL_EXECUTION_FAILED",
+  "kind": "twg_tool_execution_failed",
+  "message": "Could not resolve site \"no-such-site\". https://no-such-site.atlassian.net/_edge/tenant_info: 404 Not Found; https://no-such-site.jira.com/_edge/tenant_info: 404 Not Found. Supply the full working Jira Cloud hostname with --site (or TWG_SITE), or its cloud ID UUID. A full hostname is used exactly as supplied.",
+  "retry": {
+   "recommended": false,
+   "guidance": "do_not_retry_unchanged"
+  }
+ }
+}

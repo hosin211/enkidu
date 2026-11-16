@@ -1,0 +1,1560 @@
+{
+ "health": [
+  {
+   "projectId": "p1",
+   "source": "github",
+   "state": "ok",
+   "lastOk": 1794131880000,
+   "lastTry": 1794131880000,
+   "error": null,
+   "fix": null,
+   "nextTry": 1794132180000,
+   "account": "sam-lee"
+  },
+  {
+   "projectId": "p1",
+   "source": "jira",
+   "state": "ok",
+   "lastOk": 1794131880000,
+   "lastTry": 1794131880000,
+   "error": null,
+   "fix": null,
+   "nextTry": 1794132180000,
+   "account": "Sam Lee"
+  }
+ ],
+ "prs": [
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2414,
+   "title": "SH-21309 Export orders to the accounting CSV",
+   "url": "https://github.com/demo-org/shop/pull/2414",
+   "state": "OPEN",
+   "draft": false,
+   "head": "feature/SH-21309-export",
+   "base": "development",
+   "reviewDecision": "REVIEW_REQUIRED",
+   "checks": "FAILURE",
+   "failing": [
+    {
+     "name": "tests (3.12)",
+     "state": "FAILURE",
+     "url": "https://ci.example.com/run/88123"
+    }
+   ],
+   "running": 0,
+   "mergeable": "MERGEABLE",
+   "headSha": "4973abc0def1",
+   "headAt": "2026-11-08T08:25:00.000Z",
+   "unresolved": 2,
+   "updatedAt": "2026-11-08T09:48:00.000Z",
+   "mergedAt": null,
+   "commits": [],
+   "details": {
+    "author": "sam-lee",
+    "createdAt": "2026-11-06T10:00:00.000Z",
+    "body": "Accounting imports the orders of a month as a CSV; this adds the export to the order list.\n\n## What changes\n- An **Export to CSV** action on the order list, for the filtered orders\n- One row per order line, numbers in the outlet's format (`1.234,50` in France)\n- Cancelled orders are left out\n\n## How to test\n1. Filter the order list to last month\n2. Export, and open the file in Excel\n- [x] Columns as accounting asked\n- [ ] 10,000 lines in under 5 seconds\n\n<!-- the template's reminders: never shown -->\nCloses SH-21309",
+    "additions": 412,
+    "deletions": 38,
+    "changedFiles": 9,
+    "labels": [
+     "accounting"
+    ],
+    "checks": [
+     {
+      "name": "tests (3.12)",
+      "bucket": "fail",
+      "url": "https://ci.example.com/run/88123"
+     },
+     {
+      "name": "tests (3.11)",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/88122"
+     },
+     {
+      "name": "lint",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/88121"
+     },
+     {
+      "name": "build",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/88120"
+     },
+     {
+      "name": "SonarCloud",
+      "bucket": "pass",
+      "url": "https://ci.example.com/sonar"
+     },
+     {
+      "name": "deploy preview",
+      "bucket": "skipping",
+      "url": null
+     }
+    ],
+    "reviews": [
+     {
+      "who": "mira-k",
+      "state": "COMMENTED",
+      "at": "2026-11-08T09:20:00.000Z",
+      "bot": false
+     },
+     {
+      "who": "coderabbitai",
+      "state": "COMMENTED",
+      "at": "2026-11-06T10:20:00.000Z",
+      "bot": true
+     }
+    ],
+    "requested": [
+     "tom-b"
+    ],
+    "threads": [
+     {
+      "path": "orders/export.py",
+      "line": 48,
+      "resolved": false,
+      "outdated": false,
+      "who": "mira-k",
+      "bot": false,
+      "text": "The CSV writer should use the outlet's decimal separator, accounting imports these with a comma in France.",
+      "replies": 0,
+      "lastWho": null,
+      "lastAt": null,
+      "url": "https://github.com/demo-org/shop/pull/2414#discussion_r48"
+     },
+     {
+      "path": "orders/export.py",
+      "line": 112,
+      "resolved": false,
+      "outdated": false,
+      "who": "mira-k",
+      "bot": false,
+      "text": "Rows with a zero total shouldn't be exported at all.",
+      "replies": 1,
+      "lastWho": "sam-lee",
+      "lastAt": "2026-11-08T08:20:00.000Z",
+      "url": "https://github.com/demo-org/shop/pull/2414#discussion_r112"
+     },
+     {
+      "path": "orders/views.py",
+      "line": 20,
+      "resolved": true,
+      "outdated": false,
+      "who": "coderabbitai",
+      "bot": true,
+      "text": "Consider streaming the response instead of building the whole file in memory.",
+      "replies": 2,
+      "lastWho": "sam-lee",
+      "lastAt": "2026-11-07T08:00:00.000Z",
+      "url": "https://github.com/demo-org/shop/pull/2414#discussion_r20"
+     }
+    ],
+    "comments": [
+     {
+      "who": "coderabbitai",
+      "bot": true,
+      "text": "Walkthrough: adds a CSV export of the filtered orders, with one row per order line.",
+      "at": "2026-11-06T10:25:00.000Z",
+      "url": "https://github.com/demo-org/shop/pull/2414#issuecomment-1"
+     },
+     {
+      "who": "jonas-qa",
+      "bot": false,
+      "text": "Does the export include orders that were cancelled after delivery?",
+      "at": "2026-11-08T09:46:00.000Z",
+      "url": "https://github.com/demo-org/shop/pull/2414#issuecomment-2"
+     }
+    ],
+    "commitCount": 5,
+    "recentCommits": [
+     {
+      "oid": "4973abc",
+      "headline": "Skip rows with a zero total"
+     },
+     {
+      "oid": "91c2d0e",
+      "headline": "Use the outlet's locale for numbers"
+     },
+     {
+      "oid": "77e1f3a",
+      "headline": "Stream the file"
+     },
+     {
+      "oid": "3b8a9c1",
+      "headline": "Add the export action to the order list"
+     },
+     {
+      "oid": "1f0e2d4",
+      "headline": "Order lines as CSV rows"
+     }
+    ]
+   }
+  },
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2395,
+   "title": "SH-21533 Stock counts twice after a return",
+   "url": "https://github.com/demo-org/shop/pull/2395",
+   "state": "OPEN",
+   "draft": false,
+   "head": "fix/stock-double-count",
+   "base": "development",
+   "reviewDecision": "CHANGES_REQUESTED",
+   "checks": "SUCCESS",
+   "failing": [],
+   "running": 0,
+   "mergeable": "MERGEABLE",
+   "headSha": "4962abc0def1",
+   "headAt": "2026-11-08T06:00:00.000Z",
+   "unresolved": 1,
+   "updatedAt": "2026-11-08T09:22:00.000Z",
+   "mergedAt": null,
+   "commits": [],
+   "details": {
+    "author": "sam-lee",
+    "createdAt": "2026-11-05T10:00:00.000Z",
+    "body": "Returns to a supplier booked the stock twice: once on the return and again on the credit note.\n\n## Fix\n- The credit note no longer moves stock\n- `StockLevel` is refreshed after `save()`",
+    "additions": 64,
+    "deletions": 12,
+    "changedFiles": 3,
+    "labels": [],
+    "checks": [
+     {
+      "name": "lint",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/1"
+     },
+     {
+      "name": "build",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/2"
+     },
+     {
+      "name": "tests (3.12)",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/3"
+     }
+    ],
+    "reviews": [
+     {
+      "who": "mira-k",
+      "state": "CHANGES_REQUESTED",
+      "at": "2026-11-08T09:22:00.000Z",
+      "bot": false
+     },
+     {
+      "who": "coderabbitai",
+      "state": "COMMENTED",
+      "at": "2026-11-08T06:10:00.000Z",
+      "bot": true
+     }
+    ],
+    "requested": [],
+    "threads": [
+     {
+      "path": "stock/levels.py",
+      "line": 21,
+      "resolved": false,
+      "outdated": false,
+      "who": "mira-k",
+      "bot": false,
+      "text": "After save() this is still an F expression; return the refreshed level.",
+      "replies": 0,
+      "lastWho": null,
+      "lastAt": null,
+      "url": "https://github.com/demo-org/shop/pull/2414#discussion_r21"
+     },
+     {
+      "path": "stock/levels.py",
+      "line": 30,
+      "resolved": false,
+      "outdated": false,
+      "who": "coderabbitai",
+      "bot": true,
+      "text": "Consider wrapping the two updates in a transaction.",
+      "replies": 0,
+      "lastWho": null,
+      "lastAt": null,
+      "url": "https://github.com/demo-org/shop/pull/2414#discussion_r30"
+     }
+    ],
+    "comments": [],
+    "commitCount": 3,
+    "recentCommits": [
+     {
+      "oid": "a1b2c3d",
+      "headline": "Address the review"
+     },
+     {
+      "oid": "e4f5a6b",
+      "headline": "First version"
+     }
+    ]
+   }
+  },
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2413,
+   "title": "SH-21533 Hotfix: stock counts twice after a return",
+   "url": "https://github.com/demo-org/shop/pull/2413",
+   "state": "OPEN",
+   "draft": false,
+   "head": "hotfix/SH-21533-stock-double-count",
+   "base": "master",
+   "reviewDecision": "APPROVED",
+   "checks": "PENDING",
+   "failing": [],
+   "running": 3,
+   "mergeable": "MERGEABLE",
+   "headSha": "4964abc0def1",
+   "headAt": "2026-11-08T09:53:00.000Z",
+   "unresolved": 0,
+   "updatedAt": "2026-11-08T09:54:00.000Z",
+   "mergedAt": null,
+   "commits": [],
+   "details": {
+    "author": "sam-lee",
+    "createdAt": "2026-11-05T10:00:00.000Z",
+    "body": "The same fix as #2395, for the release on master.",
+    "additions": 41,
+    "deletions": 9,
+    "changedFiles": 2,
+    "labels": [],
+    "checks": [
+     {
+      "name": "tests (3.12)",
+      "bucket": "pending",
+      "url": "https://ci.example.com/run/90001"
+     },
+     {
+      "name": "lint",
+      "bucket": "pending",
+      "url": "https://ci.example.com/run/90002"
+     },
+     {
+      "name": "build",
+      "bucket": "pending",
+      "url": "https://ci.example.com/run/90003"
+     }
+    ],
+    "reviews": [
+     {
+      "who": "mira-k",
+      "state": "APPROVED",
+      "at": "2026-11-08T09:40:00.000Z",
+      "bot": false
+     }
+    ],
+    "requested": [],
+    "threads": [],
+    "comments": [],
+    "commitCount": 1,
+    "recentCommits": [
+     {
+      "oid": "4964abc",
+      "headline": "Hotfix: stock counts twice after a return"
+     }
+    ]
+   }
+  },
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2375,
+   "title": "SH-21376 Units on bundles",
+   "url": "https://github.com/demo-org/shop/pull/2375",
+   "state": "OPEN",
+   "draft": false,
+   "head": "feature/SH-21376-bundle-units",
+   "base": "development",
+   "reviewDecision": "REVIEW_REQUIRED",
+   "checks": "SUCCESS",
+   "failing": [],
+   "running": 0,
+   "mergeable": "MERGEABLE",
+   "headSha": "4940abc0def1",
+   "headAt": "2026-11-08T07:00:00.000Z",
+   "unresolved": 0,
+   "updatedAt": "2026-11-07T08:00:00.000Z",
+   "mergedAt": null,
+   "commits": [],
+   "details": {
+    "author": "sam-lee",
+    "createdAt": "2026-11-05T10:00:00.000Z",
+    "body": "Bundles keep the unit each component was entered in.",
+    "additions": 120,
+    "deletions": 30,
+    "changedFiles": 4,
+    "labels": [],
+    "checks": [
+     {
+      "name": "lint",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/1"
+     },
+     {
+      "name": "build",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/2"
+     },
+     {
+      "name": "tests (3.12)",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/3"
+     }
+    ],
+    "reviews": [],
+    "requested": [
+     "mira-k",
+     "tom-b"
+    ],
+    "threads": [],
+    "comments": [],
+    "commitCount": 2,
+    "recentCommits": [
+     {
+      "oid": "a1b2c3d",
+      "headline": "Address the review"
+     },
+     {
+      "oid": "e4f5a6b",
+      "headline": "First version"
+     }
+    ]
+   }
+  },
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2326,
+   "title": "SH-21112 Bundles show the cost per article",
+   "url": "https://github.com/demo-org/shop/pull/2326",
+   "state": "MERGED",
+   "draft": false,
+   "head": "feature/SH-21112-bundles",
+   "base": "development",
+   "reviewDecision": "APPROVED",
+   "checks": "SUCCESS",
+   "failing": [],
+   "running": 0,
+   "mergeable": "MERGEABLE",
+   "headSha": "4931abc0def1",
+   "headAt": "2026-11-08T07:00:00.000Z",
+   "unresolved": 0,
+   "updatedAt": "2026-11-07T04:00:00.000Z",
+   "mergedAt": "2026-11-07T04:00:00.000Z",
+   "commits": []
+  },
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2390,
+   "title": "SH-21616 Dispatch note PDF shows the VAT line",
+   "url": "https://github.com/demo-org/shop/pull/2390",
+   "state": "MERGED",
+   "draft": false,
+   "head": "feature/SH-21616-vat-line",
+   "base": "development",
+   "reviewDecision": "APPROVED",
+   "checks": "SUCCESS",
+   "failing": [],
+   "running": 0,
+   "mergeable": "MERGEABLE",
+   "headSha": "4950abc0def1",
+   "headAt": "2026-11-08T07:00:00.000Z",
+   "unresolved": 0,
+   "updatedAt": "2026-11-05T10:00:00.000Z",
+   "mergedAt": "2026-11-05T10:00:00.000Z",
+   "commits": []
+  },
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2312,
+   "title": "SH-21030 Warranty labels on the order PDF",
+   "url": "https://github.com/demo-org/shop/pull/2312",
+   "state": "MERGED",
+   "draft": false,
+   "head": "feature/SH-21030-warranty-labels",
+   "base": "development",
+   "reviewDecision": "APPROVED",
+   "checks": "SUCCESS",
+   "failing": [],
+   "running": 0,
+   "mergeable": "MERGEABLE",
+   "headSha": "4921abc0def1",
+   "headAt": "2026-11-08T07:00:00.000Z",
+   "unresolved": 0,
+   "updatedAt": "2026-11-06T10:00:00.000Z",
+   "mergedAt": "2026-11-06T10:00:00.000Z",
+   "commits": []
+  },
+  {
+   "projectId": "p1",
+   "repo": "demo-org/shop",
+   "number": 2415,
+   "title": "Bump Django to 5.2.8",
+   "url": "https://github.com/demo-org/shop/pull/2415",
+   "state": "OPEN",
+   "draft": false,
+   "head": "chore/django-5.2.8",
+   "base": "development",
+   "reviewDecision": "REVIEW_REQUIRED",
+   "checks": "SUCCESS",
+   "failing": [],
+   "running": 0,
+   "mergeable": "MERGEABLE",
+   "headSha": "4977abc0def1",
+   "headAt": "2026-11-08T07:00:00.000Z",
+   "unresolved": 0,
+   "updatedAt": "2026-11-08T07:00:00.000Z",
+   "mergedAt": null,
+   "commits": [],
+   "details": {
+    "author": "sam-lee",
+    "createdAt": "2026-11-05T10:00:00.000Z",
+    "body": "Security release.",
+    "additions": 2,
+    "deletions": 2,
+    "changedFiles": 1,
+    "labels": [
+     "dependencies"
+    ],
+    "checks": [
+     {
+      "name": "lint",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/1"
+     },
+     {
+      "name": "build",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/2"
+     },
+     {
+      "name": "tests (3.12)",
+      "bucket": "pass",
+      "url": "https://ci.example.com/run/3"
+     }
+    ],
+    "reviews": [],
+    "requested": [
+     "mira-k"
+    ],
+    "threads": [],
+    "comments": [],
+    "commitCount": 1,
+    "recentCommits": [
+     {
+      "oid": "4977d0c",
+      "headline": "Bump Django to 5.2.8"
+     }
+    ]
+   }
+  },
+  {
+   "projectId": "p2",
+   "repo": "demo-org/enkidu",
+   "number": 212,
+   "title": "Board view for the Work page",
+   "url": "https://github.com/demo-org/enkidu/pull/212",
+   "state": "OPEN",
+   "draft": true,
+   "head": "feature/work-board",
+   "base": "main",
+   "reviewDecision": "REVIEW_REQUIRED",
+   "checks": "PENDING",
+   "failing": [],
+   "running": 2,
+   "mergeable": "MERGEABLE",
+   "headSha": "212abc0def1",
+   "headAt": "2026-11-08T07:00:00.000Z",
+   "unresolved": 0,
+   "updatedAt": "2026-11-08T09:40:00.000Z",
+   "mergedAt": null,
+   "commits": []
+  }
+ ],
+ "tickets": [
+  {
+   "key": "SH-21309",
+   "projectKey": "SH",
+   "summary": "Export orders to the accounting CSV",
+   "url": "https://demo.atlassian.net/browse/SH-21309",
+   "status": "In Progress",
+   "category": "indeterminate",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-08T09:48:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Story",
+   "priority": "High",
+   "description": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Accounting imports the orders of a month as a CSV. Today they copy them by hand from the order list, which takes a day for a big group."
+       }
+      ]
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 3
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "What to build"
+       }
+      ]
+     },
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "An "
+           },
+           {
+            "type": "text",
+            "text": "Export to CSV",
+            "marks": [
+             {
+              "type": "strong"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": " action on the order list, for the orders that are filtered."
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "One row per order line: date, outlet, supplier, product, quantity, unit price, VAT rate, total."
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Numbers use the outlet's decimal separator ("
+           },
+           {
+            "type": "text",
+            "text": "1.234,50",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": " in France)."
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 3
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "Acceptance criteria"
+       }
+      ]
+     },
+     {
+      "type": "taskList",
+      "content": [
+       {
+        "type": "taskItem",
+        "attrs": {
+         "state": "DONE"
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "The file opens in Excel with the right columns"
+         }
+        ]
+       },
+       {
+        "type": "taskItem",
+        "attrs": {
+         "state": "TODO"
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "Cancelled orders are left out"
+         }
+        ]
+       },
+       {
+        "type": "taskItem",
+        "attrs": {
+         "state": "TODO"
+        },
+        "content": [
+         {
+          "type": "text",
+          "text": "An export of 10,000 lines takes under 5 seconds"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "The columns accounting asked for are in "
+       },
+       {
+        "type": "text",
+        "text": "the export spec",
+        "marks": [
+         {
+          "type": "link",
+          "attrs": {
+           "href": "https://example.com/export-spec"
+          }
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": "."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "key": "SH-21533",
+   "projectKey": "SH",
+   "summary": "Stock counts twice after a return",
+   "url": "https://demo.atlassian.net/browse/SH-21533",
+   "status": "Code Review",
+   "category": "indeterminate",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-08T09:22:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Bug",
+   "priority": "Highest",
+   "description": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "After a return to the supplier, the stock level of the product drops twice: once when the return is made and again when the credit note comes in."
+       }
+      ]
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 3
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "Steps"
+       }
+      ]
+     },
+     {
+      "type": "orderedList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Make a return of 2 kg tomatoes to a supplier."
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Book the supplier's credit note."
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "The stock shows 4 kg less instead of 2 kg."
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "codeBlock",
+      "attrs": {
+       "language": "python"
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "StockLevel.objects.filter(item=item).update(quantity=F(\"quantity\") - amount)"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "key": "SH-21112",
+   "projectKey": "SH",
+   "summary": "Bundles show the cost per article",
+   "url": "https://demo.atlassian.net/browse/SH-21112",
+   "status": "QA Review",
+   "category": "indeterminate",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-08T09:15:00.000Z",
+   "comments": 4,
+   "attachments": 2,
+   "issueType": "Task",
+   "description": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Show the cost of one article next to the bundle's total cost, using the article count on the bundle."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "key": "SH-21616",
+   "projectKey": "SH",
+   "summary": "Dispatch note PDF misses the VAT line",
+   "url": "https://demo.atlassian.net/browse/SH-21616",
+   "status": "In Progress",
+   "category": "indeterminate",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-08T07:50:00.000Z",
+   "comments": 3,
+   "attachments": 0,
+   "issueType": "Bug",
+   "description": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "The VAT line is missing on dispatch notes for suppliers outside France."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "key": "SH-21376",
+   "projectKey": "SH",
+   "summary": "Units on bundles",
+   "url": "https://demo.atlassian.net/browse/SH-21376",
+   "status": "Code Review",
+   "category": "indeterminate",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-07T08:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Task"
+  },
+  {
+   "key": "SH-21475",
+   "projectKey": "SH",
+   "summary": "Sales report per outlet",
+   "url": "https://demo.atlassian.net/browse/SH-21475",
+   "status": "On Hold",
+   "category": "indeterminate",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-05T10:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Task",
+   "priority": "Low",
+   "description": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Waiting for the product team to decide which sales channels count."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "key": "SH-21522",
+   "projectKey": "SH",
+   "summary": "Planned orders keep the old delivery day",
+   "url": "https://demo.atlassian.net/browse/SH-21522",
+   "status": "Planned for current sprint",
+   "category": "indeterminate",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-08T05:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Bug"
+  },
+  {
+   "key": "SH-21030",
+   "projectKey": "SH",
+   "summary": "Warranty labels on the order PDF",
+   "url": "https://demo.atlassian.net/browse/SH-21030",
+   "status": "Done",
+   "category": "done",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-06T10:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Story"
+  },
+  {
+   "key": "SH-20728",
+   "projectKey": "SH",
+   "summary": "Supplier price import",
+   "url": "https://demo.atlassian.net/browse/SH-20728",
+   "status": "Ready for Dev",
+   "category": "new",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-04T10:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Story"
+  },
+  {
+   "key": "SH-20781",
+   "projectKey": "SH",
+   "summary": "Price import: keep the supplier's own units",
+   "url": "https://demo.atlassian.net/browse/SH-20781",
+   "status": "Ready for Dev",
+   "category": "new",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-04T10:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Sub-task"
+  },
+  {
+   "key": "SH-20947",
+   "projectKey": "SH",
+   "summary": "Inventory count on a tablet",
+   "url": "https://demo.atlassian.net/browse/SH-20947",
+   "status": "Ready for Dev",
+   "category": "new",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-10-30T10:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Epic"
+  },
+  {
+   "key": "SH-21205",
+   "projectKey": "SH",
+   "summary": "Search bundles by warranty",
+   "url": "https://demo.atlassian.net/browse/SH-21205",
+   "status": "Analysed",
+   "category": "new",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-02T10:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Story",
+   "priority": "Lowest"
+  },
+  {
+   "key": "SH-21580",
+   "projectKey": "SH",
+   "summary": "Outlet groups in the stock report",
+   "url": "https://demo.atlassian.net/browse/SH-21580",
+   "status": "New",
+   "category": "new",
+   "assignee": "Sam Lee",
+   "assigneeId": "acc-me",
+   "updatedAt": "2026-11-07T08:00:00.000Z",
+   "comments": 0,
+   "attachments": 0,
+   "issueType": "Task"
+  }
+ ],
+ "ticketProjects": {
+  "SH-21309": "p1",
+  "SH-21533": "p1",
+  "SH-21112": "p1",
+  "SH-21616": "p1",
+  "SH-21376": "p1",
+  "SH-21475": "p1",
+  "SH-21522": "p1",
+  "SH-21030": "p1",
+  "SH-20728": "p1",
+  "SH-20781": "p1",
+  "SH-20947": "p1",
+  "SH-21205": "p1",
+  "SH-21580": "p1"
+ },
+ "hidden": [],
+ "boards": [
+  {
+   "id": "5",
+   "name": "Shop Dev",
+   "kind": "scrum",
+   "projectKey": "SH"
+  },
+  {
+   "id": "9",
+   "name": "Release view",
+   "kind": "kanban",
+   "projectKey": "SH"
+  },
+  {
+   "id": "20",
+   "name": "Integrations",
+   "kind": "kanban",
+   "projectKey": "SH"
+  }
+ ],
+ "board": null,
+ "sessions": [
+  {
+   "id": "s-w1",
+   "configDir": "/Users/demo/.claude-work",
+   "cwd": "/Users/demo/enkidu/workspaces/shop/stock-fix",
+   "title": "stock-fix",
+   "branches": [
+    "fix/stock-double-count",
+    "hotfix/SH-21533-stock-double-count"
+   ],
+   "workspaceId": "w1",
+   "firstSeen": 1794113880000,
+   "lastSeen": 1794131880000,
+   "source": "workspace"
+  },
+  {
+   "id": "s-w2",
+   "configDir": "/Users/demo/.claude-work",
+   "cwd": "/Users/demo/enkidu/workspaces/shop/sh-21309-export",
+   "title": "sh-21309-export",
+   "branches": [
+    "feature/SH-21309-export"
+   ],
+   "workspaceId": "w2",
+   "firstSeen": 1794113940000,
+   "lastSeen": 1794131940000,
+   "source": "workspace"
+  },
+  {
+   "id": "s-w3",
+   "configDir": "/Users/demo/.claude-work",
+   "cwd": "/Users/demo/enkidu/workspaces/shop/pr-remarks-2175",
+   "title": "pr-remarks-2175",
+   "branches": [
+    "feature/SH-21112-bundles"
+   ],
+   "workspaceId": "w3",
+   "firstSeen": 1794111600000,
+   "lastSeen": 1794129600000,
+   "source": "workspace"
+  },
+  {
+   "id": "8b9a2f10-55d1-4e0b-9a51-2c1d7e6f0a11",
+   "configDir": "/Users/demo/.claude-work",
+   "cwd": "/Users/demo/code/shop",
+   "title": "units on bundles",
+   "branches": [
+    "feature/SH-21376-bundle-units"
+   ],
+   "workspaceId": null,
+   "firstSeen": 1794020400000,
+   "lastSeen": 1794038400000,
+   "source": "transcript"
+  },
+  {
+   "id": "3d5c2d6e-0c4f-4b7e-8d2a-91f0e3b4c5a6",
+   "configDir": "/Users/demo/.claude-work",
+   "cwd": "/Users/demo/code/shop",
+   "title": "vat line on dispatch notes",
+   "branches": [
+    "development",
+    "feature/SH-21616-vat-line"
+   ],
+   "workspaceId": null,
+   "firstSeen": 1793854800000,
+   "lastSeen": 1793872800000,
+   "source": "transcript"
+  }
+ ],
+ "links": [
+  {
+   "a": "ticket:SH-21309",
+   "b": "pr:demo-org/shop#2414",
+   "how": "ticket-key",
+   "detail": "the key is in its branch",
+   "at": 1794120000000,
+   "removed": false
+  },
+  {
+   "a": "ticket:SH-21533",
+   "b": "pr:demo-org/shop#2395",
+   "how": "ticket-key",
+   "detail": "the key is in its title",
+   "at": 1794114000000,
+   "removed": false
+  },
+  {
+   "a": "ticket:SH-21533",
+   "b": "pr:demo-org/shop#2413",
+   "how": "ticket-key",
+   "detail": "the key is in its branch",
+   "at": 1794130800000,
+   "removed": false
+  },
+  {
+   "a": "ticket:SH-21376",
+   "b": "pr:demo-org/shop#2375",
+   "how": "ticket-key",
+   "detail": "the key is in its branch",
+   "at": 1794038400000,
+   "removed": false
+  },
+  {
+   "a": "ticket:SH-21112",
+   "b": "pr:demo-org/shop#2326",
+   "how": "ticket-key",
+   "detail": "the key is in its branch",
+   "at": 1793988000000,
+   "removed": false
+  },
+  {
+   "a": "ticket:SH-21616",
+   "b": "pr:demo-org/shop#2390",
+   "how": "ticket-key",
+   "detail": "the key is in its branch",
+   "at": 1793786400000,
+   "removed": false
+  },
+  {
+   "a": "ticket:SH-21030",
+   "b": "pr:demo-org/shop#2312",
+   "how": "ticket-key",
+   "detail": "the key is in its branch",
+   "at": 1793872800000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2414",
+   "b": "session:s-w2",
+   "how": "branch",
+   "detail": "worked on its branch",
+   "at": 1794120000000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2414",
+   "b": "workspace:w2",
+   "how": "branch",
+   "detail": "its workspace",
+   "at": 1794120000000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2395",
+   "b": "session:s-w1",
+   "how": "hook:pr-create",
+   "detail": "created it",
+   "at": 1794114000000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2395",
+   "b": "workspace:w1",
+   "how": "branch",
+   "detail": "its workspace",
+   "at": 1794114000000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2413",
+   "b": "session:s-w1",
+   "how": "hook:pr-create",
+   "detail": "created it",
+   "at": 1794130800000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2326",
+   "b": "session:s-w3",
+   "how": "branch",
+   "detail": "worked on its branch",
+   "at": 1793988000000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2326",
+   "b": "workspace:w3",
+   "how": "branch",
+   "detail": "its workspace",
+   "at": 1793988000000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2375",
+   "b": "session:8b9a2f10-55d1-4e0b-9a51-2c1d7e6f0a11",
+   "how": "transcript",
+   "detail": "created it",
+   "at": 1794038400000,
+   "removed": false
+  },
+  {
+   "a": "pr:demo-org/shop#2390",
+   "b": "session:3d5c2d6e-0c4f-4b7e-8d2a-91f0e3b4c5a6",
+   "how": "transcript",
+   "detail": "pushed its branch",
+   "at": 1793872800000,
+   "removed": false
+  }
+ ],
+ "items": [
+  {
+   "id": "checks:demo-org/shop#2414:4973abc0def1",
+   "kind": "pipeline_failed",
+   "source": "github",
+   "projectId": "p1",
+   "pr": "demo-org/shop#2414",
+   "ticket": null,
+   "title": "Checks failing: tests (3.12)",
+   "detail": "tests (3.12): failure",
+   "who": null,
+   "url": "https://ci.example.com/run/88123",
+   "path": null,
+   "line": null,
+   "at": "2026-11-08T08:30:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "thread:t1",
+   "kind": "remark",
+   "source": "github",
+   "projectId": "p1",
+   "pr": "demo-org/shop#2414",
+   "ticket": null,
+   "title": "Remark from mira-k on orders/export.py:48",
+   "detail": "The CSV writer should use the outlet's decimal separator, accounting imports these with a comma in France.",
+   "who": "mira-k",
+   "url": null,
+   "path": "orders/export.py",
+   "line": 48,
+   "at": "2026-11-08T09:20:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "thread:t2",
+   "kind": "probably_fixed",
+   "source": "github",
+   "projectId": "p1",
+   "pr": "demo-org/shop#2414",
+   "ticket": null,
+   "title": "Probably fixed, needs a reply: mira-k on orders/export.py:112",
+   "detail": "Rows with a zero total shouldn't be exported at all.",
+   "who": "mira-k",
+   "url": null,
+   "path": "orders/export.py",
+   "line": 112,
+   "at": "2026-11-08T07:30:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "question:c9",
+   "kind": "question",
+   "source": "github",
+   "projectId": "p1",
+   "pr": "demo-org/shop#2414",
+   "ticket": null,
+   "title": "Question from jonas-qa",
+   "detail": "Does the export include orders that were cancelled after delivery?",
+   "who": "jonas-qa",
+   "url": null,
+   "path": null,
+   "line": null,
+   "at": "2026-11-08T09:46:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "changes:r7",
+   "kind": "changes_requested",
+   "source": "github",
+   "projectId": "p1",
+   "pr": "demo-org/shop#2395",
+   "ticket": null,
+   "title": "Changes requested by mira-k",
+   "detail": "",
+   "who": "mira-k",
+   "url": null,
+   "path": null,
+   "line": null,
+   "at": "2026-11-08T09:22:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "thread:t5",
+   "kind": "remark",
+   "source": "github",
+   "projectId": "p1",
+   "pr": "demo-org/shop#2395",
+   "ticket": null,
+   "title": "Remark from mira-k on stock/levels.py:21",
+   "detail": "After save() this is still an F expression; return the refreshed level.",
+   "who": "mira-k",
+   "url": null,
+   "path": "stock/levels.py",
+   "line": 21,
+   "at": "2026-11-08T09:22:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "thread:t6",
+   "kind": "remark",
+   "source": "github",
+   "projectId": "p1",
+   "pr": "demo-org/shop#2395",
+   "ticket": null,
+   "title": "Remark from coderabbitai on stock/levels.py:30",
+   "detail": "Consider wrapping the two updates in a transaction.",
+   "who": "coderabbitai",
+   "url": null,
+   "path": "stock/levels.py",
+   "line": 30,
+   "at": "2026-11-08T06:10:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": true
+  },
+  {
+   "id": "jira-comment:SH-21112:9001",
+   "kind": "qa_replied",
+   "source": "jira",
+   "projectId": "p1",
+   "pr": null,
+   "ticket": "SH-21112",
+   "title": "QA replied: Jonas Weber",
+   "detail": "If a bundle uses a sub-bundle without a quantity, the cost per article shows NaN. Screenshot attached.",
+   "who": "Jonas Weber",
+   "url": null,
+   "path": null,
+   "line": null,
+   "at": "2026-11-08T09:15:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "jira-attachment:SH-21112:777",
+   "kind": "attachment",
+   "source": "jira",
+   "projectId": "p1",
+   "pr": null,
+   "ticket": "SH-21112",
+   "title": "New attachment: cost-per-article-nan.png",
+   "detail": "Jonas Weber attached a screenshot",
+   "who": "Jonas Weber",
+   "url": null,
+   "path": null,
+   "line": null,
+   "at": "2026-11-08T09:16:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  },
+  {
+   "id": "jira-back:SH-21616",
+   "kind": "back_to_you",
+   "source": "jira",
+   "projectId": "p1",
+   "pr": null,
+   "ticket": "SH-21616",
+   "title": "Back to you: QA Review → In Progress",
+   "detail": "Moved back by Jonas Weber",
+   "who": "Jonas Weber",
+   "url": null,
+   "path": null,
+   "line": null,
+   "at": "2026-11-08T07:50:00.000Z",
+   "state": "open",
+   "openedAt": 1794130200000,
+   "closedAt": null,
+   "snoozedUntil": null,
+   "bot": false
+  }
+ ],
+ "events": [
+  {
+   "subject": "demo-org/shop#2413",
+   "at": 1794131580000,
+   "kind": "pushed",
+   "text": "Pushed 4964abc"
+  },
+  {
+   "subject": "demo-org/shop#2414",
+   "at": 1794131160000,
+   "kind": "item-opened",
+   "text": "Question from jonas-qa"
+  },
+  {
+   "subject": "demo-org/shop#2395",
+   "at": 1794129720000,
+   "kind": "review",
+   "text": "Changes requested"
+  },
+  {
+   "subject": "SH-21112",
+   "at": 1794129300000,
+   "kind": "item-opened",
+   "text": "QA replied: Jonas Weber"
+  },
+  {
+   "subject": "demo-org/shop#2414",
+   "at": 1794126600000,
+   "kind": "checks",
+   "text": "Checks failed: tests (3.12)"
+  },
+  {
+   "subject": "demo-org/shop#2414",
+   "at": 1794126300000,
+   "kind": "pushed",
+   "text": "Pushed 4973abc"
+  },
+  {
+   "subject": "SH-21616",
+   "at": 1794124200000,
+   "kind": "status",
+   "text": "QA Review → In Progress"
+  }
+ ],
+ "reports": [],
+ "flows": [],
+ "flowRuns": [],
+ "checking": false
+}

@@ -1,0 +1,29 @@
+[package]
+name = "enkidu-core"
+description = "Enkidu's core: database, git, workspaces, hooks, Live, search, the Work index, workflows. No GPUI."
+version.workspace = true
+# This crate's edition: its code builds as it is.
+edition = "2021"
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+libc.workspace = true
+dirs.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+rusqlite.workspace = true
+regex.workspace = true
+memchr.workspace = true
+nucleo-matcher.workspace = true
+uuid.workspace = true
+glob.workspace = true
+shell-words.workspace = true
+notify.workspace = true
+tiny_http.workspace = true
+toml.workspace = true
+portable-pty.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,0 +1,43 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.board.query",
+ "request": {
+  "projectAri": "OPS",
+  "projectKeyOrId": "OPS",
+  "site": "example.atlassian.net"
+ },
+ "data": {
+  "boards": [
+   {
+    "id": 14,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/14",
+    "name": "Support board",
+    "type": "kanban",
+    "location": {
+     "userId": 10001,
+     "userAccountId": "acc-9",
+     "displayName": "Person 9",
+     "avatarURI": "https://avatars.example.com/acc-9/32",
+     "name": "Person 9"
+    },
+    "isPrivate": false
+   }
+  ],
+  "total": 1,
+  "startAt": 0,
+  "maxResults": 50,
+  "isLast": true
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.board-search-result",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "agile-v1",
+   "resourceType": "jira.board-search-result"
+  }
+ }
+}

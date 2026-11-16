@@ -1,0 +1,2632 @@
+{
+ "data": {
+  "viewer": {
+   "login": "me-dev"
+  },
+  "search": {
+   "issueCount": 6,
+   "pageInfo": {
+    "hasNextPage": false,
+    "endCursor": "Y3Vyc29yOjY="
+   },
+   "nodes": [
+    {
+     "id": "PR_793b873ea31e2b1140",
+     "number": 2350,
+     "title": "SH-21349 Text 1 (110 chars)",
+     "url": "https://github.com/example-org/shop/pull/2350",
+     "isDraft": false,
+     "state": "OPEN",
+     "updatedAt": "2026-11-02T12:16:00Z",
+     "mergedAt": null,
+     "headRefName": "feature/SH-21349-change-719",
+     "baseRefName": "development",
+     "mergeable": "CONFLICTING",
+     "reviewDecision": "CHANGES_REQUESTED",
+     "headCommit": {
+      "nodes": [
+       {
+        "commit": {
+         "id": "C_de159b4715bfe2fa4c",
+         "oid": "363403106134fc58a1077a6faa744dbfe9b8b10b",
+         "committedDate": "2026-11-02T12:03:03Z",
+         "statusCheckRollup": {
+          "state": "SUCCESS",
+          "contexts": {
+           "totalCount": 2,
+           "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Mg"
+           },
+           "nodes": [
+            {
+             "__typename": "CheckRun",
+             "name": "Security scan: check code",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://ci.example.com/scan"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "CodeRabbit",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://app.coderabbit.ai/change-stack/example-org/shop/pull/2350?scope=fixture"
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     },
+     "allCommits": {
+      "totalCount": 2,
+      "nodes": [
+       {
+        "commit": {
+         "oid": "a4a8ac3828c71ec4484cb9be7a1b64fa919001d0",
+         "messageHeadline": "SH-21349 Text 2 (66 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "363403106134fc58a1077a6faa744dbfe9b8b10b",
+         "messageHeadline": "SH-21349 Text 3 (58 chars)"
+        }
+       }
+      ]
+     },
+     "reviewThreads": {
+      "totalCount": 5,
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": "Y3Vyc29yOmZpeHR1cmU6NDE4NGQ1ZDA3OTA4"
+      },
+      "nodes": [
+       {
+        "id": "PRRT_26f4126d5d674f2acf",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_1.py",
+        "line": 97,
+        "originalLine": 97,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDVlYzQxZDNkMDQ3"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_e7d9f830a68b196894",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 4 (4038 chars)",
+           "createdAt": "2026-11-01T22:13:41Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r9121671374"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_f70f595896742fee68",
+        "isResolved": false,
+        "isOutdated": true,
+        "path": "src/module_2.py",
+        "line": null,
+        "originalLine": 47,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MjZjMzQyMzc0MTYx"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_0da4d391b477b97a9a",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 5 (1037 chars)",
+           "createdAt": "2026-11-02T10:38:01Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r2494237494"
+          },
+          {
+           "id": "PRRC_2a180d6151df69bd4e",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 6 (18 chars)",
+           "createdAt": "2026-11-02T12:14:17Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r5570219423"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_ddb21be715655fbdc4",
+        "isResolved": false,
+        "isOutdated": true,
+        "path": "src/module_3.py",
+        "line": null,
+        "originalLine": 2256,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6NDNmYzI3MmRkNzFi"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_a80d14d3edef9e1ebe",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 7 (1110 chars)",
+           "createdAt": "2026-11-02T10:38:01Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r1160705096"
+          },
+          {
+           "id": "PRRC_543c559b3a7ae23d66",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 8 (18 chars)",
+           "createdAt": "2026-11-02T12:14:19Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r9968270299"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_1594edc9446b1e29cd",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_4.py",
+        "line": 51,
+        "originalLine": 51,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MWVlMDYyNzBmYTJi"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_13ccdf9b9762a60be7",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 9 (733 chars) with a question?",
+           "createdAt": "2026-11-02T10:38:01Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r7394966710"
+          },
+          {
+           "id": "PRRC_435beedbc6a02228eb",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 10 (18 chars)",
+           "createdAt": "2026-11-02T12:14:21Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r7671962618"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_52ce2dd0ed3b37b226",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_5.py",
+        "line": 102,
+        "originalLine": 102,
+        "comments": {
+         "totalCount": 3,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6NThmMjY1Zjg0N2E0"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_829afca4f2f3183010",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 11 (5982 chars)",
+           "createdAt": "2026-11-02T12:13:58Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r9283240034"
+          },
+          {
+           "id": "PRRC_ad57f37f85655f5cf9",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 12 (51 chars)",
+           "createdAt": "2026-11-02T12:15:36Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r5557519236"
+          },
+          {
+           "id": "PRRC_33d368fb28ee4b2f58",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 13 (1187 chars)",
+           "createdAt": "2026-11-02T12:16:00Z",
+           "url": "https://github.com/example-org/shop/pull/2350#discussion_r9264812796"
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "comments": {
+      "totalCount": 2,
+      "nodes": [
+       {
+        "id": "IC_451df19c8200553316",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "body": "Text 14 (16320 chars) with a question?",
+        "createdAt": "2026-11-01T22:04:25Z",
+        "url": "https://github.com/example-org/shop/pull/2350#issuecomment-1087348559"
+       },
+       {
+        "id": "IC_375caf205ec1eb0842",
+        "author": {
+         "login": "github-actions",
+         "__typename": "Bot"
+        },
+        "body": "Text 15 (3143 chars)",
+        "createdAt": "2026-11-02T00:47:05Z",
+        "url": "https://github.com/example-org/shop/pull/2350#issuecomment-3932808689"
+       }
+      ]
+     },
+     "reviews": {
+      "totalCount": 9,
+      "nodes": [
+       {
+        "id": "PRR_ad95d86c2b70136c06",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-01T22:13:42Z"
+       },
+       {
+        "id": "PRR_ab727c22e7330970c0",
+        "state": "COMMENTED",
+        "author": {
+         "login": "claude",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-02T08:34:31Z"
+       },
+       {
+        "id": "PRR_d288763c2e4af2eb4f",
+        "state": "CHANGES_REQUESTED",
+        "author": {
+         "login": "person-1",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T10:38:01Z"
+       },
+       {
+        "id": "PRR_dcc966c6e608d83b99",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-02T12:13:59Z"
+       },
+       {
+        "id": "PRR_766d2b042622085143",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T12:14:17Z"
+       },
+       {
+        "id": "PRR_84d4c1e4b860d8d078",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T12:14:19Z"
+       },
+       {
+        "id": "PRR_44f28ef605b49c2f96",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T12:14:21Z"
+       },
+       {
+        "id": "PRR_3f51840d04408ad8c7",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T12:15:36Z"
+       },
+       {
+        "id": "PRR_cedc71a157d12165e8",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-02T12:16:00Z"
+       }
+      ]
+     },
+     "body": "Text 1 (24 chars)\n\nText 2 (160 chars)\n\nText 3 (41 chars)\n\nText 4 (59 chars)\n\nText 5 (33 chars)\n\nText 6 (542 chars)\n\nText 7 (9 chars)\nText 8 (113 chars)\n\nText 9 (149 chars)\n\n```json\nText 10 (1 chars)\n  Text 11 (34 chars)\n  Text 12 (24 chars)\n    Text 13 (83 chars)\n    Text 14 (130 chars)\n  Text 15 (1 chars)\nText 16 (1 chars)\n```\n\nText 17 (33 chars)\n\n```json\nText 18 (25 chars)\nText 19 (26 chars)\nText 20 (24 chars)\n  Text 21 (1 chars)\n    Text 22 (24 chars)\n    Text 23 (122 chars)\n    Text 24 (18 chars)\n    Text 25 (19 chars)\n    Text 26 (24 chars)\n    Text 27 (14 chars)\n    Text 28 (26 chars)\n  Text 29 (2 chars)\n  Text 30 (1 chars)\n    Text 31 (24 chars)\n    Text 32 (122 chars)\n    Text 33 (19 chars)\n    Text 34 (20 chars)\n    Text 35 (25 chars)\n    Text 36 (25 chars)\n    Text 37 (26 chars)\n  Text 38 (1 chars)\nText 39 (1 chars)\n```\nText 40 (10 chars)\n\nText 41 (9 chars)\nText 42 (120 chars)\n\n```json\nText 43 (32 chars)\n```\nText 44 (151 chars)\nText 45 (10 chars)\n\nText 46 (9 chars)\nText 47 (166 chars)\n\nText 48 (121 chars)\nText 49 (10 chars)\n\nText 50 (9 chars)\nText 51 (192 chars)\n\n```json\nText 52 (24 chars)\n  Text 53 (1 chars)\n    Text 54 (24 chars)\n    Text 55 (87 chars)\n    Text 56 (24 chars)\n      Text 57 (194 chars)\n    Text 58 (1 chars)\n  Text 59 (1 chars)\nText 60 (1 chars)\n```\nText 61 (132 chars)\nText 62 (10 chars)\n\nText 63 (9 chars)\nText 64 (105 chars)\n\nText 65 (124 chars)\n\n```json\nText 66 (1 chars)\n  Text 67 (26 chars)\n  Text 68 (28 chars)\n  Text 69 (92 chars)\n  Text 70 (24 chars)\n    Text 71 (73 chars)\n    Text 72 (94 chars)\n  Text 73 (1 chars)\nText 74 (1 chars)\n```\nText 75 (26 chars)\nText 76 (10 chars)\n\nText 77 (9 chars)\nText 78 (49 chars)\n\n```json\nText 79 (113 chars)\nText 80 (99 chars)\nText 81 (63 chars)\nText 82 (93 chars)\nText 83 (102 chars)\nText 84 (55 chars)\n```\nText 85 (216 chars)\nText 86 (10 chars)\n\nText 87 (9 chars)\nText 88 (58 chars)\n\n```json\nText 89 (41 chars)\nText 90 (107 chars)\n\nText 91 (80 chars)\nText 92 (129 chars)\n\nText 93 (51 chars)\nText 94 (92 chars)\n\nText 95 (51 chars)\nText 96 (116 chars)\n```\nText 97 (10 chars)\n\nText 98 (9 chars)\nText 99 (103 chars) with a question?\n\nText 100 (97 chars)\nText 101 (10 chars)\n\nText 102 (30 chars)\n\n- Text 103 (148 chars)\n- Text 104 (189 chars)\n- Text 105 (126 chars)\n- Text 106 (215 chars)\n- Text 107 (121 chars)\n- Text 108 (34 chars)\n- Text 109 (146 chars)\n\n# Text 110 (49 chars)\n\n- [x] Text 111 (25 chars)\n- [x] Text 112 (41 chars)\n- [ ] Text 113 (69 chars)\n- [ ] Text 114 (75 chars)\n- [x] Text 115 (74 chars)\n- [x] Text 116 (56 chars)\n- [ ] Text 117 (78 chars)\n- [ ] Text 118 (54 chars)\n- [ ] Text 119 (68 chars)\n- [ ] Text 120 (156 chars)\n- [x] Text 121 (76 chars)\n\nText 122 (63 chars)\n\n\nText 123 (74 chars)\nText 124 (35 chars)\n\n## Text 125 (21 chars)\n\n* Text 126 (16 chars)\n  * Text 127 (159 chars)\n  * Text 128 (50 chars)\n* Text 129 (13 chars)\n  * Text 130 (76 chars)\n  * Text 131 (85 chars)\n* Text 132 (17 chars)\n  * Text 133 (82 chars)\nText 134 (70 chars)\n",
+     "createdAt": "2026-11-01T22:03:52Z",
+     "additions": 1069,
+     "deletions": 33,
+     "changedFiles": 28,
+     "author": {
+      "login": "me-dev"
+     },
+     "labels": {
+      "nodes": []
+     },
+     "reviewRequests": {
+      "nodes": [
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": "PR_df4a048c2004715aee",
+     "number": 2329,
+     "title": "SH-20844 Text 16 (72 chars)",
+     "url": "https://github.com/example-org/shop/pull/2329",
+     "isDraft": false,
+     "state": "OPEN",
+     "updatedAt": "2026-11-02T12:28:39Z",
+     "mergedAt": null,
+     "headRefName": "feature/SH-20844-change-390",
+     "baseRefName": "development",
+     "mergeable": "MERGEABLE",
+     "reviewDecision": "CHANGES_REQUESTED",
+     "headCommit": {
+      "nodes": [
+       {
+        "commit": {
+         "id": "C_05ac97682c9b94cab1",
+         "oid": "cc8bc537faf4af5c40e323c0608826110f57daa3",
+         "committedDate": "2026-11-02T11:03:51Z",
+         "statusCheckRollup": {
+          "state": "SUCCESS",
+          "contexts": {
+           "totalCount": 2,
+           "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Mg"
+           },
+           "nodes": [
+            {
+             "__typename": "CheckRun",
+             "name": "Security scan: check code",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://ci.example.com/scan"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "CodeRabbit",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://app.coderabbit.ai/change-stack/example-org/shop/pull/2329?scope=fixture"
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     },
+     "allCommits": {
+      "totalCount": 6,
+      "nodes": [
+       {
+        "commit": {
+         "oid": "6824f7427036c3096c6ab7a237d006867ea9e1f6",
+         "messageHeadline": "SH-20844 Text 17 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "e7382f22e285b274944a23b04edfaa5f08cd429d",
+         "messageHeadline": "SH-20844 Text 18 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "d1d0d4b8577107b46b0d02b4942e3c59b238a3c4",
+         "messageHeadline": "SH-20844 Text 19 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "5c2870deb02e3c2766c141a0e071b9ef4c09b4c5",
+         "messageHeadline": "SH-20844 Text 20 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "39739bbdd5c597b6b087b23e340a2a5843cd0749",
+         "messageHeadline": "SH-20844 Text 21 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "cc8bc537faf4af5c40e323c0608826110f57daa3",
+         "messageHeadline": "SH-20844 Text 22 (70 chars)"
+        }
+       }
+      ]
+     },
+     "reviewThreads": {
+      "totalCount": 4,
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": "Y3Vyc29yOmZpeHR1cmU6YmEwZDRkODExOTkz"
+      },
+      "nodes": [
+       {
+        "id": "PRRT_c3ee73629819936154",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_6.py",
+        "line": 456,
+        "originalLine": 443,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6Njg3YjQ5YWMwNzk4"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_a803b646e9f7722a21",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 23 (3323 chars) with a question?",
+           "createdAt": "2026-11-01T16:11:58Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r2310181199"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_e0c42f844a4eac1df2",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_7.py",
+        "line": 314,
+        "originalLine": 311,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ODE2MDBhODY4ZDUz"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_a4806d92c759f2c59b",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 24 (523 chars) with a question?",
+           "createdAt": "2026-11-02T10:03:47Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r7753078373"
+          },
+          {
+           "id": "PRRC_fbbabeb1e866d73188",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 25 (225 chars)",
+           "createdAt": "2026-11-02T11:07:45Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r3945982450"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_42b9f6e6550e2bc2b2",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_7.py",
+        "line": 303,
+        "originalLine": 303,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6YmZmZDk1MjczYWU5"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_67c39645a2835028fc",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 26 (1281 chars) with a question?",
+           "createdAt": "2026-11-02T10:03:47Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r8772156138"
+          },
+          {
+           "id": "PRRC_3765681c6dd7f4c923",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 27 (322 chars)",
+           "createdAt": "2026-11-02T11:07:47Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r6659109031"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_fb8ef42e28cd30132a",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_8.py",
+        "line": 415,
+        "originalLine": 415,
+        "comments": {
+         "totalCount": 3,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6YTE0Nzg2YWYwNDll"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_02ff895ea20a7dec31",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 28 (4515 chars)",
+           "createdAt": "2026-11-02T11:16:43Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r7209314972"
+          },
+          {
+           "id": "PRRC_5784186d366eae44f9",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 29 (528 chars)",
+           "createdAt": "2026-11-02T11:55:57Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r4878595223"
+          },
+          {
+           "id": "PRRC_dbaec9a0e4eec61482",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 30 (500 chars)",
+           "createdAt": "2026-11-02T11:56:21Z",
+           "url": "https://github.com/example-org/shop/pull/2329#discussion_r5489732115"
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "comments": {
+      "totalCount": 3,
+      "nodes": [
+       {
+        "id": "IC_6a867614acd1822a4a",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "body": "Text 31 (12291 chars) with a question?",
+        "createdAt": "2026-11-01T16:03:01Z",
+        "url": "https://github.com/example-org/shop/pull/2329#issuecomment-5274032845"
+       },
+       {
+        "id": "IC_d6764af119c194a49c",
+        "author": {
+         "login": "github-actions",
+         "__typename": "Bot"
+        },
+        "body": "Text 32 (1792 chars)",
+        "createdAt": "2026-11-01T18:07:58Z",
+        "url": "https://github.com/example-org/shop/pull/2329#issuecomment-7713651095"
+       },
+       {
+        "id": "IC_7298cb9bf16b25c68f",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "body": "Text 33 (441 chars)",
+        "createdAt": "2026-11-02T12:28:38Z",
+        "url": "https://github.com/example-org/shop/pull/2329#issuecomment-2000937540"
+       }
+      ]
+     },
+     "reviews": {
+      "totalCount": 8,
+      "nodes": [
+       {
+        "id": "PRR_d12bbeab516b79cf15",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-01T16:11:59Z"
+       },
+       {
+        "id": "PRR_6f74f90d725cfaa098",
+        "state": "COMMENTED",
+        "author": {
+         "login": "claude",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-02T07:39:26Z"
+       },
+       {
+        "id": "PRR_819c7bc1ab7dc7fa3f",
+        "state": "CHANGES_REQUESTED",
+        "author": {
+         "login": "person-1",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T10:03:55Z"
+       },
+       {
+        "id": "PRR_338ec5243f4e701ad6",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T11:07:45Z"
+       },
+       {
+        "id": "PRR_5bf57bb3f43d63723e",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T11:07:47Z"
+       },
+       {
+        "id": "PRR_3c39e0d6a1921bd5e4",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-02T11:16:44Z"
+       },
+       {
+        "id": "PRR_f3db7690fedd722c86",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T11:55:57Z"
+       },
+       {
+        "id": "PRR_d06f1e4dcda50bac13",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-11-02T11:56:21Z"
+       }
+      ]
+     },
+     "body": "Text 135 (24 chars)\n\nText 136 (159 chars)\n\nText 137 (41 chars)\n\nText 138 (59 chars)\n\nText 139 (33 chars)\n\nText 140 (359 chars)\n\nText 141 (30 chars)\n\n- Text 142 (170 chars)\n- Text 143 (169 chars)\n\n# Text 144 (49 chars)\n\n- [x] Text 145 (25 chars)\n- [x] Text 146 (41 chars)\n- [ ] Text 147 (69 chars)\n- [ ] Text 148 (75 chars)\n- [x] Text 149 (74 chars)\n- [x] Text 150 (56 chars)\n- [ ] Text 151 (78 chars)\n- [ ] Text 152 (54 chars)\n- [ ] Text 153 (68 chars)\n- [ ] Text 154 (156 chars)\n- [x] Text 155 (76 chars)\n\nText 156 (63 chars)\n\n\nText 157 (74 chars)\nText 158 (35 chars)\n\n## Text 159 (21 chars)\n\n* Text 160 (13 chars)\n  * Text 161 (129 chars)\n  * Text 162 (72 chars)\n  * Text 163 (152 chars)\n  * Text 164 (115 chars)\nText 165 (70 chars)\n\n",
+     "createdAt": "2026-11-01T16:02:22Z",
+     "additions": 77,
+     "deletions": 6,
+     "changedFiles": 3,
+     "author": {
+      "login": "me-dev"
+     },
+     "labels": {
+      "nodes": [
+       {
+        "name": "bug"
+       }
+      ]
+     },
+     "reviewRequests": {
+      "nodes": []
+     }
+    },
+    {
+     "id": "PR_2dbeff37841fd396c3",
+     "number": 2324,
+     "title": "SH-21309 Text 34 (91 chars)",
+     "url": "https://github.com/example-org/shop/pull/2324",
+     "isDraft": false,
+     "state": "OPEN",
+     "updatedAt": "2026-11-03T18:31:58Z",
+     "mergedAt": null,
+     "headRefName": "feature/SH-21309-change-122",
+     "baseRefName": "development",
+     "mergeable": "MERGEABLE",
+     "reviewDecision": "CHANGES_REQUESTED",
+     "headCommit": {
+      "nodes": [
+       {
+        "commit": {
+         "id": "C_5431972f04d6443039",
+         "oid": "23306951a014cd85ef51db260fcc652f1c4b6c58",
+         "committedDate": "2026-11-03T12:42:02Z",
+         "statusCheckRollup": {
+          "state": "SUCCESS",
+          "contexts": {
+           "totalCount": 2,
+           "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Mg"
+           },
+           "nodes": [
+            {
+             "__typename": "CheckRun",
+             "name": "Security scan: check code",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://ci.example.com/scan"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "CodeRabbit",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://app.coderabbit.ai/change-stack/example-org/shop/pull/2324?scope=fixture"
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     },
+     "allCommits": {
+      "totalCount": 3,
+      "nodes": [
+       {
+        "commit": {
+         "oid": "cfeef3f9abfaed624b13c795f93b66750f271437",
+         "messageHeadline": "SH-21309 Text 35 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "5398dbaccaa81eda385983c26ecb93d63f579ac9",
+         "messageHeadline": "SH-21309 Text 36 (57 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "23306951a014cd85ef51db260fcc652f1c4b6c58",
+         "messageHeadline": "SH-21309 Text 37 (64 chars)"
+        }
+       }
+      ]
+     },
+     "reviewThreads": {
+      "totalCount": 2,
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": "Y3Vyc29yOmZpeHR1cmU6NjY4MWYwY2YwMjBm"
+      },
+      "nodes": [
+       {
+        "id": "PRRT_91d6ed1e54a2d8fd4b",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_9.vue",
+        "line": 590,
+        "originalLine": 590,
+        "comments": {
+         "totalCount": 3,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZTgzMDJkNjBlOTA2"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_405522512c156af2ca",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 38 (1971 chars)",
+           "createdAt": "2026-10-29T08:44:24Z",
+           "url": "https://github.com/example-org/shop/pull/2324#discussion_r9035831383"
+          },
+          {
+           "id": "PRRC_f9a88253333e935e7f",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 39 (583 chars)",
+           "createdAt": "2026-10-29T08:50:56Z",
+           "url": "https://github.com/example-org/shop/pull/2324#discussion_r7833730723"
+          },
+          {
+           "id": "PRRC_9d2ee0ea8e60a01ea2",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 40 (1908 chars)",
+           "createdAt": "2026-10-29T08:51:36Z",
+           "url": "https://github.com/example-org/shop/pull/2324#discussion_r9279535023"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_a6924373c5416bc3cf",
+        "isResolved": false,
+        "isOutdated": true,
+        "path": "src/module_10.py",
+        "line": null,
+        "originalLine": 627,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6NGVmYTkwODRmNjFl"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_96cfae90db7fd41415",
+           "author": {
+            "login": "person-2",
+            "__typename": "User"
+           },
+           "body": "Text 41 (179 chars)",
+           "createdAt": "2026-11-02T13:38:47Z",
+           "url": "https://github.com/example-org/shop/pull/2324#discussion_r7058257745"
+          },
+          {
+           "id": "PRRC_bf0718718e1a6e5841",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 42 (593 chars)",
+           "createdAt": "2026-11-03T11:35:31Z",
+           "url": "https://github.com/example-org/shop/pull/2324#discussion_r3056124930"
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "comments": {
+      "totalCount": 3,
+      "nodes": [
+       {
+        "id": "IC_c7be461765c3ac1685",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "body": "Text 43 (13419 chars) with a question?",
+        "createdAt": "2026-10-29T08:37:17Z",
+        "url": "https://github.com/example-org/shop/pull/2324#issuecomment-1263477423"
+       },
+       {
+        "id": "IC_1ad0b7b4c4c1dbe581",
+        "author": {
+         "login": "github-actions",
+         "__typename": "Bot"
+        },
+        "body": "Text 44 (129 chars)",
+        "createdAt": "2026-11-03T16:21:41Z",
+        "url": "https://github.com/example-org/shop/pull/2324#issuecomment-9718072033"
+       },
+       {
+        "id": "IC_950df1da3687d500ab",
+        "author": {
+         "login": "github-actions",
+         "__typename": "Bot"
+        },
+        "body": "Text 45 (2065 chars)",
+        "createdAt": "2026-11-03T18:31:58Z",
+        "url": "https://github.com/example-org/shop/pull/2324#issuecomment-7344928488"
+       }
+      ]
+     },
+     "reviews": {
+      "totalCount": 6,
+      "nodes": [
+       {
+        "id": "PRR_435e41af544516b293",
+        "state": "COMMENTED",
+        "author": {
+         "login": "claude",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-10-29T08:36:50Z"
+       },
+       {
+        "id": "PRR_459497b209f5aae762",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-10-29T08:44:25Z"
+       },
+       {
+        "id": "PRR_7b94d1af6ee91d9877",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-10-29T08:50:56Z"
+       },
+       {
+        "id": "PRR_5cf731bdfcd7d4f858",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-10-29T08:51:36Z"
+       },
+       {
+        "id": "PRR_663371db47fa3c16e0",
+        "state": "CHANGES_REQUESTED",
+        "author": {
+         "login": "person-2",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T13:46:07Z"
+       },
+       {
+        "id": "PRR_9464e5016d8b0bb72c",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-03T11:35:31Z"
+       }
+      ]
+     },
+     "body": "Text 166 (22 chars)\n\nText 167 (141 chars)\n\nText 168 (24 chars)\n\nText 169 (96 chars)\n\nText 170 (33 chars)\n\nText 171 (292 chars)\n\n- Text 172 (113 chars)\n- Text 173 (309 chars)\n- Text 174 (74 chars)\n- Text 175 (136 chars)\n\nText 176 (6 chars)\n- Text 177 (106 chars)\n\nText 178 (30 chars)\n\n- Text 179 (266 chars)\n- Text 180 (194 chars)\n- Text 181 (115 chars)\n- Text 182 (145 chars)\n- Text 183 (124 chars)\n- Text 184 (117 chars)\n- Text 185 (119 chars)\n- Text 186 (271 chars)\n\nText 187 (60 chars)\n\n- [x] Text 188 (25 chars)\n- [x] Text 189 (41 chars)\n- [ ] Text 190 (69 chars)\n- [ ] Text 191 (75 chars)\n- [x] Text 192 (74 chars)\n- [x] Text 193 (56 chars)\n- [ ] Text 194 (78 chars)\n- [ ] Text 195 (54 chars)\n- [ ] Text 196 (68 chars)\n- [ ] Text 197 (156 chars)\n- [x] Text 198 (76 chars)\n\n\nText 199 (74 chars)\nText 200 (35 chars)\n\n## Text 201 (21 chars)\n\n* Text 202 (16 chars)\n  * Text 203 (119 chars)\n  * Text 204 (95 chars)\n  * Text 205 (58 chars)\n* Text 206 (13 chars)\n  * Text 207 (107 chars)\nText 208 (70 chars)\n\n\nText 209 (151 chars) with a question?",
+     "createdAt": "2026-10-29T08:36:46Z",
+     "additions": 271,
+     "deletions": 11,
+     "changedFiles": 18,
+     "author": {
+      "login": "me-dev"
+     },
+     "labels": {
+      "nodes": []
+     },
+     "reviewRequests": {
+      "nodes": [
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-2"
+        }
+       },
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": "PR_a7c6c71d618c162587",
+     "number": 2265,
+     "title": "SH-20890 Text 46 (59 chars)",
+     "url": "https://github.com/example-org/shop/pull/2265",
+     "isDraft": false,
+     "state": "OPEN",
+     "updatedAt": "2026-10-19T09:10:18Z",
+     "mergedAt": null,
+     "headRefName": "feature/SH-20890-change-236",
+     "baseRefName": "development",
+     "mergeable": "MERGEABLE",
+     "reviewDecision": "REVIEW_REQUIRED",
+     "headCommit": {
+      "nodes": [
+       {
+        "commit": {
+         "id": "C_ba622eeaced1a80202",
+         "oid": "fcdf918db82587e9826c147836c7eba52dc0e3f8",
+         "committedDate": "2026-10-19T07:15:58Z",
+         "statusCheckRollup": {
+          "state": "SUCCESS",
+          "contexts": {
+           "totalCount": 8,
+           "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "OA"
+           },
+           "nodes": [
+            {
+             "__typename": "CheckRun",
+             "name": "link-ticket",
+             "conclusion": "SKIPPED",
+             "status": "COMPLETED",
+             "detailsUrl": "https://github.com/example-org/shop/actions/runs/32602873365/job/545466468207"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "test (api)",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://github.com/example-org/shop/actions/runs/32602873365/job/419363109356"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "test (integration)",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://github.com/example-org/shop/actions/runs/32602873365/job/476497112627"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "test (unit)",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://github.com/example-org/shop/actions/runs/32602873365/job/912499050340"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "test (unit 2)",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://github.com/example-org/shop/actions/runs/32602873365/job/965029938872"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "coverage",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://github.com/example-org/shop/actions/runs/32602873365/job/952825444308"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "Security scan: check code",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://ci.example.com/scan"
+            },
+            {
+             "__typename": "StatusContext",
+             "context": "CodeRabbit",
+             "state": "SUCCESS",
+             "targetUrl": null
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     },
+     "allCommits": {
+      "totalCount": 6,
+      "nodes": [
+       {
+        "commit": {
+         "oid": "6ec9127cbfab13d3195e9cced0a1339b7ed1cc2c",
+         "messageHeadline": "SH-20890 Text 47 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "a1d0c0c943f6e6f7671051313ed0586b3c465b6d",
+         "messageHeadline": "SH-20890 Text 48 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "4da887b84105e42bbaa21dfbe47c8f74fdb10430",
+         "messageHeadline": "SH-20890 Text 49 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "9bba2b87cab7f18579a676a8c40ce0b431040d28",
+         "messageHeadline": "SH-20890 Text 50 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "4177b56b5acaf8890cc046515ecbed5477edc7ea",
+         "messageHeadline": "SH-20890 Text 51 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "fcdf918db82587e9826c147836c7eba52dc0e3f8",
+         "messageHeadline": "SH-20890 Text 52 (70 chars)"
+        }
+       }
+      ]
+     },
+     "reviewThreads": {
+      "totalCount": 2,
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": "Y3Vyc29yOmZpeHR1cmU6YjhlNzAzZjk5ZjUy"
+      },
+      "nodes": [
+       {
+        "id": "PRRT_4ff388ad5372fb5984",
+        "isResolved": false,
+        "isOutdated": true,
+        "path": "src/module_11.py",
+        "line": null,
+        "originalLine": 27,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDhhMTNkODAyYTU0"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_de72206f358c55ed9b",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 53 (709 chars) with a question?",
+           "createdAt": "2026-10-16T12:22:14Z",
+           "url": "https://github.com/example-org/shop/pull/2265#discussion_r5146791427"
+          },
+          {
+           "id": "PRRC_dcd92e4f8b81a5243d",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 54 (323 chars)",
+           "createdAt": "2026-10-19T07:16:55Z",
+           "url": "https://github.com/example-org/shop/pull/2265#discussion_r2586598687"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_202265211b27b6fd80",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_12.py",
+        "line": 72,
+        "originalLine": 72,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MGVhN2ZlZDc3N2Nl"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_5e420fdedbfbacb306",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 55 (805 chars) with a question?",
+           "createdAt": "2026-10-16T12:22:14Z",
+           "url": "https://github.com/example-org/shop/pull/2265#discussion_r8960130353"
+          },
+          {
+           "id": "PRRC_caa69a7784f42ec845",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 56 (551 chars)",
+           "createdAt": "2026-10-19T07:16:57Z",
+           "url": "https://github.com/example-org/shop/pull/2265#discussion_r5307079248"
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "comments": {
+      "totalCount": 2,
+      "nodes": [
+       {
+        "id": "IC_3d42f223cafb5678e6",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "body": "Text 57 (11377 chars) with a question?",
+        "createdAt": "2026-10-15T14:23:51Z",
+        "url": "https://github.com/example-org/shop/pull/2265#issuecomment-3318680181"
+       },
+       {
+        "id": "IC_fe3f7b6f61ef11a1a9",
+        "author": {
+         "login": "github-actions",
+         "__typename": "Bot"
+        },
+        "body": "Text 58 (3205 chars)",
+        "createdAt": "2026-10-15T17:07:42Z",
+        "url": "https://github.com/example-org/shop/pull/2265#issuecomment-2885860588"
+       }
+      ]
+     },
+     "reviews": {
+      "totalCount": 4,
+      "nodes": [
+       {
+        "id": "PRR_94c3c8b995d51be4d1",
+        "state": "COMMENTED",
+        "author": {
+         "login": "claude",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-10-15T14:23:12Z"
+       },
+       {
+        "id": "PRR_c7cc2f0d5d9d655134",
+        "state": "COMMENTED",
+        "author": {
+         "login": "person-1",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-10-16T12:22:14Z"
+       },
+       {
+        "id": "PRR_a77fd13b42b59670ea",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-10-19T07:16:55Z"
+       },
+       {
+        "id": "PRR_069fa20980f574b4fa",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-10-19T07:16:57Z"
+       }
+      ]
+     },
+     "body": "Text 210 (22 chars)\n\nText 211 (109 chars)\n\nText 212 (24 chars)\n\nText 213 (103 chars)\n\nText 214 (33 chars)\n\nText 215 (195 chars)\n\n- Text 216 (151 chars)\n- Text 217 (88 chars)\n- Text 218 (110 chars)\n- Text 219 (43 chars)\n\nText 220 (6 chars)\n- Text 221 (46 chars)\n- Text 222 (138 chars)\n- Text 223 (68 chars)\n\nText 224 (30 chars)\n\n- Text 225 (258 chars)\n- Text 226 (283 chars)\n- Text 227 (366 chars)\n- Text 228 (160 chars)\n- Text 229 (157 chars)\n- Text 230 (779 chars)\n\nText 231 (60 chars)\n\n- [x] Text 232 (25 chars)\n- [x] Text 233 (41 chars)\n- [x] Text 234 (69 chars)\n- [ ] Text 235 (75 chars)\n- [x] Text 236 (74 chars)\n- [x] Text 237 (56 chars)\n- [ ] Text 238 (78 chars)\n- [ ] Text 239 (54 chars)\n- [ ] Text 240 (68 chars)\n- [ ] Text 241 (156 chars)\n- [ ] Text 242 (76 chars)\n\nText 243 (63 chars)\n\n\nText 244 (74 chars)\n## Text 245 (21 chars)\n\n* Text 246 (16 chars)\n  * Text 247 (124 chars)\n  * Text 248 (205 chars)\n* Text 249 (13 chars)\n  * Text 250 (100 chars)\nText 251 (70 chars)\n",
+     "createdAt": "2026-10-15T14:23:08Z",
+     "additions": 241,
+     "deletions": 98,
+     "changedFiles": 16,
+     "author": {
+      "login": "me-dev"
+     },
+     "labels": {
+      "nodes": []
+     },
+     "reviewRequests": {
+      "nodes": [
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-2"
+        }
+       },
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": "PR_581aeccd9b4f5bb399",
+     "number": 2177,
+     "title": "Text 59 (52 chars)",
+     "url": "https://github.com/example-org/shop/pull/2177",
+     "isDraft": false,
+     "state": "OPEN",
+     "updatedAt": "2026-11-02T10:38:51Z",
+     "mergedAt": null,
+     "headRefName": "feature/change-245",
+     "baseRefName": "development",
+     "mergeable": "MERGEABLE",
+     "reviewDecision": "REVIEW_REQUIRED",
+     "headCommit": {
+      "nodes": [
+       {
+        "commit": {
+         "id": "C_f485983eb3230fd82c",
+         "oid": "6025581f10fb15cdc7f11557d6f7bdbbc61eeae0",
+         "committedDate": "2026-09-22T11:03:39Z",
+         "statusCheckRollup": {
+          "state": "FAILURE",
+          "contexts": {
+           "totalCount": 3,
+           "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Mw"
+           },
+           "nodes": [
+            {
+             "__typename": "CheckRun",
+             "name": "SonarCloud Code Analysis",
+             "conclusion": "CANCELLED",
+             "status": "COMPLETED",
+             "detailsUrl": "https://ci.example.com/sonar"
+            },
+            {
+             "__typename": "CheckRun",
+             "name": "Security scan: check code",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://ci.example.com/scan"
+            },
+            {
+             "__typename": "StatusContext",
+             "context": "CodeRabbit",
+             "state": "SUCCESS",
+             "targetUrl": null
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     },
+     "allCommits": {
+      "totalCount": 3,
+      "nodes": [
+       {
+        "commit": {
+         "oid": "597d7af77d722d6d633e98d490ad8db405abdf78",
+         "messageHeadline": "Text 60 (52 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "12ac94526cdc09af0eb61dbf21c4bf5fdb472fd7",
+         "messageHeadline": "Text 61 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "6025581f10fb15cdc7f11557d6f7bdbbc61eeae0",
+         "messageHeadline": "Text 62 (70 chars)"
+        }
+       }
+      ]
+     },
+     "reviewThreads": {
+      "totalCount": 9,
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": "Y3Vyc29yOmZpeHR1cmU6NjdhZGYwNWRiNmEy"
+      },
+      "nodes": [
+       {
+        "id": "PRRT_f5a4e14024dd6a2c30",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_13.py",
+        "line": 23,
+        "originalLine": 23,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MjU1N2JmZmExYjc4"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_622289392f2c7395cc",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 63 (595 chars)",
+           "createdAt": "2026-09-29T15:27:23Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r5234802891"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_e9e61475522825ea57",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_14.py",
+        "line": 30,
+        "originalLine": 30,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZjU2ZmViOWM5Yzcz"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_e756675c344b69f32d",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 64 (384 chars)",
+           "createdAt": "2026-09-29T15:27:23Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r5312116930"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_50c965f51808e7fbdd",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_15.py",
+        "line": 228,
+        "originalLine": 228,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDUzYjIxYjI2NWY2"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_b5c7c36c14d95ca14c",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 65 (510 chars)",
+           "createdAt": "2026-09-29T15:27:23Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r7481954141"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_be6afffcf7cdd8e5af",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_16.py",
+        "line": 96,
+        "originalLine": 96,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZDJkN2JjNTVhOWVi"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_14269f8d56e98cb234",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 66 (912 chars) with a question?",
+           "createdAt": "2026-09-29T15:27:23Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r6030470714"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_1184c114c5d8ff1e6d",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_17.py",
+        "line": 64,
+        "originalLine": 64,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MjY5MjhhZjRkNzhm"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_96a9fb8335afeda2d2",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 67 (253 chars)",
+           "createdAt": "2026-09-29T15:27:23Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r9675556194"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_d9cfc0b55d7d45e03e",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_18.py",
+        "line": 294,
+        "originalLine": 294,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDc4N2JkNzk3NDdk"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_4c177467078c9b383a",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 68 (1268 chars)",
+           "createdAt": "2026-09-29T15:27:23Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r1069537388"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_555f1db619c31f9de8",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_19.py",
+        "line": 788,
+        "originalLine": 788,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZjNjZmI4Nzc2MGM5"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_c2ab37f0d2d91a5a23",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 69 (513 chars)",
+           "createdAt": "2026-09-29T15:27:23Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r5946580842"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_5e50a2769f28b6b5d2",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_19.py",
+        "line": 750,
+        "originalLine": 750,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZjA1ZmM4MTIwNGJh"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_314d84d423b796a3da",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 70 (280 chars)",
+           "createdAt": "2026-11-02T10:38:03Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r8643226531"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_3630309135c99b373a",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "src/module_19.py",
+        "line": 938,
+        "originalLine": 938,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6N2MwMDYzMTg3MTYy"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_6741b640d3ba1a3f47",
+           "author": {
+            "login": "person-1",
+            "__typename": "User"
+           },
+           "body": "Text 71 (416 chars)",
+           "createdAt": "2026-11-02T10:38:05Z",
+           "url": "https://github.com/example-org/shop/pull/2177#discussion_r5217944347"
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "comments": {
+      "totalCount": 3,
+      "nodes": [
+       {
+        "id": "IC_e5b955ddebbbd69b6a",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "body": "Text 72 (8044 chars) with a question?",
+        "createdAt": "2026-09-14T09:27:26Z",
+        "url": "https://github.com/example-org/shop/pull/2177#issuecomment-2761503758"
+       },
+       {
+        "id": "IC_1b9f820d4d8466b3fe",
+        "author": {
+         "login": "github-actions",
+         "__typename": "Bot"
+        },
+        "body": "Text 73 (129 chars)",
+        "createdAt": "2026-09-14T18:06:42Z",
+        "url": "https://github.com/example-org/shop/pull/2177#issuecomment-8584695989"
+       },
+       {
+        "id": "IC_3768036432b6d08d29",
+        "author": {
+         "login": "github-actions",
+         "__typename": "Bot"
+        },
+        "body": "Text 74 (129 chars)",
+        "createdAt": "2026-09-22T11:05:31Z",
+        "url": "https://github.com/example-org/shop/pull/2177#issuecomment-1470953118"
+       }
+      ]
+     },
+     "reviews": {
+      "totalCount": 2,
+      "nodes": [
+       {
+        "id": "PRR_ce38d2e69067e064a5",
+        "state": "COMMENTED",
+        "author": {
+         "login": "claude",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-09-14T18:07:41Z"
+       },
+       {
+        "id": "PRR_a803ed6728f5ba0fa7",
+        "state": "COMMENTED",
+        "author": {
+         "login": "person-1",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-11-02T10:38:50Z"
+       }
+      ]
+     },
+     "body": "Text 252 (24 chars)\n\nText 253 (39 chars)\n\nText 254 (41 chars)\n\nText 255 (3 chars)\n\nText 256 (33 chars)\n\nText 257 (471 chars)\n\n1. Text 258 (311 chars)\n\n2. Text 259 (207 chars)\n\n3. Text 260 (221 chars)\n\n4. Text 261 (217 chars)\n\n5. Text 262 (199 chars)\n\nText 263 (30 chars)\n\n- Text 264 (378 chars)\n\n- Text 265 (511 chars)\n\n- Text 266 (214 chars)\n\n- Text 267 (389 chars)\n\n- Text 268 (363 chars)\n\n# Text 269 (49 chars)\n\n- [x] Text 270 (25 chars)\n- [x] Text 271 (41 chars)\n- [x] Text 272 (69 chars)\n- [ ] Text 273 (75 chars)\n- [ ] Text 274 (120 chars)\n- [ ] Text 275 (100 chars)\n- [ ] Text 276 (84 chars)\n- [ ] Text 277 (60 chars)\n- [ ] Text 278 (74 chars)\n- [ ] Text 279 (71 chars)\n- [x] Text 280 (76 chars)\n\nText 281 (63 chars)\n\nText 282 (55 chars)\n\n\nText 283 (74 chars)\n## Text 284 (21 chars)\n\n* Text 285 (9 chars)\n  * Text 286 (102 chars)\n  * Text 287 (65 chars)\n  * Text 288 (73 chars)\n  * Text 289 (97 chars)\n  * Text 290 (82 chars)\nText 291 (70 chars)",
+     "createdAt": "2026-09-14T09:26:54Z",
+     "additions": 649,
+     "deletions": 630,
+     "changedFiles": 30,
+     "author": {
+      "login": "me-dev"
+     },
+     "labels": {
+      "nodes": []
+     },
+     "reviewRequests": {
+      "nodes": [
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-3"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": "PR_7b349d02503fadbf89",
+     "number": 2159,
+     "title": "SH-20507 Text 75 (66 chars)",
+     "url": "https://github.com/example-org/shop/pull/2159",
+     "isDraft": false,
+     "state": "OPEN",
+     "updatedAt": "2026-04-09T07:08:02Z",
+     "mergedAt": null,
+     "headRefName": "feature/SH-20507-change-374",
+     "baseRefName": "development",
+     "mergeable": "CONFLICTING",
+     "reviewDecision": "REVIEW_REQUIRED",
+     "headCommit": {
+      "nodes": [
+       {
+        "commit": {
+         "id": "C_f875f69e6906b00c16",
+         "oid": "f1a51abdbc79d4d77ce011a6b932fe6ac47de785",
+         "committedDate": "2026-04-09T07:01:03Z",
+         "statusCheckRollup": {
+          "state": "SUCCESS",
+          "contexts": {
+           "totalCount": 2,
+           "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Mg"
+           },
+           "nodes": [
+            {
+             "__typename": "CheckRun",
+             "name": "Security scan: check code",
+             "conclusion": "SUCCESS",
+             "status": "COMPLETED",
+             "detailsUrl": "https://ci.example.com/scan"
+            },
+            {
+             "__typename": "StatusContext",
+             "context": "CodeRabbit",
+             "state": "SUCCESS",
+             "targetUrl": null
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     },
+     "allCommits": {
+      "totalCount": 13,
+      "nodes": [
+       {
+        "commit": {
+         "oid": "bd93e62726ff475af4bab81cb6f13c395ac60263",
+         "messageHeadline": "SH-20507 Text 76 (65 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "44bafb6f90c41a749cca6f2056a76dcd1164ab16",
+         "messageHeadline": "SH-20507 Text 77 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "64f53d11c07a56b3304fc13ec6f74abb31f9225c",
+         "messageHeadline": "SH-20507 Text 78 (59 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "79fcf618509a48dc09229dcb58983149d1a578dc",
+         "messageHeadline": "SH-20507 Text 79 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "5bd8b842bc7b952a62dcf5e2e6a5b06d8dde8a26",
+         "messageHeadline": "SH-20507 Text 80 (71 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "5aaab011896739cd84c075c6b068284ef123e203",
+         "messageHeadline": "SH-20507 Text 81 (68 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "2a5a0cd4590bde20243ae8b66080705ec312678a",
+         "messageHeadline": "SH-20507 Text 82 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "68923fb69d9faaea6a608c987d7af60d0f97d4d8",
+         "messageHeadline": "SH-20507 Text 83 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "685b9b3969c8111559ce15488e2b0cfb1451dffa",
+         "messageHeadline": "SH-20507 Text 84 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "0679ae14b718ebe7293e385726cebd3bd73cdd2c",
+         "messageHeadline": "SH-20507 Text 85 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "bc9868cc598af69929afea0b0a176d981bb0e413",
+         "messageHeadline": "SH-20507 Text 86 (70 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "54a24e044e3300ce2d6c16eef30d8833c9eb52d9",
+         "messageHeadline": "SH-20507 Text 87 (46 chars)"
+        }
+       },
+       {
+        "commit": {
+         "oid": "f1a51abdbc79d4d77ce011a6b932fe6ac47de785",
+         "messageHeadline": "SH-20507 Text 88 (70 chars)"
+        }
+       }
+      ]
+     },
+     "reviewThreads": {
+      "totalCount": 12,
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": "Y3Vyc29yOmZpeHR1cmU6NTc4ZDM2ZDBjY2Yw"
+      },
+      "nodes": [
+       {
+        "id": "PRRT_b2d64a6b36b51f55a2",
+        "isResolved": true,
+        "isOutdated": true,
+        "path": "src/module_20.py",
+        "line": null,
+        "originalLine": 59,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZmI5ZjlkZTA3YTVh"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_f3197f5fa5398484f2",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 89 (1766 chars)",
+           "createdAt": "2026-03-23T01:59:28Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r4523014793"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_92f24e683fe607ead3",
+        "isResolved": true,
+        "isOutdated": true,
+        "path": "src/module_21.py",
+        "line": null,
+        "originalLine": 91,
+        "comments": {
+         "totalCount": 3,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MzRkMzM5ZmEwZTQ1"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_8ace401930c2ab1a8c",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 90 (1620 chars)",
+           "createdAt": "2026-03-23T01:59:28Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r6615283179"
+          },
+          {
+           "id": "PRRC_01747f53e871de56e4",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 91 (352 chars)",
+           "createdAt": "2026-03-30T07:25:43Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r1069551091"
+          },
+          {
+           "id": "PRRC_2dc9a72cdd29f05d04",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 92 (19975 chars)",
+           "createdAt": "2026-03-30T07:26:10Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r6456242407"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_39f202d614bda6bf31",
+        "isResolved": true,
+        "isOutdated": true,
+        "path": "src/module_22.js",
+        "line": null,
+        "originalLine": 128,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MzY3YzFlMmUwZGYz"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_835f0e371657873f4a",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 93 (1486 chars)",
+           "createdAt": "2026-03-23T01:59:28Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r7318877762"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_42acf5e88d275972cf",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_20.py",
+        "line": 23,
+        "originalLine": 23,
+        "comments": {
+         "totalCount": 3,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6NDA1MzczOTRkZWM3"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_0fb51329de747bc65f",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 94 (2102 chars)",
+           "createdAt": "2026-03-23T02:03:48Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r1669152121"
+          },
+          {
+           "id": "PRRC_2fba5cc80a0aa9eda1",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 95 (289 chars)",
+           "createdAt": "2026-03-30T07:25:46Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r5546578304"
+          },
+          {
+           "id": "PRRC_34795cfdfe8d1066e3",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 96 (17087 chars)",
+           "createdAt": "2026-03-30T07:26:45Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r7723960137"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_c9421b502b6e5467f0",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_20.py",
+        "line": 63,
+        "originalLine": 64,
+        "comments": {
+         "totalCount": 3,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ODY2MDE1MjgwYjUy"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_d023b5002f36562f9f",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 97 (1827 chars)",
+           "createdAt": "2026-03-23T02:03:48Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r7280930575"
+          },
+          {
+           "id": "PRRC_c714a9cb2e0560f480",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 98 (501 chars)",
+           "createdAt": "2026-03-30T07:25:39Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r4289647166"
+          },
+          {
+           "id": "PRRC_f0fb3c8c3a5e274901",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 99 (20290 chars)",
+           "createdAt": "2026-03-30T07:26:14Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r3724377003"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_3f01fbf8fc5c1a0d65",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_23.py",
+        "line": 323,
+        "originalLine": 320,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MzhkMzJlYmRmMzBm"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_fe8b40844fbba2e3ec",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 100 (1962 chars)",
+           "createdAt": "2026-03-23T02:35:33Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r6112626556"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_83e886a52bdef62fc3",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_23.py",
+        "line": 337,
+        "originalLine": 334,
+        "comments": {
+         "totalCount": 3,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6YjdlZTVkNjMzNDUw"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_65c4e84ceea98226a0",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 101 (7210 chars)",
+           "createdAt": "2026-03-23T02:35:33Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r3705967154"
+          },
+          {
+           "id": "PRRC_e284b58ac96d7fd427",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 102 (347 chars)",
+           "createdAt": "2026-03-30T07:25:41Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r9890829304"
+          },
+          {
+           "id": "PRRC_67ad0268c89fa513b3",
+           "author": {
+            "login": "coderabbitai",
+            "__typename": "Bot"
+           },
+           "body": "Text 103 (17351 chars)",
+           "createdAt": "2026-03-30T07:26:08Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r9422482353"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_1eb525b9eb094e89db",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_24.py",
+        "line": 218,
+        "originalLine": 218,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDdlNjFmN2VlZTkx"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_03381538db0f5f8e0a",
+           "author": {
+            "login": "security-scan",
+            "__typename": "Bot"
+           },
+           "body": "Text 104 (1183 chars) with a question?",
+           "createdAt": "2026-04-01T03:21:24Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r3009981846"
+          },
+          {
+           "id": "PRRC_61af22cb6e4b6807b1",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 105 (379 chars)",
+           "createdAt": "2026-04-08T05:38:24Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r3050693861"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_3273f75c14d896ce1a",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_23.py",
+        "line": 299,
+        "originalLine": 299,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6YTk3NWQwZmEzZDQy"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_7f069576823a732f5f",
+           "author": {
+            "login": "security-scan",
+            "__typename": "Bot"
+           },
+           "body": "Text 106 (1249 chars) with a question?",
+           "createdAt": "2026-04-01T03:21:25Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r4899879234"
+          },
+          {
+           "id": "PRRC_a22a746ccd4399d38b",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 107 (357 chars)",
+           "createdAt": "2026-04-08T05:38:26Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r3435148712"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_fdeac7b2ee91c90429",
+        "isResolved": true,
+        "isOutdated": true,
+        "path": "src/module_25.py",
+        "line": null,
+        "originalLine": 100,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZDE4NDFlNTE2NmI5"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_0fc7a74cf87887fda4",
+           "author": {
+            "login": "security-scan",
+            "__typename": "Bot"
+           },
+           "body": "Text 108 (1323 chars) with a question?",
+           "createdAt": "2026-04-01T03:21:49Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r1255935328"
+          },
+          {
+           "id": "PRRC_aa93ec668196fc0371",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 109 (302 chars)",
+           "createdAt": "2026-04-08T05:38:28Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r3271969145"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_25869dbc02aaed9e7f",
+        "isResolved": true,
+        "isOutdated": true,
+        "path": "src/module_24.py",
+        "line": null,
+        "originalLine": 239,
+        "comments": {
+         "totalCount": 2,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZTA3Y2U2MTMzZTg0"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_761e9da2e74128415a",
+           "author": {
+            "login": "security-scan",
+            "__typename": "Bot"
+           },
+           "body": "Text 110 (1067 chars) with a question?",
+           "createdAt": "2026-04-01T03:22:19Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r5236830067"
+          },
+          {
+           "id": "PRRC_7cac249f12874c241f",
+           "author": {
+            "login": "me-dev",
+            "__typename": "User"
+           },
+           "body": "Text 111 (242 chars)",
+           "createdAt": "2026-04-08T05:38:30Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r5566524749"
+          }
+         ]
+        }
+       },
+       {
+        "id": "PRRT_4063865c48c9965b45",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "src/module_25.py",
+        "line": 137,
+        "originalLine": 136,
+        "comments": {
+         "totalCount": 1,
+         "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDJmMDU5MGYzMGIw"
+         },
+         "nodes": [
+          {
+           "id": "PRRC_cb27db6c6115719598",
+           "author": {
+            "login": "greptile-apps",
+            "__typename": "Bot"
+           },
+           "body": "Text 112 (1488 chars) with a question?",
+           "createdAt": "2026-04-01T03:29:20Z",
+           "url": "https://github.com/example-org/shop/pull/2159#discussion_r8603096209"
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "comments": {
+      "totalCount": 2,
+      "nodes": [
+       {
+        "id": "IC_a74d9f16fe72860546",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "body": "Text 113 (22174 chars)",
+        "createdAt": "2026-03-23T01:52:06Z",
+        "url": "https://github.com/example-org/shop/pull/2159#issuecomment-4122243603"
+       },
+       {
+        "id": "IC_1d017c7de62516f1c2",
+        "author": {
+         "login": "greptile-apps",
+         "__typename": "Bot"
+        },
+        "body": "Text 114 (4731 chars) with a question?",
+        "createdAt": "2026-04-01T03:29:16Z",
+        "url": "https://github.com/example-org/shop/pull/2159#issuecomment-1032479033"
+       }
+      ]
+     },
+     "reviews": {
+      "totalCount": 23,
+      "nodes": [
+       {
+        "id": "PRR_e049eafd9c951e31a1",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-03-23T02:40:33Z"
+       },
+       {
+        "id": "PRR_3076f9b97b987b12bc",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-03-30T07:25:39Z"
+       },
+       {
+        "id": "PRR_551836be7c027cba26",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-03-30T07:25:41Z"
+       },
+       {
+        "id": "PRR_4052b7c161d33c3b70",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-03-30T07:25:43Z"
+       },
+       {
+        "id": "PRR_2e7f7dda38f8a45f75",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-03-30T07:25:46Z"
+       },
+       {
+        "id": "PRR_a0d37980a4be6c1f27",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-03-30T07:26:08Z"
+       },
+       {
+        "id": "PRR_822f75410bd9a8785c",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-03-30T07:26:10Z"
+       },
+       {
+        "id": "PRR_f9b63b2fe166a82dca",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-03-30T07:26:14Z"
+       },
+       {
+        "id": "PRR_0aba2b8073d8dfb2aa",
+        "state": "COMMENTED",
+        "author": {
+         "login": "coderabbitai",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-03-30T07:26:45Z"
+       },
+       {
+        "id": "PRR_c541c6c90712c63865",
+        "state": "COMMENTED",
+        "author": {
+         "login": "claude",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-04-01T03:20:18Z"
+       },
+       {
+        "id": "PRR_94caed0897ebd301de",
+        "state": "COMMENTED",
+        "author": {
+         "login": "security-scan",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-04-01T03:21:24Z"
+       },
+       {
+        "id": "PRR_cd28237a156cda5b37",
+        "state": "COMMENTED",
+        "author": {
+         "login": "security-scan",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-04-01T03:21:25Z"
+       },
+       {
+        "id": "PRR_f6b8c9f87c6062c8a9",
+        "state": "COMMENTED",
+        "author": {
+         "login": "security-scan",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-04-01T03:21:49Z"
+       },
+       {
+        "id": "PRR_aa3cce83f12a98846c",
+        "state": "COMMENTED",
+        "author": {
+         "login": "security-scan",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-04-01T03:22:18Z"
+       },
+       {
+        "id": "PRR_042ece58c1ffef9343",
+        "state": "COMMENTED",
+        "author": {
+         "login": "greptile-apps",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-04-01T03:29:31Z"
+       },
+       {
+        "id": "PRR_1d1f2777d92a70e13e",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-04-08T05:38:24Z"
+       },
+       {
+        "id": "PRR_b8993a4a7d4435b1e4",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-04-08T05:38:26Z"
+       },
+       {
+        "id": "PRR_5a63f86f9f1d896188",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-04-08T05:38:28Z"
+       },
+       {
+        "id": "PRR_602fabfdddf7cf1ebe",
+        "state": "COMMENTED",
+        "author": {
+         "login": "me-dev",
+         "__typename": "User"
+        },
+        "submittedAt": "2026-04-08T05:38:30Z"
+       },
+       {
+        "id": "PRR_2fdb7fedb089afcdae",
+        "state": "COMMENTED",
+        "author": {
+         "login": "greptile-apps",
+         "__typename": "Bot"
+        },
+        "submittedAt": "2026-04-09T07:08:02Z"
+       }
+      ]
+     },
+     "body": "### Text 292 (13 chars)\nText 293 (58 chars)\n\n### Text 294 (30 chars)\nText 295 (3 chars)\n\n### Text 296 (22 chars)\nText 297 (325 chars)\n\n- Text 298 (424 chars)\n\n- Text 299 (331 chars)\n\n- Text 300 (344 chars)\n\n- Text 301 (254 chars)\n\n### Text 302 (19 chars)\n- Text 303 (140 chars)\n- Text 304 (147 chars)\n- Text 305 (125 chars)\n\n# Text 306 (49 chars)\n\n- [x] Text 307 (25 chars)\n- [x] Text 308 (41 chars)\n- [x] Text 309 (69 chars)\n- [x] Text 310 (75 chars)\n- [x] Text 311 (74 chars)\n- [x] Text 312 (56 chars)\n- [x] Text 313 (78 chars)\n- [x] Text 314 (54 chars)\n- [x] Text 315 (68 chars)\n- [ ] Text 316 (156 chars)\n- [ ] Text 317 (76 chars)\n\nText 318 (151 chars) with a question?\n\nText 319 (74 chars)\n## Text 320 (21 chars)\n\n* Text 321 (16 chars)\n  * Text 322 (240 chars)\n\n* Text 323 (13 chars)\n  * Text 324 (94 chars)\n\n* Text 325 (9 chars)\n  * Text 326 (98 chars)\nText 327 (70 chars)",
+     "createdAt": "2026-03-23T01:51:28Z",
+     "additions": 552,
+     "deletions": 78,
+     "changedFiles": 11,
+     "author": {
+      "login": "me-dev"
+     },
+     "labels": {
+      "nodes": []
+     },
+     "reviewRequests": {
+      "nodes": [
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-3"
+        }
+       },
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-1"
+        }
+       },
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-4"
+        }
+       },
+       {
+        "requestedReviewer": {
+         "__typename": "User",
+         "login": "reviewer-2"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ }
+}

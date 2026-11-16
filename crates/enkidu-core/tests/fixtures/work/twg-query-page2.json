@@ -1,0 +1,789 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.workitem.query",
+ "request": {
+  "jql": "assignee = currentUser() AND statusCategory != Done",
+  "site": "example.atlassian.net",
+  "maxResults": 20
+ },
+ "data": {
+  "issues": [
+   {
+    "id": "46617",
+    "key": "SH-20511",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/46617",
+    "url": "https://example.atlassian.net/browse/SH-20511",
+    "summary": "Text 1 (84 chars)",
+    "status": {
+     "id": "10112",
+     "name": "Ready for Dev",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10103",
+     "name": "Bug"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2026-04-21T17:05:02.304+0200",
+    "updated": "2026-04-21T17:05:40.688+0200"
+   },
+   {
+    "id": "41469",
+    "key": "SH-20507",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/41469",
+    "url": "https://example.atlassian.net/browse/SH-20507",
+    "summary": "Text 2 (56 chars)",
+    "status": {
+     "id": "10002",
+     "name": "Code Review",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-1",
+     "displayName": "Person 1"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2026-03-17T09:16:42.099+0100",
+    "updated": "2026-10-28T14:30:55.278+0100"
+   },
+   {
+    "id": "39147",
+    "key": "SH-20484",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/39147",
+    "url": "https://example.atlassian.net/browse/SH-20484",
+    "summary": "Text 3 (97 chars)",
+    "status": {
+     "id": "10111",
+     "name": "Analysed",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10100",
+     "name": "Story"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-1",
+     "displayName": "Person 1"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2026-03-03T10:39:23.329+0100",
+    "updated": "2026-04-14T16:55:52.539+0200"
+   },
+   {
+    "id": "37720",
+    "key": "SH-20445",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/37720",
+    "url": "https://example.atlassian.net/browse/SH-20445",
+    "summary": "Text 4 (61 chars)",
+    "status": {
+     "id": "10112",
+     "name": "Ready for Dev",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-1",
+     "displayName": "Person 1"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2026-02-18T16:37:52.499+0100",
+    "updated": "2026-02-18T16:54:29.869+0100"
+   },
+   {
+    "id": "33228",
+    "key": "SH-20395",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/33228",
+    "url": "https://example.atlassian.net/browse/SH-20395",
+    "summary": "Text 5 (65 chars)",
+    "status": {
+     "id": "10002",
+     "name": "Code Review",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-1",
+     "displayName": "Person 1"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2026-01-05T00:22:54.564+0100",
+    "updated": "2026-07-31T09:18:01.502+0200"
+   },
+   {
+    "id": "31929",
+    "key": "SH-20383",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/31929",
+    "url": "https://example.atlassian.net/browse/SH-20383",
+    "summary": "Text 6 (47 chars)",
+    "status": {
+     "id": "3",
+     "name": "In Progress",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10102",
+     "name": "Sub-task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-12-04T10:43:12.039+0100",
+    "updated": "2026-08-20T02:53:09.567+0200"
+   },
+   {
+    "id": "30102",
+    "key": "SH-20362",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/30102",
+    "url": "https://example.atlassian.net/browse/SH-20362",
+    "summary": "Text 7 (64 chars)",
+    "status": {
+     "id": "10112",
+     "name": "Ready for Dev",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-10-27T12:11:05.321+0100",
+    "updated": "2025-10-27T12:23:22.380+0100"
+   },
+   {
+    "id": "30099",
+    "key": "SH-20316",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/30099",
+    "url": "https://example.atlassian.net/browse/SH-20316",
+    "summary": "Text 8 (68 chars)",
+    "status": {
+     "id": "10112",
+     "name": "Ready for Dev",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-10-27T12:11:05.293+0100",
+    "updated": "2025-10-27T12:23:15.653+0100"
+   },
+   {
+    "id": "30098",
+    "key": "SH-20300",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/30098",
+    "url": "https://example.atlassian.net/browse/SH-20300",
+    "summary": "Text 9 (47 chars)",
+    "status": {
+     "id": "3",
+     "name": "In Progress",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-10-27T12:11:05.096+0100",
+    "updated": "2025-11-04T21:56:44.943+0100"
+   },
+   {
+    "id": "29467",
+    "key": "SH-20249",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/29467",
+    "url": "https://example.atlassian.net/browse/SH-20249",
+    "summary": "Text 10 (65 chars)",
+    "status": {
+     "id": "10112",
+     "name": "Ready for Dev",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10103",
+     "name": "Bug"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-2",
+     "displayName": "Person 2"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-09-18T16:37:55.632+0200",
+    "updated": "2025-12-02T13:25:45.843+0100"
+   },
+   {
+    "id": "28604",
+    "key": "SH-20208",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/28604",
+    "url": "https://example.atlassian.net/browse/SH-20208",
+    "summary": "Text 11 (74 chars)",
+    "status": {
+     "id": "10111",
+     "name": "Analysed",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10103",
+     "name": "Bug"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-2",
+     "displayName": "Person 2"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-07-22T10:15:47.699+0200",
+    "updated": "2025-08-11T15:41:14.208+0200"
+   },
+   {
+    "id": "28407",
+    "key": "SH-6525",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/28407",
+    "url": "https://example.atlassian.net/browse/SH-6525",
+    "summary": "Text 12 (40 chars)",
+    "status": {
+     "id": "10002",
+     "name": "Code Review",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-1",
+     "displayName": "Person 1"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-07-04T13:56:15.251+0200",
+    "updated": "2026-08-24T16:03:29.612+0200"
+   },
+   {
+    "id": "28244",
+    "key": "SH-6523",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/28244",
+    "url": "https://example.atlassian.net/browse/SH-6523",
+    "summary": "Text 13 (96 chars)",
+    "status": {
+     "id": "10111",
+     "name": "Analysed",
+     "statusCategory": {
+      "key": "new",
+      "name": "To Do"
+     }
+    },
+    "issueType": {
+     "id": "10103",
+     "name": "Bug"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-3",
+     "displayName": "Person 3"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-06-17T13:34:52.175+0200",
+    "updated": "2025-07-07T11:37:39.001+0200"
+   },
+   {
+    "id": "27266",
+    "key": "SH-6498",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/27266",
+    "url": "https://example.atlassian.net/browse/SH-6498",
+    "summary": "Text 14 (55 chars)",
+    "status": {
+     "id": "10002",
+     "name": "Code Review",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10102",
+     "name": "Sub-task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-04-18T13:00:32.529+0200",
+    "updated": "2025-05-20T10:08:36.776+0200"
+   },
+   {
+    "id": "26254",
+    "key": "SH-6489",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/26254",
+    "url": "https://example.atlassian.net/browse/SH-6489",
+    "summary": "Text 15 (61 chars)",
+    "status": {
+     "id": "3",
+     "name": "In Progress",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10000",
+     "name": "Epic"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-1",
+     "displayName": "Person 1"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2025-02-03T10:28:07.770+0100",
+    "updated": "2026-01-30T09:59:12.134+0100"
+   },
+   {
+    "id": "25535",
+    "key": "SH-6464",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/25535",
+    "url": "https://example.atlassian.net/browse/SH-6464",
+    "summary": "Text 16 (43 chars)",
+    "status": {
+     "id": "10002",
+     "name": "Code Review",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10101",
+     "name": "Task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-4",
+     "displayName": "Person 4"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2024-10-21T16:01:37.893+0200",
+    "updated": "2024-11-01T11:26:35.229+0100"
+   },
+   {
+    "id": "25411",
+    "key": "SH-6447",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/25411",
+    "url": "https://example.atlassian.net/browse/SH-6447",
+    "summary": "Text 17 (72 chars)",
+    "status": {
+     "id": "10002",
+     "name": "Code Review",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10102",
+     "name": "Sub-task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2024-10-02T15:11:54.402+0200",
+    "updated": "2024-11-01T11:26:35.325+0100"
+   },
+   {
+    "id": "25406",
+    "key": "SH-6439",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/25406",
+    "url": "https://example.atlassian.net/browse/SH-6439",
+    "summary": "Text 18 (56 chars)",
+    "status": {
+     "id": "10116",
+     "name": "On Hold",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10102",
+     "name": "Sub-task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2024-10-02T09:42:15.046+0200",
+    "updated": "2024-10-28T11:28:44.929+0100"
+   },
+   {
+    "id": "25405",
+    "key": "SH-6417",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/25405",
+    "url": "https://example.atlassian.net/browse/SH-6417",
+    "summary": "Text 19 (55 chars)",
+    "status": {
+     "id": "10116",
+     "name": "On Hold",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10102",
+     "name": "Sub-task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2024-10-02T09:42:07.236+0200",
+    "updated": "2024-10-24T14:14:08.271+0200"
+   },
+   {
+    "id": "25404",
+    "key": "SH-6402",
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/25404",
+    "url": "https://example.atlassian.net/browse/SH-6402",
+    "summary": "Text 20 (65 chars)",
+    "status": {
+     "id": "10116",
+     "name": "On Hold",
+     "statusCategory": {
+      "key": "indeterminate",
+      "name": "In Progress"
+     }
+    },
+    "issueType": {
+     "id": "10102",
+     "name": "Sub-task"
+    },
+    "priority": {
+     "id": "3",
+     "name": "Medium"
+    },
+    "assignee": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "reporter": {
+     "accountId": "acc-me",
+     "displayName": "Me Dev"
+    },
+    "project": {
+     "id": "10303",
+     "key": "SH",
+     "name": "Shop Main"
+    },
+    "created": "2024-10-02T09:41:56.656+0200",
+    "updated": "2024-10-24T14:14:06.212+0200"
+   }
+  ]
+ },
+ "pageInfo": {
+  "hasNextPage": true,
+  "nextCursor": "cursor-2"
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.workitem",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "rest-v3",
+   "resourceType": "jira.workitem"
+  }
+ }
+}

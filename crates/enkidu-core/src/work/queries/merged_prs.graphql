@@ -1,0 +1,8 @@
+query($q: String!, $after: String) {
+  viewer { login }
+  search(query: $q, type: ISSUE, first: 50, after: $after) {
+    issueCount
+    pageInfo { hasNextPage endCursor }
+    nodes { ... on PullRequest { number title url state mergedAt updatedAt headRefName baseRefName } }
+  }
+}

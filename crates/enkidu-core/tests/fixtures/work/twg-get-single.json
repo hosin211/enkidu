@@ -1,0 +1,85 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.workitem.get",
+ "request": {
+  "issueIdOrKey": "SH-21349",
+  "site": "example.atlassian.net",
+  "fields": [
+   "summary",
+   "status",
+   "assignee",
+   "updated",
+   "attachment"
+  ],
+  "comments": true
+ },
+ "data": [
+  {
+   "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+   "id": "51687",
+   "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/51687",
+   "key": "SH-21349",
+   "summary": "Text 1 (99 chars)",
+   "assignee": {
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/user?accountId=acc",
+    "accountId": "acc-me",
+    "emailAddress": "someone@example.com",
+    "displayName": "Me Dev",
+    "active": true,
+    "timeZone": "Etc/UTC",
+    "accountType": "atlassian"
+   },
+   "attachment": [],
+   "updated": "2026-11-01T23:04:00.640+0100",
+   "status": {
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/status/10002",
+    "description": "Text 2 (27 chars)",
+    "name": "Code Review",
+    "id": "10002",
+    "statusCategory": {
+     "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/statuscategory/4",
+     "id": 4,
+     "key": "indeterminate",
+     "colorName": "yellow",
+     "name": "In Progress"
+    }
+   },
+   "url": "https://example.atlassian.net/browse/SH-21349",
+   "comments": []
+  }
+ ],
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.workitem",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "rest-v3",
+   "resourceType": "jira.workitem"
+  },
+  "acquisition": {
+   "requested": 1,
+   "returned": 1,
+   "succeeded": 1,
+   "failed": 0,
+   "omitted": 0,
+   "truncated": 0
+  },
+  "evidence": {
+   "provenance": {
+    "source": "teamwork-graph"
+   },
+   "coverage": {
+    "status": "complete",
+    "covered": [
+     "SH-21349"
+    ]
+   },
+   "truncation": {
+    "truncated": false
+   }
+  }
+ }
+}

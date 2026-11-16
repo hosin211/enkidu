@@ -1,0 +1,3 @@
+# Six of the ten cores, so the Mac stays usable while you work.
+[build]
+jobs = 6

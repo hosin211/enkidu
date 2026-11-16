@@ -1,0 +1,157 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.board.query",
+ "request": {
+  "projectAri": "SH",
+  "projectKeyOrId": "SH",
+  "site": "example.atlassian.net"
+ },
+ "data": {
+  "boards": [
+   {
+    "id": 9,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/9",
+    "name": "Release view",
+    "type": "kanban",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   },
+   {
+    "id": 13,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/13",
+    "name": "First tasks",
+    "type": "kanban",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   },
+   {
+    "id": 7,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/7",
+    "name": "Backlog shortlist",
+    "type": "kanban",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   },
+   {
+    "id": 18,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/18",
+    "name": "Performance",
+    "type": "kanban",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   },
+   {
+    "id": 20,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/20",
+    "name": "Integrations",
+    "type": "kanban",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   },
+   {
+    "id": 22,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/22",
+    "name": "Known bugs",
+    "type": "kanban",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   },
+   {
+    "id": 5,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/5",
+    "name": "Shop Dev",
+    "type": "scrum",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   },
+   {
+    "id": 16,
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/16",
+    "name": "Customer work",
+    "type": "scrum",
+    "location": {
+     "projectId": 10303,
+     "displayName": "Shop Main (SH)",
+     "projectName": "Shop Main",
+     "projectKey": "SH",
+     "projectTypeKey": "software",
+     "avatarURI": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/universal_avatar/view/type/project/avatar/10613?size=small",
+     "name": "Shop Main (SH)"
+    },
+    "isPrivate": false
+   }
+  ],
+  "total": 8,
+  "startAt": 0,
+  "maxResults": 50,
+  "isLast": true
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.board-search-result",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "agile-v1",
+   "resourceType": "jira.board-search-result"
+  }
+ }
+}

@@ -1,0 +1,8 @@
+query($id: ID!, $after: String) {
+  node(id: $id) {
+    ... on PullRequestReviewThread {
+      comments(first: 50, after: $after) { totalCount pageInfo { hasNextPage endCursor }
+        nodes { id author { login __typename } body createdAt url } }
+    }
+  }
+}

@@ -1,0 +1,258 @@
+{
+ "data": {
+  "node": {
+   "reviewThreads": {
+    "totalCount": 9,
+    "pageInfo": {
+     "hasNextPage": false,
+     "endCursor": "Y3Vyc29yOmZpeHR1cmU6NjdhZGYwNWRiNmEy"
+    },
+    "nodes": [
+     {
+      "id": "PRRT_f5a4e14024dd6a2c30",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_1.py",
+      "line": 23,
+      "originalLine": 23,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6MjU1N2JmZmExYjc4"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_622289392f2c7395cc",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 1 (595 chars)",
+         "createdAt": "2026-09-29T15:27:23Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r5234802891"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_e9e61475522825ea57",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_2.py",
+      "line": 30,
+      "originalLine": 30,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZjU2ZmViOWM5Yzcz"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_e756675c344b69f32d",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 2 (384 chars)",
+         "createdAt": "2026-09-29T15:27:23Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r5312116930"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_50c965f51808e7fbdd",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_3.py",
+      "line": 228,
+      "originalLine": 228,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDUzYjIxYjI2NWY2"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_b5c7c36c14d95ca14c",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 3 (510 chars)",
+         "createdAt": "2026-09-29T15:27:23Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r7481954141"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_be6afffcf7cdd8e5af",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_4.py",
+      "line": 96,
+      "originalLine": 96,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZDJkN2JjNTVhOWVi"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_14269f8d56e98cb234",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 4 (912 chars) with a question?",
+         "createdAt": "2026-09-29T15:27:23Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r6030470714"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_1184c114c5d8ff1e6d",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_5.py",
+      "line": 64,
+      "originalLine": 64,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6MjY5MjhhZjRkNzhm"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_96a9fb8335afeda2d2",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 5 (253 chars)",
+         "createdAt": "2026-09-29T15:27:23Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r9675556194"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_d9cfc0b55d7d45e03e",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_6.py",
+      "line": 294,
+      "originalLine": 294,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6MDc4N2JkNzk3NDdk"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_4c177467078c9b383a",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 6 (1268 chars)",
+         "createdAt": "2026-09-29T15:27:23Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r1069537388"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_555f1db619c31f9de8",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_7.py",
+      "line": 788,
+      "originalLine": 788,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZjNjZmI4Nzc2MGM5"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_c2ab37f0d2d91a5a23",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 7 (513 chars)",
+         "createdAt": "2026-09-29T15:27:23Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r5946580842"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_5e50a2769f28b6b5d2",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_7.py",
+      "line": 750,
+      "originalLine": 750,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6ZjA1ZmM4MTIwNGJh"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_314d84d423b796a3da",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 8 (280 chars)",
+         "createdAt": "2026-11-02T10:38:03Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r8643226531"
+        }
+       ]
+      }
+     },
+     {
+      "id": "PRRT_3630309135c99b373a",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "src/module_7.py",
+      "line": 938,
+      "originalLine": 938,
+      "comments": {
+       "totalCount": 1,
+       "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOmZpeHR1cmU6N2MwMDYzMTg3MTYy"
+       },
+       "nodes": [
+        {
+         "id": "PRRC_6741b640d3ba1a3f47",
+         "author": {
+          "login": "person-1",
+          "__typename": "User"
+         },
+         "body": "Text 9 (416 chars)",
+         "createdAt": "2026-11-02T10:38:05Z",
+         "url": "https://github.com/example-org/shop/pull/2177#discussion_r5217944347"
+        }
+       ]
+      }
+     }
+    ]
+   }
+  }
+ }
+}

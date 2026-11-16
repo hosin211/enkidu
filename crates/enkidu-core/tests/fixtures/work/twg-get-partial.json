@@ -1,0 +1,1505 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.workitem.get",
+ "request": {
+  "issueIdOrKey": [
+   "SH-21254",
+   "SH-99999999"
+  ],
+  "site": "example.atlassian.net",
+  "fields": [
+   "summary",
+   "status",
+   "assignee",
+   "updated",
+   "attachment"
+  ],
+  "comments": true
+ },
+ "data": {
+  "items": [
+   {
+    "input": "SH-21254",
+    "ok": true,
+    "data": {
+     "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+     "id": "51672",
+     "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/51672",
+     "key": "SH-21254",
+     "summary": "Text 1 (49 chars)",
+     "assignee": {
+      "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/user?accountId=acc",
+      "accountId": "acc-me",
+      "emailAddress": "someone@example.com",
+      "displayName": "Me Dev",
+      "active": true,
+      "timeZone": "Etc/UTC",
+      "accountType": "atlassian"
+     },
+     "attachment": [],
+     "updated": "2026-11-04T16:03:23.947+0100",
+     "status": {
+      "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/status/10001",
+      "description": "Text 2 (184 chars)",
+      "name": "Done",
+      "id": "10001",
+      "statusCategory": {
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/statuscategory/3",
+       "id": 3,
+       "key": "done",
+       "colorName": "green",
+       "name": "Done"
+      }
+     },
+     "url": "https://example.atlassian.net/browse/SH-21254",
+     "comments": [
+      {
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/51672/comment/77881",
+       "id": "77881",
+       "author": {
+        "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/user?accountId=acc",
+        "accountId": "acc-1",
+        "emailAddress": "someone@example.com",
+        "displayName": "Person 1",
+        "active": true,
+        "timeZone": "Etc/UTC",
+        "accountType": "atlassian"
+       },
+       "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 3 (89 chars)"
+           }
+          ]
+         },
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 4 (104 chars)"
+           }
+          ]
+         },
+         {
+          "type": "bulletList",
+          "content": [
+           {
+            "type": "listItem",
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 5 (165 chars)"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "type": "listItem",
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 6 (63 chars)"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "type": "listItem",
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 7 (99 chars)"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "updateAuthor": {
+        "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/user?accountId=acc",
+        "accountId": "acc-1",
+        "emailAddress": "someone@example.com",
+        "displayName": "Person 1",
+        "active": true,
+        "timeZone": "Etc/UTC",
+        "accountType": "atlassian"
+       },
+       "created": "2026-11-04T15:49:57.857+0100",
+       "updated": "2026-11-04T15:49:57.857+0100",
+       "jsdPublic": true
+      },
+      {
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/51672/comment/77883",
+       "id": "77883",
+       "author": {
+        "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/user?accountId=acc",
+        "accountId": "acc-1",
+        "emailAddress": "someone@example.com",
+        "displayName": "Person 1",
+        "active": true,
+        "timeZone": "Etc/UTC",
+        "accountType": "atlassian"
+       },
+       "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 8 (14 chars)"
+           },
+           {
+            "type": "inlineCard",
+            "attrs": {
+             "url": "https://example.atlassian.net/jira/people/person",
+             "localId": "3815ee20c9aa"
+            }
+           }
+          ],
+          "attrs": {
+           "localId": "b5d1075bac39"
+          }
+         },
+         {
+          "type": "heading",
+          "attrs": {
+           "level": 3,
+           "localId": "12305f5c4f9b"
+          },
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 9 (45 chars)"
+           }
+          ]
+         },
+         {
+          "type": "table",
+          "attrs": {
+           "isNumberColumnEnabled": false,
+           "layout": "default",
+           "localId": "a24a8322-17d8-4601-8ce9-10021ba2f486"
+          },
+          "content": [
+           {
+            "type": "tableRow",
+            "attrs": {
+             "localId": "12bb1efbe1ca"
+            },
+            "content": [
+             {
+              "type": "tableHeader",
+              "attrs": {
+               "localId": "5f7b0328bd5b"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 10 (8 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "d2553481038a"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableHeader",
+              "attrs": {
+               "localId": "66e92a396161"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 11 (5 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "e4b89e97db3a"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableHeader",
+              "attrs": {
+               "localId": "5abc4e1fd11a"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 12 (8 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "64bc8c63715d"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableHeader",
+              "attrs": {
+               "localId": "6b37fd2938cd"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 13 (4 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "dd782162dd3d"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableHeader",
+              "attrs": {
+               "localId": "1add481736bf"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 14 (6 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "e0dbd5a825ed"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableHeader",
+              "attrs": {
+               "localId": "303a7d42c040"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 15 (3 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "f47e7e0c99a7"
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "type": "tableRow",
+            "attrs": {
+             "localId": "f49389770996"
+            },
+            "content": [
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "a52423f0d7ab"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 16 (3 chars)"
+                 },
+                 {
+                  "type": "text",
+                  "text": "Text 17 (4 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "2cb03e1e5b87"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "27f9c1e41086"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 18 (1 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "43b7d57d453b"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "14e65e42ebe0"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 19 (1 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "678122e0c764"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "0602629b68f7"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 20 (1 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "c9dd5df1b274"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "b5a7ba8060f7"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 21 (1 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "0441fdd388a1"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "7550b851db44"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 22 (1 chars)"
+                 }
+                ],
+                "attrs": {
+                 "localId": "8c27f377d53f"
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "type": "tableRow",
+            "attrs": {
+             "localId": "67ae202c8861"
+            },
+            "content": [
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "f3a083a4eb5e"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 23 (3 chars)"
+                 },
+                 {
+                  "type": "text",
+                  "text": "Text 24 (23 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "0b7736417adf"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "bef021ccbb8a"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 25 (1 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "5859c6170f81"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "8272aadfd2c0"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "9cfd83a4045b"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "7ad806f6e399"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "5d77ad83ba5c"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "571f70544c3b"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "25b098713f10"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "db11be2e7a86"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "98e1b53d02d4"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "53beae215b15"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "72eb00347599"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "3d30eaa99b2d"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "1fe12a884a5c"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "3d4db075d3ec"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "675ce44ebf6d"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "95a805cdaab9"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "3bdb6b7963ef"
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "type": "tableRow",
+            "attrs": {
+             "localId": "38f94b581020"
+            },
+            "content": [
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "7ccdc2931f6f"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 26 (2 chars)"
+                 },
+                 {
+                  "type": "text",
+                  "text": "Text 27 (20 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "77108bd735eb"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "bcfe6ae75b2f"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 28 (1 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "f0cd4f1fe55f"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "c00d522f4183"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "04b108f7ff22"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "2bff339c517b"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "4b7b417d33ca"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "0fe81dcce80d"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "57b9e7870c94"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "8d934ac1b385"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "92a1bdb48568"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "641ccdce3c03"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "2f6bd4578f2a"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "2c0404e9da06"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "74eb680018cf"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "7849d7d2264c"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "cee9f2f3ee00"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "8f9638bae2fd"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "a2f0ed5b241c"
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "type": "tableRow",
+            "attrs": {
+             "localId": "ddd68cdca008"
+            },
+            "content": [
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "42d676beda4b"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 29 (2 chars)"
+                 },
+                 {
+                  "type": "text",
+                  "text": "Text 30 (35 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "6ed032610752"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "8b570d76926a"
+              },
+              "content": [
+               {
+                "type": "paragraph",
+                "content": [
+                 {
+                  "type": "text",
+                  "text": "Text 31 (1 chars)",
+                  "marks": [
+                   {
+                    "type": "strong"
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "aa4885c35aec"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "11334c7637dc"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "9eb2a60a730f"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "2e562dd5aefe"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "b9dce0c38fdf"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "1f945fc74ce9"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "35a1d963c31a"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "b1528cbdc511"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "c3a2c95261f1"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "fbc34a3d215c"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "fd5264800525"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "cfbcd3760b8d"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "b889dd123044"
+                }
+               }
+              ]
+             },
+             {
+              "type": "tableCell",
+              "attrs": {
+               "localId": "5448e1cfeba3"
+              },
+              "content": [
+               {
+                "type": "bulletList",
+                "content": [
+                 {
+                  "type": "listItem",
+                  "attrs": {
+                   "localId": "0b3acc4b4cd9"
+                  },
+                  "content": [
+                   {
+                    "type": "paragraph",
+                    "attrs": {
+                     "localId": "ed1d1f2de97e"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                "attrs": {
+                 "localId": "a56efbd50689"
+                }
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "type": "heading",
+          "attrs": {
+           "level": 4,
+           "localId": "301c6c9abdfc"
+          },
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 32 (21 chars)"
+           }
+          ]
+         },
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 33 (54 chars)",
+            "marks": [
+             {
+              "type": "em"
+             }
+            ]
+           }
+          ],
+          "attrs": {
+           "localId": "3ff28c5bc6fd"
+          }
+         },
+         {
+          "type": "rule",
+          "attrs": {
+           "localId": "7260c5d821a2"
+          }
+         },
+         {
+          "type": "heading",
+          "attrs": {
+           "level": 3,
+           "localId": "2a5ac538cf0c"
+          },
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 34 (27 chars)"
+           }
+          ]
+         },
+         {
+          "type": "bulletList",
+          "content": [
+           {
+            "type": "listItem",
+            "attrs": {
+             "localId": "c09c42920524"
+            },
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 35 (14 chars)",
+                "marks": [
+                 {
+                  "type": "strong"
+                 }
+                ]
+               },
+               {
+                "type": "text",
+                "text": "Text 36 (1 chars)"
+               },
+               {
+                "type": "mention",
+                "attrs": {
+                 "id": "acc-1",
+                 "text": "@Person 1",
+                 "accessLevel": "",
+                 "localId": "e073a7153f04"
+                }
+               },
+               {
+                "type": "text",
+                "text": "Text 37 (127 chars)"
+               }
+              ],
+              "attrs": {
+               "localId": "d81633819aaa"
+              }
+             }
+            ]
+           }
+          ],
+          "attrs": {
+           "localId": "5965feda9ed0"
+          }
+         },
+         {
+          "type": "heading",
+          "attrs": {
+           "level": 3,
+           "localId": "69fb0331269b"
+          },
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 38 (26 chars)"
+           }
+          ]
+         },
+         {
+          "type": "bulletList",
+          "content": [
+           {
+            "type": "listItem",
+            "attrs": {
+             "localId": "521f56750405"
+            },
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 39 (5 chars)",
+                "marks": [
+                 {
+                  "type": "strong"
+                 }
+                ]
+               }
+              ],
+              "attrs": {
+               "localId": "fb5fa07e46fc"
+              }
+             }
+            ]
+           }
+          ],
+          "attrs": {
+           "localId": "d7083fe88c3c"
+          }
+         },
+         {
+          "type": "heading",
+          "attrs": {
+           "level": 3,
+           "localId": "b66c9356e8bd"
+          },
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 40 (22 chars)"
+           }
+          ]
+         },
+         {
+          "type": "bulletList",
+          "content": [
+           {
+            "type": "listItem",
+            "attrs": {
+             "localId": "e32f33522744"
+            },
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 41 (5 chars)",
+                "marks": [
+                 {
+                  "type": "strong"
+                 }
+                ]
+               }
+              ],
+              "attrs": {
+               "localId": "5ff8ddaf5ed2"
+              }
+             }
+            ]
+           }
+          ],
+          "attrs": {
+           "localId": "4a19312577d6"
+          }
+         },
+         {
+          "type": "heading",
+          "attrs": {
+           "level": 3,
+           "localId": "fdedafce3730"
+          },
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 42 (37 chars)"
+           }
+          ]
+         },
+         {
+          "type": "bulletList",
+          "content": [
+           {
+            "type": "listItem",
+            "attrs": {
+             "localId": "5ade552034f1"
+            },
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 43 (5 chars)",
+                "marks": [
+                 {
+                  "type": "strong"
+                 }
+                ]
+               }
+              ],
+              "attrs": {
+               "localId": "0f8337ba4db0"
+              }
+             }
+            ]
+           }
+          ],
+          "attrs": {
+           "localId": "26d2d37e6d4e"
+          }
+         },
+         {
+          "type": "heading",
+          "attrs": {
+           "level": 3,
+           "localId": "0cba2aef8702"
+          },
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 44 (16 chars)"
+           }
+          ]
+         },
+         {
+          "type": "bulletList",
+          "content": [
+           {
+            "type": "listItem",
+            "attrs": {
+             "localId": "2b3e982ba3f8"
+            },
+            "content": [
+             {
+              "type": "paragraph",
+              "content": [
+               {
+                "type": "text",
+                "text": "Text 45 (5 chars)",
+                "marks": [
+                 {
+                  "type": "strong"
+                 }
+                ]
+               },
+               {
+                "type": "text",
+                "text": "Text 46 (1 chars)"
+               },
+               {
+                "type": "mention",
+                "attrs": {
+                 "id": "acc-1",
+                 "text": "@Person 1",
+                 "accessLevel": "",
+                 "localId": "332a23612d4e"
+                }
+               },
+               {
+                "type": "text",
+                "text": "Text 47 (48 chars)"
+               }
+              ],
+              "attrs": {
+               "localId": "5d4e15848f6b"
+              }
+             },
+             {
+              "type": "bulletList",
+              "content": [
+               {
+                "type": "listItem",
+                "attrs": {
+                 "localId": "235a30d35b15"
+                },
+                "content": [
+                 {
+                  "type": "paragraph",
+                  "content": [
+                   {
+                    "type": "text",
+                    "text": "Text 48 (64 chars)"
+                   }
+                  ],
+                  "attrs": {
+                   "localId": "c074f395f2ff"
+                  }
+                 }
+                ]
+               },
+               {
+                "type": "listItem",
+                "attrs": {
+                 "localId": "c5ded0fc95cc"
+                },
+                "content": [
+                 {
+                  "type": "paragraph",
+                  "content": [
+                   {
+                    "type": "text",
+                    "text": "Text 49 (55 chars)"
+                   }
+                  ],
+                  "attrs": {
+                   "localId": "9d1536135793"
+                  }
+                 }
+                ]
+               },
+               {
+                "type": "listItem",
+                "attrs": {
+                 "localId": "b27e2d56966b"
+                },
+                "content": [
+                 {
+                  "type": "paragraph",
+                  "content": [
+                   {
+                    "type": "text",
+                    "text": "Text 50 (91 chars)"
+                   }
+                  ],
+                  "attrs": {
+                   "localId": "d7ed1b5ee4f2"
+                  }
+                 }
+                ]
+               }
+              ],
+              "attrs": {
+               "localId": "814686c592fa"
+              }
+             }
+            ]
+           }
+          ],
+          "attrs": {
+           "localId": "e8c829c77e27"
+          }
+         },
+         {
+          "type": "blockquote",
+          "content": [
+           {
+            "type": "paragraph",
+            "content": [
+             {
+              "type": "text",
+              "text": "Text 51 (5 chars)",
+              "marks": [
+               {
+                "type": "strong"
+               }
+              ]
+             },
+             {
+              "type": "text",
+              "text": "Text 52 (286 chars)"
+             }
+            ],
+            "attrs": {
+             "localId": "b75f86d35cc9"
+            }
+           }
+          ],
+          "attrs": {
+           "localId": "c25784ac2a1c"
+          }
+         }
+        ]
+       },
+       "updateAuthor": {
+        "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/user?accountId=acc",
+        "accountId": "acc-1",
+        "emailAddress": "someone@example.com",
+        "displayName": "Person 1",
+        "active": true,
+        "timeZone": "Etc/UTC",
+        "accountType": "atlassian"
+       },
+       "created": "2026-11-04T16:03:19.206+0100",
+       "updated": "2026-11-04T16:03:19.206+0100",
+       "jsdPublic": true
+      }
+     ]
+    }
+   },
+   {
+    "input": "SH-99999999",
+    "ok": false,
+    "error": {
+     "message": "Issue does not exist or you do not have permission to see it.",
+     "status": 404
+    }
+   }
+  ],
+  "summary": {
+   "requested": 2,
+   "returned": 1,
+   "succeeded": 1,
+   "failed": 1,
+   "omitted": 0,
+   "truncated": 0
+  }
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.workitem",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "rest-v3",
+   "resourceType": "jira.workitem"
+  },
+  "partial": true,
+  "acquisition": {
+   "requested": 2,
+   "returned": 1,
+   "succeeded": 1,
+   "failed": 1,
+   "omitted": 0,
+   "truncated": 0
+  },
+  "evidence": {
+   "provenance": {
+    "source": "teamwork-graph"
+   },
+   "coverage": {
+    "status": "partial",
+    "covered": [
+     "SH-21254"
+    ],
+    "missing": [
+     "SH-99999999"
+    ]
+   },
+   "truncation": {
+    "truncated": false
+   },
+   "gaps": [
+    {
+     "code": "not-found",
+     "retryable": false,
+     "subject": "workitem:SH-99999999",
+     "detail": "Issue does not exist or you do not have permission to see it."
+    }
+   ]
+  }
+ }
+}

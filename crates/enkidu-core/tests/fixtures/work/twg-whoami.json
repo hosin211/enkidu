@@ -1,0 +1,30 @@
+{
+ "apiVersion": "v2",
+ "command": "user.get",
+ "request": {
+  "accountId": null
+ },
+ "data": {
+  "accountId": "acc-me",
+  "name": "Me Dev",
+  "picture": "https://example.com/avatar.png",
+  "accountStatus": "active",
+  "email": "someone@example.com",
+  "nickname": "Me Dev",
+  "locale": "en-US",
+  "zoneinfo": null,
+  "extendedProfile": {
+   "jobTitle": "Developer",
+   "department": null,
+   "organization": null,
+   "location": null
+  }
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "mixed",
+  "resourceType": "user",
+  "backend": "graphstore",
+  "resultCount": 1
+ }
+}

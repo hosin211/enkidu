@@ -1,0 +1,10 @@
+query($id: ID!, $after: String) {
+  node(id: $id) {
+    ... on Commit {
+      statusCheckRollup { state contexts(first: 50, after: $after) { totalCount pageInfo { hasNextPage endCursor }
+        nodes { __typename
+          ... on CheckRun { name conclusion status detailsUrl }
+          ... on StatusContext { context state targetUrl } } } }
+    }
+  }
+}

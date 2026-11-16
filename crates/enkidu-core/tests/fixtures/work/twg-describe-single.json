@@ -1,0 +1,224 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.workitem.get",
+ "request": {
+  "issueIdOrKey": "SH-21349",
+  "site": "example.atlassian.net",
+  "fields": [
+   "description",
+   "issuetype",
+   "priority"
+  ]
+ },
+ "data": [
+  {
+   "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+   "id": "51687",
+   "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issue/51687",
+   "key": "SH-21349",
+   "priority": {
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/priority/3",
+    "name": "Medium",
+    "id": "3"
+   },
+   "issuetype": {
+    "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/3/issuetype/10101",
+    "id": "10101",
+    "description": "Text 1 (29 chars)",
+    "name": "Task",
+    "subtask": false,
+    "avatarId": 10318,
+    "hierarchyLevel": 0
+   },
+   "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Text 2 (352 chars)"
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Text 3 (106 chars)"
+       }
+      ]
+     },
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 4 (56 chars)"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 5 (73 chars)"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 6 (91 chars)"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 7 (213 chars)"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Text 8 (191 chars)"
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Text 9 (60 chars)"
+       }
+      ]
+     },
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 10 (57 chars)"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Text 11 (83 chars)"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Text 12 (241 chars)"
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Text 13 (17 chars)"
+       }
+      ]
+     }
+    ]
+   },
+   "url": "https://example.atlassian.net/browse/SH-21349"
+  }
+ ],
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.workitem",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "rest-v3",
+   "resourceType": "jira.workitem"
+  },
+  "acquisition": {
+   "requested": 1,
+   "returned": 1,
+   "succeeded": 1,
+   "failed": 0,
+   "omitted": 0,
+   "truncated": 0
+  },
+  "evidence": {
+   "provenance": {
+    "source": "teamwork-graph"
+   },
+   "coverage": {
+    "status": "complete",
+    "covered": [
+     "SH-21349"
+    ]
+   },
+   "truncation": {
+    "truncated": false
+   }
+  }
+ }
+}

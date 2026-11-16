@@ -1,0 +1,96 @@
+{
+ "data": {
+  "viewer": {
+   "login": "me-dev"
+  },
+  "search": {
+   "issueCount": 8,
+   "pageInfo": {
+    "hasNextPage": false,
+    "endCursor": "Y3Vyc29yOjg="
+   },
+   "nodes": [
+    {
+     "number": 2395,
+     "title": "Text 1 (68 chars)",
+     "url": "https://github.com/example-org/shop/pull/2395",
+     "state": "MERGED",
+     "mergedAt": "2026-11-05T11:15:54Z",
+     "updatedAt": "2026-11-05T11:15:57Z",
+     "headRefName": "hotfix/change-827",
+     "baseRefName": "development"
+    },
+    {
+     "number": 2362,
+     "title": "SH-21254 Text 2 (76 chars)",
+     "url": "https://github.com/example-org/shop/pull/2362",
+     "state": "MERGED",
+     "mergedAt": "2026-11-03T11:36:42Z",
+     "updatedAt": "2026-11-03T11:36:44Z",
+     "headRefName": "feature/SH-21254-change-336",
+     "baseRefName": "development"
+    },
+    {
+     "number": 2290,
+     "title": "SH-20839 Text 3 (138 chars)",
+     "url": "https://github.com/example-org/shop/pull/2290",
+     "state": "MERGED",
+     "mergedAt": "2026-10-26T12:51:31Z",
+     "updatedAt": "2026-10-26T12:51:33Z",
+     "headRefName": "feature/SH-20839-change-495",
+     "baseRefName": "development"
+    },
+    {
+     "number": 2285,
+     "title": "SH-20698 Text 4 (74 chars)",
+     "url": "https://github.com/example-org/shop/pull/2285",
+     "state": "MERGED",
+     "mergedAt": "2026-10-20T12:42:56Z",
+     "updatedAt": "2026-10-20T12:42:58Z",
+     "headRefName": "feature/SH-20698-change-681",
+     "baseRefName": "release/1.8"
+    },
+    {
+     "number": 2248,
+     "title": "SH-20698 Text 5 (52 chars)",
+     "url": "https://github.com/example-org/shop/pull/2248",
+     "state": "MERGED",
+     "mergedAt": "2026-10-14T20:03:09Z",
+     "updatedAt": "2026-10-14T20:03:12Z",
+     "headRefName": "feature/SH-20698-change-344",
+     "baseRefName": "development"
+    },
+    {
+     "number": 2233,
+     "title": "SH-20698 Text 6 (79 chars)",
+     "url": "https://github.com/example-org/shop/pull/2233",
+     "state": "MERGED",
+     "mergedAt": "2026-10-14T20:02:58Z",
+     "updatedAt": "2026-10-14T20:03:02Z",
+     "headRefName": "feature/SH-20698-change-385",
+     "baseRefName": "development"
+    },
+    {
+     "number": 2215,
+     "title": "SH-20698 Text 7 (84 chars)",
+     "url": "https://github.com/example-org/shop/pull/2215",
+     "state": "MERGED",
+     "mergedAt": "2026-10-14T20:02:36Z",
+     "updatedAt": "2026-10-14T20:02:40Z",
+     "headRefName": "feature/SH-20698-change-103",
+     "baseRefName": "development"
+    },
+    {
+     "number": 2196,
+     "title": "SH-20698 Text 8 (66 chars)",
+     "url": "https://github.com/example-org/shop/pull/2196",
+     "state": "MERGED",
+     "mergedAt": "2026-10-14T20:02:17Z",
+     "updatedAt": "2026-10-14T21:49:37Z",
+     "headRefName": "feature/SH-20698-change-940",
+     "baseRefName": "development"
+    }
+   ]
+  }
+ }
+}

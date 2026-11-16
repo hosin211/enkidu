@@ -1,0 +1,86 @@
+{
+ "apiVersion": "v2",
+ "command": "jira.board.scope.query",
+ "request": {
+  "boardId": "9",
+  "site": "example.atlassian.net"
+ },
+ "data": {
+  "id": 9,
+  "name": "Release view",
+  "type": "kanban",
+  "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/agile/1.0/board/9/configuration",
+  "location": {
+   "type": "project",
+   "key": "SH",
+   "id": "10303",
+   "self": "https://example.atlassian.net/rest/api/2/project/10303",
+   "name": "Shop Main"
+  },
+  "filter": {
+   "id": "10414",
+   "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/filter/10414"
+  },
+  "subQuery": {
+   "query": "fixVersion in unreleasedVersions() OR fixVersion is EMPTY"
+  },
+  "columnConfig": {
+   "columns": [
+    {
+     "name": "Backlog",
+     "statuses": []
+    },
+    {
+     "name": "In Review",
+     "statuses": [
+      {
+       "id": "10002",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10002"
+      }
+     ]
+    },
+    {
+     "name": "Done",
+     "statuses": [
+      {
+       "id": "10001",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10001"
+      }
+     ]
+    },
+    {
+     "name": "Beta",
+     "statuses": [
+      {
+       "id": "10114",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10114"
+      }
+     ]
+    },
+    {
+     "name": "Live",
+     "statuses": [
+      {
+       "id": "10115",
+       "self": "https://api.atlassian.com/ex/jira/cloud-0/rest/api/2/status/10115"
+      }
+     ]
+    }
+   ],
+   "constraintType": "issueCount"
+  },
+  "ranking": {}
+ },
+ "meta": {
+  "resourceClass": "entity",
+  "sourceMode": "native",
+  "resourceType": "jira.board-scope",
+  "backend": "agg",
+  "meta": {
+   "resourceClass": "entity",
+   "sourceMode": "rest",
+   "apiVersion": "agile-v1",
+   "resourceType": "jira.board-scope"
+  }
+ }
+}

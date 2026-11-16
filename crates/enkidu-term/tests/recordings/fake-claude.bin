@@ -1,0 +1,6 @@
+[1mFake Claude[0m · session s-1 · new
+args: --session-id s-1
+> spin 0.5
+· Working… (esc to interrupt)✢ Working… (esc to interrupt)✳ Working… (esc to interrupt)✶ Working… (esc to interrupt)✻ Working… (esc to interrupt)
+  ⎿  Interrupted · What should Claude do instead?
+> 

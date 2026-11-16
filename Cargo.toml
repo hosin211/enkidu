@@ -1,0 +1,80 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+publish = false
+# The app's own code. crates/enkidu-diff, a changed copy of gpui-component's diff view, stays under Apache-2.0 (NOTICE).
+license = "MIT"
+
+# Every version is exact. An upgrade is its own item between phases.
+[workspace.dependencies]
+gpui-kit = "=0.9.1"
+alacritty_terminal = "=0.26.0"
+portable-pty = "=0.9.0"
+anyhow = "1"
+futures = "=0.3.34"
+unicode-bidi = "=0.3.18"
+unicode-width = "=0.2.3"
+# enkidu-diff, the copied diff view, needs what gpui-component's diff module used (the versions this lock already had)
+similar = { version = "=2.7.0", features = ["unicode"] }
+smallvec = "=1.16.5"
+unicode-segmentation = "=1.13.3"
+# enkidu-syntax: the grammars (syntect with two-face's set, the versions gpui-kit itself names) on the pure-Rust regex engine
+syntect = { version = "=5.3.0", default-features = false, features = ["parsing", "regex-fancy"] }
+two-face = { version = "=0.4.5", default-features = false, features = ["syntect-fancy"] }
+# enkidu-app: the screenshots of Claude's reports are read and shrunk off the drawing thread (the version GPUI itself
+# uses, and of its formats the four a report takes)
+image = { version = "=0.25.10", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
+libc = "=0.2.191"
+dirs = "=6.0.0"
+serde = { version = "=1.0.229", features = ["derive"] }
+# preserve_order: settings files keep their key order when the core writes them back
+serde_json = { version = "=1.0.154", features = ["preserve_order"] }
+tempfile = "=3.27.0"
+# the core's crates, at the versions it was tested with (or the one this lock already had)
+rusqlite = { version = "=0.41.1", features = ["bundled"] }
+regex = "=1.13.1"
+memchr = "=2.8.3"
+nucleo-matcher = "=0.3.1"
+# enkidu-model: a ticket's branch name folds accents (`String.normalize("NFKD")`)
+unicode-normalization = "=0.1.26"
+uuid = { version = "=1.29.2", features = ["v4"] }
+glob = "=0.3.4"
+shell-words = "=1.1.1"
+notify = "=8.2.2"
+tiny_http = "=0.12.0"
+toml = "=1.2.1"
+
+# The debug app runs these at full speed; they rarely change, so it costs nothing on a rebuild
+# (the same list gpui-kit uses for its own debug builds).
+[profile.dev.package]
+gpui-pre = { opt-level = 3 }
+gpui-pre-platform = { opt-level = 3 }
+gpui-pre-sum-tree = { opt-level = 3 }
+taffy = { opt-level = 3 }
+rustybuzz = { opt-level = 3 }
+ttf-parser = { opt-level = 3 }
+resvg = { opt-level = 3 }
+smol = { opt-level = 3 }
+alacritty_terminal = { opt-level = 3 }
+vte = { opt-level = 3 }
+# the syntax colors: unoptimized, reading the grammars takes seconds and coloring a file tens of milliseconds
+syntect = { opt-level = 3 }
+fancy-regex = { opt-level = 3 }
+regex-automata = { opt-level = 3 }
+regex-syntax = { opt-level = 3 }
+bincode = { opt-level = 3 }
+flate2 = { opt-level = 3 }
+miniz_oxide = { opt-level = 3 }
+
+[profile.release]
+strip = "symbols"
+
+# The release build with its symbols, for sampling where the time goes (`cargo build --profile profiling`).
+[profile.profiling]
+inherits = "release"
+strip = "none"
+debug = "line-tables-only"

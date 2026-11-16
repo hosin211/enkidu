@@ -1,0 +1,12 @@
+# Build output
+/target
+
+# macOS
+.DS_Store
+
+# Pictures and measurements made by scripts, kept out of git unless a report names them
+/shots/out/
+/measure/out/
+
+# What scripts/package.sh makes for a release
+/dist

@@ -1,0 +1,14 @@
+[package]
+name = "enkidu-ui"
+description = "Enkidu's look: the DESIGN.md tokens, the theme for gpui-kit, our own pieces (island, lamp, tab pill, chips) and the gallery."
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+gpui-kit.workspace = true
+
+[dev-dependencies]
+gpui-kit = { workspace = true, features = ["test-support"] }
+serde_json.workspace = true

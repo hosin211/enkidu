@@ -1,0 +1,11 @@
+[package]
+name = "enkidu-syntax"
+description = "Syntax colors for Enkidu's diffs and opened files: syntect's grammars with an IDE's colors or the Vesper theme. No GPUI."
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+syntect.workspace = true
+two-face.workspace = true
