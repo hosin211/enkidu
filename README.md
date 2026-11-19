@@ -125,6 +125,7 @@ for who is signed in.
 
 **The ready-made app.** For a Mac with Apple silicon and macOS 13 or later: download `Enkidu-<version>-arm64.zip`
 from the [releases](../../releases), unzip it, and move Enkidu to Applications.
+[CHANGELOG.md](CHANGELOG.md) says what each version changed.
 
 The first time, macOS refuses to open it, because the app is not signed with an Apple Developer ID. Allow it once:
 open System Settings, go to Privacy & Security, scroll down to Security, and press "Open Anyway" beside Enkidu. Or
