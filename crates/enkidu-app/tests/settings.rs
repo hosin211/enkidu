@@ -160,7 +160,7 @@ fn settings_open_on_a_page_from_the_key_the_gear_the_palette_and_a_projects_menu
     app.click(cx, "settings-close");
     assert!(closed(cx, &app), "Close left it open");
 
-    // the gear in the projects row; Cancel
+    // the gear on the rail; Cancel
     app.click(cx, "settings");
     assert!(app.until(cx, |w| page(w).as_deref() == Some("General")), "the gear opened nothing");
     app.click(cx, "settings-cancel");
@@ -177,7 +177,7 @@ fn settings_open_on_a_page_from_the_key_the_gear_the_palette_and_a_projects_menu
     assert!(closed(cx, &app), "Escape left it open");
 
     // "Project settings" in the project's menu: straight to that project's page
-    app.click(cx, ("project", 0usize));
+    app.click(cx, "project-menu");
     assert!(app.until(cx, |w| w.try_find("project-settings").is_some()), "the project's menu");
     app.click(cx, "project-settings");
     assert!(
@@ -431,7 +431,7 @@ fn a_projects_settings_are_saved_and_its_work_settings_stay_as_they_were(cx: &mu
     let app = start(cx);
     let project = app.project_id.clone();
     let before = app.shared.project_settings(&project).unwrap();
-    app.click(cx, ("project", 0usize));
+    app.click(cx, "project-menu");
     assert!(app.until(cx, |w| w.try_find("project-settings").is_some()));
     app.click(cx, "project-settings");
     assert!(app.until(cx, |w| w.try_find("default-base").is_some()), "the project's page never showed");
@@ -447,10 +447,26 @@ fn a_projects_settings_are_saved_and_its_work_settings_stay_as_they_were(cx: &mu
     fill(cx, &app, "live-message", "You are live.");
     fill(cx, &app, "project-claude-args", "--permission-mode acceptEdits");
     fill(cx, &app, "project-claude-env", "FAKE_PROJECT_ENV=project env");
+    // on the rail: its own icon is shown unless you say so, and another picture can be named or chosen
+    assert_eq!(before.rail, enkidu_core::settings::RailSettings { icon: true, picture: String::new() });
+    bring(cx, &app, "rail-icon");
+    look(cx, &app, |w| assert_eq!(w.find("rail-icon").checked(), Some(true)));
+    app.click(cx, "rail-icon");
+    look(cx, &app, |w| assert_eq!(w.find("rail-icon").checked(), Some(false)));
+    bring(cx, &app, "rail-picture-choose");
+    app.click(cx, "rail-picture-choose");
+    assert!(cx.did_prompt_for_paths(), "Choose… opens the file picker");
+    cx.simulate_path_prompt_response(|options| {
+        assert!(options.files && !options.directories && !options.multiple, "one file");
+        Some(vec![std::path::PathBuf::from("/pictures/mark.png")])
+    });
+    assert!(app.until(cx, |w| w.find("rail-picture").value() == Some("/pictures/mark.png")), "the file picked");
+    fill(cx, &app, "rail-picture", " art/mark.svg ");
 
     app.click(cx, "save-settings");
     assert!(closed(cx, &app), "Save left the dialog open: {:?}", look(cx, &app, |w| said(w, "settings-error")));
     let after = app.shared.project_settings(&project).unwrap();
+    assert_eq!(after.rail, enkidu_core::settings::RailSettings { icon: false, picture: "art/mark.svg".into() });
     assert_eq!(after.default_base, "development");
     assert_eq!(after.copy_files, [".env", ".claude/settings.local.json"]);
     assert_eq!(after.setup_script, "make setup\nmake seed");
@@ -465,7 +481,7 @@ fn a_projects_settings_are_saved_and_its_work_settings_stay_as_they_were(cx: &mu
     assert_eq!(after.work.jira_keys, ["SH"]);
 
     // opened again, the fields say what was saved; a field that can't be read is named with its project
-    app.click(cx, ("project", 0usize));
+    app.click(cx, "project-menu");
     assert!(app.until(cx, |w| w.try_find("project-settings").is_some()));
     app.click(cx, "project-settings");
     assert!(app.until(cx, |w| w.try_find("project-claude-env").is_some()));
@@ -703,7 +719,7 @@ fn the_claude_folders_are_listed_with_their_buttons_and_what_the_hooks_add(cx: &
 
 /// Opens the project's page of Settings from the project's own menu.
 fn open_project_page(cx: &mut TestAppContext, app: &App) {
-    app.click(cx, ("project", 0usize));
+    app.click(cx, "project-menu");
     assert!(app.until(cx, |w| w.try_find("project-settings").is_some()));
     app.click(cx, "project-settings");
     assert!(app.until(cx, |w| w.try_find("default-base").is_some()), "the project's page never showed");

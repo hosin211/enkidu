@@ -34,6 +34,24 @@ pub struct ProjectSettings {
     pub live: LiveSettings,
     pub claude: ProjectClaude,
     pub work: WorkSettings,
+    pub rail: RailSettings,
+}
+
+/// The project's button on the rail: its own icon, or its letter.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(default)]
+pub struct RailSettings {
+    /// Show the project's own icon when it has one. Off: its letter.
+    pub icon: bool,
+    /// Another picture than the one found in the project's folder: a path from that folder, or a whole one. Empty: the
+    /// one found there.
+    pub picture: String,
+}
+
+impl Default for RailSettings {
+    fn default() -> Self {
+        Self { icon: true, picture: String::new() }
+    }
 }
 
 /// The Work index for this project: its PRs on GitHub and its tickets in Jira.
@@ -123,6 +141,7 @@ impl Default for ProjectSettings {
             live: LiveSettings::default(),
             claude: ProjectClaude::default(),
             work: WorkSettings::default(),
+            rail: RailSettings::default(),
         }
     }
 }

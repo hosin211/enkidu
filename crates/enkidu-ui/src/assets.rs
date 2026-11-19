@@ -75,6 +75,8 @@ icons![
     "minus",
     "minimize-2",
     "lamp-ring",
+    "panel-left",
+    "panel-right",
     "panels-top-left",
     "pencil",
     "play",

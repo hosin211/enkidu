@@ -13,7 +13,7 @@ use enkidu_ui::tokens::{self as theme, tone};
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::WindowExt as _;
 use gpui_kit::component::dialog::DialogEntrance;
-use gpui_kit::component::input::{Input, InputEvent, InputState, MoveDown, MoveUp};
+use gpui_kit::component::input::{InputEvent, InputState, MoveDown, MoveUp};
 use gpui_kit::prelude::*;
 use gpui_kit::{
     AnyElement, Context, Entity, FontWeight, IntoElement, Render, Role, ScrollHandle, SharedString, Subscription,
@@ -133,9 +133,14 @@ impl Palette {
             }
             // Live for the workspace on screen: on, or off again
             Pick::Live { project, workspace } => crate::live::switch(frame, project, workspace, window, cx),
-            Pick::AddProject => crate::projects_row::add_project(frame, window.window_handle(), cx),
-            // the layouts, as their keys and the switch in the tabs row set them
-            Pick::Layout(_) | Pick::TerminalOnly | Pick::FullReview | Pick::DiffLayout | Pick::Panel(_) => {
+            Pick::AddProject => crate::rail::add_project(frame, window.window_handle(), cx),
+            // the layouts, as their keys and the switch in the top row set them
+            Pick::Layout(_)
+            | Pick::TerminalOnly
+            | Pick::FullReview
+            | Pick::DiffLayout
+            | Pick::Panel(_)
+            | Pick::Lists => {
                 let Some(ui) = self.ui.clone() else { return };
                 ui.update(cx, |ui, cx| {
                     match pick {
@@ -143,6 +148,7 @@ impl Palette {
                         Pick::TerminalOnly => ui.toggle_terminal_only(),
                         Pick::FullReview => ui.toggle_full_review(),
                         Pick::Panel(panel) => ui.toggle_panel(panel),
+                        Pick::Lists => ui.toggle_lists(),
                         _ => {
                             ui.diff_layout = match ui.diff_layout {
                                 DiffLayout::Split => DiffLayout::Unified,
@@ -160,7 +166,7 @@ impl Palette {
         let selected = ix == self.selected;
         let lead: AnyElement = match (&row.status, &row.pick) {
             (Some(status), _) => {
-                lamp(SharedString::from(format!("palette-lamp-{ix}")), Status::from_core(status), 14., 0)
+                lamp(SharedString::from(format!("palette-lamp-{ix}")), Status::from_core(status), 16., 0)
                     .into_any_element()
             }
             (None, pick) => {
@@ -182,9 +188,10 @@ impl Palette {
                     Pick::DiffLayout => ("icons/columns-2.svg", theme::INK_2),
                     Pick::Panel(Panel::Changes) => ("icons/file-diff.svg", theme::INK_2),
                     Pick::Panel(Panel::Files) => ("icons/folder-tree.svg", theme::INK_2),
+                    Pick::Lists => ("icons/panel-left.svg", theme::INK_2),
                     _ => ("icons/folder-plus.svg", tone(155., 0.13)),
                 };
-                svg().path(icon).flex_none().size(px(15.)).text_color(color).into_any_element()
+                svg().path(icon).flex_none().size(theme::ICON).text_color(color).into_any_element()
             }
         };
         div()
@@ -194,13 +201,13 @@ impl Palette {
             .aria_label(SharedString::from(row.name.clone()))
             .aria_selected(selected)
             .relative()
-            .h(px(36.))
+            .h(theme::DIALOG_CONTROL)
             .flex_none()
-            .px(px(10.))
+            .px(px(8.))
             .flex()
             .items_center()
-            .gap(px(10.))
-            .rounded(px(7.))
+            .gap(px(8.))
+            .rounded(theme::RADIUS_CONTROL)
             .text_size(theme::TEXT)
             .text_color(theme::INK)
             .when(selected, |d| d.bg(theme::SELECTED))
@@ -243,10 +250,11 @@ impl Render for Palette {
         for group in self.shown.clone() {
             list.push(
                 div()
-                    .px(px(10.))
+                    .px(px(8.))
                     .pt(px(8.))
                     .pb(px(4.))
-                    .text_size(px(11.))
+                    .text_size(theme::CAPTION)
+                    .line_height(px(16.))
                     .font_weight(FontWeight::MEDIUM)
                     .text_color(theme::INK_3)
                     .child(group.heading)
@@ -293,12 +301,18 @@ impl Render for Palette {
                     .flex_none()
                     .flex()
                     .items_center()
-                    .gap(px(10.))
-                    .px(px(16.))
+                    // (the field brings 8 px itself: its words stand 12 px after the sign)
+                    .gap(px(4.))
+                    .pl(theme::INSET)
+                    .pr(px(8.))
                     .border_b_1()
-                    .border_color(theme::RULE)
-                    .child(svg().path("icons/search.svg").flex_none().size(px(16.)).text_color(theme::INK_3))
-                    .child(div().flex_1().child(Input::new(&self.query).id("palette-query").appearance(false))),
+                    .border_color(theme::LINE)
+                    .child(svg().path("icons/search.svg").flex_none().size(theme::ICON).text_color(theme::INK_3))
+                    .child(
+                        div().flex_1().child(
+                            enkidu_ui::pieces::bare_field(&self.query, theme::DIALOG_CONTROL).id("palette-query"),
+                        ),
+                    ),
             )
             .child(
                 div()
@@ -308,10 +322,9 @@ impl Render for Palette {
                     .max_h(px(420.))
                     .overflow_y_scroll()
                     .track_scroll(&self.scroll)
-                    .p(px(6.))
+                    .p(px(8.))
                     .children(list)
                     .children(nothing),
             )
-            .child(crate::dialog_parts::lit_edge())
     }
 }

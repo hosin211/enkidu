@@ -26,11 +26,12 @@ pub enum Layout {
     Stack,
 }
 
-/// A panel at the right edge of the workspace (DESIGN.md: "The right edge is a tool bar").
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+/// A tab of the panel at the right of the workspace (DESIGN.md, "Layout": "The panel at the right").
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum Panel {
     /// Changed files: every changed file, then the files that have remarks only.
+    #[default]
     Changes,
     /// Files: the workspace as git sees it.
     Files,
@@ -51,21 +52,20 @@ pub enum Mode {
 
 /// The width of the changes beside the terminal until a drag says otherwise, in px.
 pub const REVIEW_WIDTH: u32 = 540;
-/// The height of the terminal under the changes until a drag says otherwise.
-pub const TERMINAL_HEIGHT: u32 = 320;
-/// The least each island keeps when the space between two is dragged.
+/// The height of Claude's pane under the changes until a drag says otherwise: its bar, and 14 rows of its terminal
+/// at the usual size.
+pub const TERMINAL_HEIGHT: u32 = 332;
+/// The least each part keeps when the line between two is dragged.
 pub const MIN_REVIEW_WIDTH: f32 = 340.;
 pub const MIN_TERMINAL_WIDTH: f32 = 360.;
 pub const MIN_TERMINAL_HEIGHT: f32 = 140.;
 pub const MIN_CHANGES_HEIGHT: f32 = 120.;
-/// The space between two islands, which is also where they are resized.
-pub const GAP: f32 = 8.;
-/// The width of the panel at the right edge until a drag says otherwise, and what a drag keeps it within.
-pub const PANEL_WIDTH: u32 = 280;
+/// The line between two parts of a workspace, which is also where they are resized.
+pub const DIVIDER: f32 = 1.;
+/// The width of the panel at the right until a drag says otherwise, and what a drag keeps it within.
+pub const PANEL_WIDTH: u32 = 304;
 pub const MIN_PANEL_WIDTH: f32 = 200.;
 pub const MAX_PANEL_WIDTH: f32 = 520.;
-/// The width of the bar at the right edge that opens the panels.
-pub const RAIL_WIDTH: f32 = 40.;
 
 /// The colors code is drawn in, in a diff and in an opened file (item 8.3).
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -108,10 +108,12 @@ pub struct Ui {
     pub review_maximized: bool,
     /// The changes are put away: the terminal has the whole workspace.
     pub review_hidden: bool,
-    /// The panel open at the right edge, if one is.
+    /// The tab the panel at the right shows, while the panel is open.
     pub right_panel: Option<Panel>,
     /// Its width, in px.
     pub right_panel_width: u32,
+    /// The tab the files' column showed last: it opens on it again when the lists come back.
+    pub panel_tab: Panel,
     /// On the Work page: only the cards with something waiting on you (whether the page itself is on screen is kept
     /// with where you are, `frame::View`).
     pub work_needs_you: bool,
@@ -124,6 +126,12 @@ pub struct Ui {
     /// Setup was shown on this Mac, or there was a project already: the first launch's welcome is behind you
     /// (item 21.6).
     pub setup_seen: bool,
+    /// The lists are put away: the rail and the files' column. The stage has the window's width.
+    pub lists_hidden: bool,
+    /// While the lists are hidden: the panel stands over the work, at the right. It is not kept: a window opens
+    /// without it.
+    #[serde(skip)]
+    pub files_over: bool,
 }
 
 impl Default for Ui {
@@ -138,11 +146,14 @@ impl Default for Ui {
             // the changed files are listed as the app first starts
             right_panel: Some(Panel::Changes),
             right_panel_width: PANEL_WIDTH,
+            panel_tab: Panel::Changes,
             work_needs_you: false,
             code_size: CODE_SIZE,
             code_colors: CodeColors::default(),
             terminal_size: TERMINAL_SIZE,
             setup_seen: false,
+            lists_hidden: false,
+            files_over: false,
         }
     }
 }
@@ -169,6 +180,8 @@ impl Ui {
             // a closed panel is kept as null, which is not the same as nothing kept
             right_panel: kept(&saved, "rightPanel", default.right_panel),
             right_panel_width: kept(&saved, "rightPanelWidth", default.right_panel_width),
+            // a file that doesn't say which tab was shown last: the one that is open, else the changed files
+            panel_tab: kept(&saved, "panelTab", kept(&saved, "rightPanel", default.right_panel).unwrap_or_default()),
             work_needs_you: kept(&saved, "workNeedsYou", default.work_needs_you),
             // a size from outside what the keys and Settings give (a file edited by hand) is brought back inside
             code_size: kept(&saved, "codeSize", default.code_size).clamp(MIN_CODE_SIZE, MAX_CODE_SIZE),
@@ -178,6 +191,8 @@ impl Ui {
                 if size.is_finite() { size.clamp(MIN_TERMINAL_SIZE, MAX_TERMINAL_SIZE) } else { default.terminal_size }
             },
             setup_seen: kept(&saved, "setupSeen", default.setup_seen),
+            lists_hidden: kept(&saved, "listsHidden", default.lists_hidden),
+            files_over: false,
         }
     }
 
@@ -185,7 +200,7 @@ impl Ui {
         serde_json::to_string(self).unwrap_or_default()
     }
 
-    /// What was chosen, as the switch in the tabs row shows it.
+    /// What was chosen, as the switch in the top row shows it.
     pub fn chosen(&self) -> Mode {
         match (self.review_maximized, self.review_hidden, self.layout) {
             (true, _, _) => Mode::Review,
@@ -230,9 +245,44 @@ impl Ui {
         (self.review_maximized, self.review_hidden) = (!self.review_maximized, false);
     }
 
-    /// A button of the right edge, ⌥⌘1 or ⌥⌘2: its panel opens beside the bar, or closes if it was the one open.
+    /// The lists go, or come back: the rail and the files' column. The files that stood over the stage go with either.
+    pub fn toggle_lists(&mut self) {
+        (self.lists_hidden, self.files_over) = (!self.lists_hidden, false);
+    }
+
+    /// The tab the files' column shows on screen, if it is there: at the right of the stage while the lists are
+    /// shown, over the stage while they are hidden.
+    pub fn panel_shown(&self) -> Option<Panel> {
+        match self.lists_hidden {
+            true => self.files_over.then_some(self.panel_tab),
+            false => self.right_panel,
+        }
+    }
+
+    /// ⌥⌘1 or ⌥⌘2: the files' column opens on that tab, or folds away if it showed that tab already. With the lists
+    /// hidden it opens over the stage, and whether the column at the right was open stays as it was.
     pub fn toggle_panel(&mut self, panel: Panel) {
-        self.right_panel = if self.right_panel == Some(panel) { None } else { Some(panel) };
+        let closes = self.panel_shown() == Some(panel);
+        match self.lists_hidden {
+            true => self.files_over = !closes,
+            false => self.right_panel = (!closes).then_some(panel),
+        }
+        self.panel_tab = panel;
+    }
+
+    /// A tab of the files' column is picked: the column shows it. False when it showed it already.
+    pub fn show_panel(&mut self, panel: Panel) -> bool {
+        let was = self.panel_shown();
+        self.panel_tab = panel;
+        if !self.lists_hidden {
+            self.right_panel = Some(panel);
+        }
+        was != self.panel_shown()
+    }
+
+    /// Esc, or a file was picked: the files that stand over the stage go. False when they weren't there.
+    pub fn close_files_over(&mut self) -> bool {
+        std::mem::take(&mut self.files_over)
     }
 
     /// The changes must be on screen: a file was opened where they are, or a file's changes were asked for. False
@@ -273,26 +323,26 @@ impl Ui {
     }
 }
 
-/// The width the changes get when the space between them and the terminal is dragged: the pointer is `from_right`
-/// px from the right edge of the two islands, which are `room` px wide together with the gap between them. The
+/// The width the changes get when the line between them and the terminal is dragged: the pointer is `from_right`
+/// px from the right edge of the two parts, which are `room` px wide together with the line between them. The
 /// changes keep 340 px, and the terminal 360.
 pub fn dragged_review_width(from_right: f32, room: f32) -> u32 {
-    let width = (from_right - GAP / 2.).max(MIN_REVIEW_WIDTH).min(room - GAP - MIN_TERMINAL_WIDTH);
+    let width = (from_right - DIVIDER / 2.).max(MIN_REVIEW_WIDTH).min(room - DIVIDER - MIN_TERMINAL_WIDTH);
     width.round().max(0.) as u32
 }
 
-/// The height the terminal gets when the space between it and the changes above it is dragged: the pointer is
-/// `from_bottom` px from the bottom edge of the two islands, which are `room` px tall together with the gap between
+/// The height the terminal gets when the line between it and the changes above it is dragged: the pointer is
+/// `from_bottom` px from the bottom edge of the two parts, which are `room` px tall together with the line between
 /// them. The terminal keeps 140 px, and the changes 120.
 pub fn dragged_terminal_height(from_bottom: f32, room: f32) -> u32 {
-    let height = (from_bottom - GAP / 2.).max(MIN_TERMINAL_HEIGHT).min(room - GAP - MIN_CHANGES_HEIGHT);
+    let height = (from_bottom - DIVIDER / 2.).max(MIN_TERMINAL_HEIGHT).min(room - DIVIDER - MIN_CHANGES_HEIGHT);
     height.round().max(0.) as u32
 }
 
-/// The width the panel at the right edge gets when the space beside it is dragged: the pointer is `from_right` px
-/// from the right edge of the workspace, bar included. Between 200 and 520 px.
+/// The width the panel at the right gets when the line beside it is dragged: the pointer is `from_right` px from
+/// the right edge of the workspace. Between 200 and 520 px.
 pub fn dragged_panel_width(from_right: f32) -> u32 {
-    (from_right - RAIL_WIDTH - GAP / 2.).clamp(MIN_PANEL_WIDTH, MAX_PANEL_WIDTH).round() as u32
+    (from_right - DIVIDER / 2.).clamp(MIN_PANEL_WIDTH, MAX_PANEL_WIDTH).round() as u32
 }
 
 #[cfg(test)]
@@ -318,7 +368,7 @@ mod tests {
     #[test]
     fn remembers_the_layout_across_restarts() {
         let default = Ui::default();
-        assert_eq!((default.layout, default.review_width, default.terminal_height), (Layout::Stack, 540, 320));
+        assert_eq!((default.layout, default.review_width, default.terminal_height), (Layout::Stack, 540, 332));
         assert!(!default.review_maximized && !default.review_hidden);
         let left = Ui {
             diff_layout: DiffLayout::Split,
@@ -329,20 +379,27 @@ mod tests {
             review_hidden: true,
             right_panel: Some(Panel::Files),
             right_panel_width: 300,
+            panel_tab: Panel::Files,
             work_needs_you: true,
             code_size: 14,
             code_colors: CodeColors::Quiet,
             terminal_size: 13.5,
             setup_seen: true,
+            lists_hidden: true,
+            files_over: false,
         };
         assert_eq!(
             left.write(),
             concat!(
                 r#"{"diffLayout":"split","layout":"side","reviewWidth":612,"terminalHeight":280,"#,
                 r#""reviewMaximized":false,"reviewHidden":true,"rightPanel":"files","rightPanelWidth":300,"#,
-                r#""workNeedsYou":true,"codeSize":14,"codeColors":"quiet","terminalSize":13.5,"setupSeen":true}"#
+                r#""panelTab":"files","workNeedsYou":true,"codeSize":14,"codeColors":"quiet","terminalSize":13.5,"#,
+                r#""setupSeen":true,"listsHidden":true}"#
             )
         );
+        // (the panel over the work is not kept: a window opens without it)
+        let over = Ui { files_over: true, ..left.clone() };
+        assert!(Ui::read(&over.write()).lists_hidden && !Ui::read(&over.write()).files_over);
         // a panel that was closed stays closed, and a file from before there were panels opens the changed files
         let closed = Ui { right_panel: None, ..Ui::default() };
         assert!(closed.write().contains(r#""rightPanel":null"#), "{}", closed.write());
@@ -432,39 +489,80 @@ mod tests {
     }
 
     #[test]
-    fn the_right_edge_opens_one_panel_at_a_time() {
+    fn with_the_lists_hidden_the_files_stand_over_the_stage_and_go_with_esc_or_a_pick() {
         let mut ui = Ui::default();
-        assert_eq!((ui.right_panel, ui.right_panel_width), (Some(Panel::Changes), 280));
-        // the other button: its panel takes the place
+        assert!(!ui.lists_hidden && ui.panel_shown() == Some(Panel::Changes));
+        // the lists go: no column on screen, and the one at the right is remembered as it was
+        ui.toggle_lists();
+        assert!(ui.lists_hidden);
+        assert_eq!((ui.panel_shown(), ui.right_panel), (None, Some(Panel::Changes)));
+        // ⌥⌘2: over the stage on Files; ⌥⌘1 then shows the other tab; ⌥⌘1 again closes it
+        ui.toggle_panel(Panel::Files);
+        assert_eq!(ui.panel_shown(), Some(Panel::Files));
+        ui.toggle_panel(Panel::Changes);
+        assert_eq!(ui.panel_shown(), Some(Panel::Changes));
+        ui.toggle_panel(Panel::Changes);
+        assert_eq!(ui.panel_shown(), None);
+        // a tab picked in it shows; Esc or a pick closes it, once
+        ui.toggle_panel(Panel::Changes);
+        assert!(ui.show_panel(Panel::Files) && !ui.show_panel(Panel::Files));
+        assert!(ui.close_files_over() && !ui.close_files_over());
+        assert_eq!(ui.panel_shown(), None);
+        // the lists come back with the column at the right as it was left, whatever was open over the stage
+        ui.toggle_panel(Panel::Files);
+        ui.toggle_lists();
+        assert!(!ui.lists_hidden && !ui.files_over);
+        assert_eq!(ui.panel_shown(), Some(Panel::Changes));
+        // a column that was folded away stays so through the hidden mode
+        ui.toggle_panel(Panel::Changes);
+        assert_eq!(ui.right_panel, None);
+        ui.toggle_lists();
+        ui.toggle_panel(Panel::Files);
+        ui.toggle_lists();
+        assert_eq!(ui.right_panel, None);
+    }
+
+    #[test]
+    fn the_files_column_shows_one_tab_and_its_key_folds_it_away() {
+        let mut ui = Ui::default();
+        assert_eq!((ui.right_panel, ui.right_panel_width), (Some(Panel::Changes), 304));
+        // the other tab is picked: it shows; picked again, nothing changes
+        assert!(ui.show_panel(Panel::Files) && !ui.show_panel(Panel::Files));
+        assert_eq!(ui.right_panel, Some(Panel::Files));
+        // ⌥⌘2 while it shows Files: folded away; ⌥⌘1: open on Changes, which is the tab remembered now
+        ui.toggle_panel(Panel::Files);
+        assert_eq!((ui.right_panel, ui.panel_tab), (None, Panel::Files));
+        ui.toggle_panel(Panel::Changes);
+        assert_eq!((ui.right_panel, ui.panel_tab), (Some(Panel::Changes), Panel::Changes));
+        // ⌥⌘2 while it shows Changes: the other tab takes its place
         ui.toggle_panel(Panel::Files);
         assert_eq!(ui.right_panel, Some(Panel::Files));
-        // the same button again: closed
-        ui.toggle_panel(Panel::Files);
-        assert_eq!(ui.right_panel, None);
-        ui.toggle_panel(Panel::Changes);
-        assert_eq!(ui.right_panel, Some(Panel::Changes));
-        // dragged: the pointer 324 px from the window's edge gives 280 (the bar is 40, half the gap 4)
-        assert_eq!(dragged_panel_width(324.), 280);
+        // what was kept before the tab was: the open one, else the changed files
+        assert_eq!(Ui::read(r#"{"rightPanel":"files"}"#).panel_tab, Panel::Files);
+        assert_eq!(Ui::read(r#"{"rightPanel":null}"#).panel_tab, Panel::Changes);
+        assert_eq!(Ui::read(r#"{"rightPanel":null,"panelTab":"files"}"#).panel_tab, Panel::Files);
+        // dragged: the pointer 304.5 px from the window's edge gives 304 (half the line is 0.5)
+        assert_eq!(dragged_panel_width(304.5), 304);
         assert_eq!(dragged_panel_width(50.), 200, "200 px at least");
         assert_eq!(dragged_panel_width(900.), 520, "520 px at most");
     }
 
     #[test]
-    fn a_dragged_gap_leaves_each_island_its_least_size() {
-        // beside: the pointer 544 px from the right edge of 1200 px gives the changes 540
-        assert_eq!(dragged_review_width(544., 1200.), 540);
+    fn a_dragged_line_leaves_each_part_its_least_size() {
+        // beside: the pointer 540.5 px from the right edge of 1200 px gives the changes 540
+        assert_eq!(dragged_review_width(540.5, 1200.), 540);
         // the changes keep 340 px, the terminal 360
         assert_eq!(dragged_review_width(100., 1200.), 340);
-        assert_eq!(dragged_review_width(1190., 1200.), 832, "1200 less the gap and the terminal's 360");
-        // above: the pointer 324 px from the bottom edge of 800 px gives the terminal 320
-        assert_eq!(dragged_terminal_height(324., 800.), 320);
+        assert_eq!(dragged_review_width(1190., 1200.), 839, "1200 less the line and the terminal's 360");
+        // above: the pointer 320.5 px from the bottom edge of 800 px gives the terminal 320
+        assert_eq!(dragged_terminal_height(320.5, 800.), 320);
         // the terminal keeps 140 px, the changes 120
         assert_eq!(dragged_terminal_height(20., 800.), 140);
-        assert_eq!(dragged_terminal_height(790., 800.), 672, "800 less the gap and the changes' 120");
-        // halves round to whole pixels
-        assert_eq!(dragged_review_width(400.6, 1200.), 397);
+        assert_eq!(dragged_terminal_height(790., 800.), 679, "800 less the line and the changes' 120");
+        // parts of a pixel round to whole pixels
+        assert_eq!(dragged_review_width(400.6, 1200.), 400);
         // a window too small for both leasts: the terminal's comes first, and nothing goes under zero
-        assert_eq!(dragged_review_width(500., 600.), 232);
+        assert_eq!(dragged_review_width(500., 600.), 239);
         assert_eq!(dragged_review_width(500., 300.), 0);
     }
 

@@ -104,7 +104,7 @@ mod tests {
     use crate::work::sample;
 
     /// The sample's failing checks on PR #2414, whose branch the workspace sh-21309-export is on.
-    const FAILING: &str = "checks:demo-org/shop#2414:4973abc0def1";
+    const FAILING: &str = "checks:demo-org/shop#2414:2414abc0def1";
 
     fn decide(work: &Snapshot, list: &[Workspace], chosen: &HashMap<String, ClaudeChoice>) -> Queued {
         let lamps = statuses(&[("w1", "working"), ("w2", "idle")]);

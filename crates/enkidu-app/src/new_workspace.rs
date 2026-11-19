@@ -19,7 +19,7 @@ use enkidu_model::new_workspace::{
 };
 use enkidu_ui::lamp::LAMP_FPS;
 use enkidu_ui::pieces::{ButtonKind, ButtonSize, Observed, Pressed, button, mono};
-use enkidu_ui::tab_pill::tab_row;
+use enkidu_ui::tab_pill::{word_segment as segment, word_switch as switch};
 use enkidu_ui::tokens::{self as theme, alpha};
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::WindowExt as _;
@@ -33,8 +33,8 @@ use gpui_kit::{
 };
 
 use crate::bridge::Bridge;
-use crate::projects_row::short_path;
 use crate::stores::{ProgressLog, Stores};
+use crate::tabs_row::short_path;
 use crate::toast;
 
 /// A branch to pick: its name, and where it is ("local", or "origin" for one only there).
@@ -111,11 +111,14 @@ pub struct NewWorkspace {
 
 /// Opens the dialog for the project on screen.
 pub fn open(frame: Entity<Frame>, window: &mut Window, cx: &mut App) {
-    let project = {
-        let f = frame.read(cx);
-        f.current_project.as_ref().and_then(|id| f.projects.iter().find(|p| &p.id == id)).cloned()
-    };
-    let Some(project) = project else { return };
+    if let Some(project) = frame.read(cx).current_project.clone() {
+        open_in(frame, &project, window, cx);
+    }
+}
+
+/// Opens the dialog for a project: New workspace in the project's menu, and ⌘N for the project on screen.
+pub fn open_in(frame: Entity<Frame>, project: &str, window: &mut Window, cx: &mut App) {
+    let Some(project) = frame.read(cx).projects.iter().find(|p| p.id == project).cloned() else { return };
     let view = cx.new(|cx| NewWorkspace::new(frame, project, window, cx));
     let shown = view.clone();
     window.open_dialog(cx, move |dialog, _, cx| {
@@ -520,7 +523,7 @@ fn field(label: &'static str, control: impl IntoElement, below: Option<AnyElemen
     div()
         .flex()
         .flex_col()
-        .gap(px(6.))
+        .gap(px(8.))
         .min_w_0()
         .child(div().text_size(px(12.)).font_weight(FontWeight::MEDIUM).text_color(theme::INK_2).child(label))
         .child(control)
@@ -537,36 +540,6 @@ fn hint(id: &'static str, words: impl Into<SharedString>) -> AnyElement {
         .text_color(theme::INK_3)
         .child(words)
         .into_any_element()
-}
-
-/// One answer of a two-way switch in the dialog (where Claude works; a new branch or one that exists): bright when
-/// it is the one chosen. Who uses it says what a click does.
-fn segment(id: &'static str, words: &'static str, chosen: bool) -> Observed {
-    div()
-        .id(id)
-        .test_support()
-        .role(gpui_kit::Role::Tab)
-        .aria_label(words)
-        .aria_selected(chosen)
-        .h(theme::SEGMENT_HEIGHT)
-        .px(px(10.))
-        .flex()
-        .items_center()
-        .text_size(px(12.))
-        .text_color(if chosen { theme::INK } else { theme::INK_2 })
-        .cursor_pointer()
-        .child(words)
-}
-
-/// The switch itself: its answers in a well, the pill under the one chosen.
-fn switch(
-    id: &'static str,
-    selected: usize,
-    segments: Vec<Observed>,
-    window: &mut Window,
-    cx: &mut App,
-) -> gpui_kit::Div {
-    div().p(px(2.)).rounded(px(8.)).bg(theme::FRAME).child(tab_row(id, selected, segments, window, cx))
 }
 
 /// A step's sign: turning while it runs, a green tick when done, amber when it warned or failed, a dash when skipped.
@@ -588,7 +561,7 @@ fn step_sign(id: SharedString, state: &str) -> AnyElement {
         "running" => svg()
             .flex_none()
             .mt(px(1.))
-            .size(px(15.))
+            .size(theme::ICON)
             .path("icons/loader-circle.svg")
             .text_color(theme::INK_2)
             .with_animation(
@@ -597,12 +570,12 @@ fn step_sign(id: SharedString, state: &str) -> AnyElement {
                 |sign, t| sign.with_transformation(Transformation::rotate(percentage(t))),
             )
             .into_any_element(),
-        "done" => disc(theme::LAMP_GREEN, "icons/check.svg", 10.),
-        "warning" | "error" => disc(theme::LAMP_AMBER, "icons/triangle-alert.svg", 9.),
+        "done" => disc(theme::LAMP_GREEN, "icons/check.svg", 12.),
+        "warning" | "error" => disc(theme::LAMP_AMBER, "icons/triangle-alert.svg", 12.),
         _ => svg()
             .flex_none()
             .mt(px(1.))
-            .size(px(15.))
+            .size(theme::ICON)
             .path("icons/circle-minus.svg")
             .text_color(theme::INK_3)
             .into_any_element(),
@@ -646,19 +619,20 @@ impl NewWorkspace {
             .id("ws-main-box")
             .flex()
             .flex_col()
-            .gap(px(10.))
-            .p(px(14.))
-            .rounded(px(10.))
-            .bg(alpha(theme::CHROME, 0.7))
+            .gap(px(12.))
+            .px(px(16.))
+            .py(px(12.))
+            .rounded(theme::RADIUS_CARD)
+            .bg(theme::PANE)
             .border_1()
-            .border_color(theme::RULE)
+            .border_color(theme::LINE)
             .child(
                 div()
                     .flex()
                     .items_center()
                     .gap(px(8.))
                     .min_w_0()
-                    .child(svg().path("icons/folder-open.svg").flex_none().size(px(14.)).text_color(theme::INK_2))
+                    .child(svg().path("icons/folder-open.svg").flex_none().size(theme::ICON).text_color(theme::INK_2))
                     .child(
                         mono(div())
                             .id("ws-main-folder")
@@ -726,7 +700,7 @@ impl NewWorkspace {
                         "Starts from",
                         div().id("ws-base").test_support().child(
                             Select::new(&self.base)
-                                .h(theme::INPUT_HEIGHT)
+                                .h(theme::DIALOG_CONTROL)
                                 .placeholder("Pick a base branch")
                                 .search_placeholder("Find a branch"),
                         ),
@@ -738,7 +712,7 @@ impl NewWorkspace {
                 "Branch to work on",
                 div().id("ws-existing").child(
                     Select::new(&self.existing)
-                        .h(theme::INPUT_HEIGHT)
+                        .h(theme::DIALOG_CONTROL)
                         .placeholder("Pick a branch")
                         .search_placeholder("Find a branch"),
                 ),
@@ -750,11 +724,12 @@ impl NewWorkspace {
             .flex()
             .flex_col()
             .gap(px(12.))
-            .p(px(14.))
-            .rounded(px(10.))
-            .bg(alpha(theme::CHROME, 0.7))
+            .px(px(16.))
+            .py(px(12.))
+            .rounded(theme::RADIUS_CARD)
+            .bg(theme::PANE)
             .border_1()
-            .border_color(theme::RULE)
+            .border_color(theme::LINE)
             .child(header)
             .child(body)
     }
@@ -770,7 +745,7 @@ impl NewWorkspace {
                     .aria_label(SharedString::from(format!("{}: {}", step_label(&step.step), step.state)))
                     .flex()
                     .items_start()
-                    .gap(px(10.))
+                    .gap(px(8.))
                     .text_size(px(13.))
                     .child(step_sign(SharedString::from(format!("{id}-sign")), &step.state))
                     .child(
@@ -786,7 +761,6 @@ impl NewWorkspace {
                             .when(!running && !step.detail.is_empty(), |d| {
                                 d.child(
                                     div()
-                                        .mt(px(2.))
                                         .text_size(px(12.))
                                         .line_height(px(16.))
                                         .text_color(theme::INK_3)
@@ -812,12 +786,13 @@ impl NewWorkspace {
             .aria_label(SharedString::from(format!("{} is checked out in {}", taken.branch, short_path(&taken.path))))
             .flex()
             .flex_col()
-            .gap(px(10.))
-            .p(px(14.))
-            .rounded(px(10.))
-            .bg(alpha(theme::CHROME, 0.7))
+            .gap(px(12.))
+            .px(px(16.))
+            .py(px(12.))
+            .rounded(theme::RADIUS_CARD)
+            .bg(theme::PANE)
             .border_1()
-            .border_color(theme::RULE)
+            .border_color(theme::LINE)
             .child(
                 div()
                     .flex()
@@ -833,7 +808,7 @@ impl NewWorkspace {
             )
             .child(
                 div().child(
-                    maybe(button("taken-open", open_label, ButtonKind::Secondary, ButtonSize::Medium), busy.is_none())
+                    maybe(button("taken-open", open_label, ButtonKind::Secondary, ButtonSize::Large), busy.is_none())
                         .on_click(cx.listener(|this, _, window, cx| this.open_taken(window, cx))),
                 ),
             )
@@ -862,7 +837,7 @@ impl NewWorkspace {
                                 "taken-new-branch",
                                 if busy == Some(Way::Branch) { "Creating…" } else { "Create" },
                                 ButtonKind::Secondary,
-                                ButtonSize::Medium,
+                                ButtonSize::Large,
                             ),
                             busy.is_none(),
                         )
@@ -916,7 +891,7 @@ impl Render for NewWorkspace {
                     .when(!self.busy() && self.taken.is_none(), |d| d.child(self.draft.place.enter())),
             )
             .child(
-                maybe(button("ws-cancel", "Cancel", ButtonKind::Secondary, ButtonSize::Medium), !self.busy())
+                maybe(button("ws-cancel", "Cancel", ButtonKind::Secondary, ButtonSize::Large), !self.busy())
                     .on_click(cx.listener(|this, _, window, cx| this.close(window, cx))),
             )
             .child(
@@ -925,7 +900,7 @@ impl Render for NewWorkspace {
                         "create-workspace",
                         self.draft.place.button(self.creating),
                         ButtonKind::Primary,
-                        ButtonSize::Medium,
+                        ButtonSize::Large,
                     ),
                     valid,
                 )
@@ -939,10 +914,10 @@ impl Render for NewWorkspace {
         let body = div()
             .flex()
             .flex_col()
-            .gap(px(20.))
-            .px(px(20.))
+            .gap(px(16.))
+            .px(px(24.))
             .pt(px(12.))
-            .pb(px(16.))
+            .pb(px(24.))
             .child(self.where_row(window, cx))
             .map(|body| match self.draft.place {
                 Place::Workspace => body
@@ -972,7 +947,6 @@ impl Render for NewWorkspace {
             .child(crate::dialog_parts::head("New workspace", Some(says.into()), Some(close)))
             .child(body)
             .child(footer)
-            .child(crate::dialog_parts::lit_edge())
     }
 }
 

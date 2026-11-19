@@ -13,7 +13,7 @@ pub mod measure;
 pub mod new_workspace;
 pub mod opened_file;
 pub mod palette;
-pub mod projects_row;
+pub mod rail;
 pub mod remark_views;
 pub mod remarks;
 pub mod remove_workspace;
@@ -25,6 +25,7 @@ pub mod setup;
 pub mod shell;
 pub mod status_line;
 pub mod stores;
+pub mod switcher;
 pub mod tabs_row;
 pub mod terminal_area;
 pub mod terminal_view;
@@ -70,6 +71,8 @@ actions!(
         SelectTab9,
         NextWorkspace,
         PreviousWorkspace,
+        SwitchNext,
+        SwitchPrevious,
         NewWorkspace,
         TogglePalette,
         TypeRemarks,
@@ -81,6 +84,7 @@ actions!(
         ToggleFullReview,
         ToggleChangedFiles,
         ToggleFiles,
+        ToggleLists,
         OpenSearch,
         SearchFiles,
         SearchSymbols,
@@ -121,8 +125,11 @@ pub fn key_bindings() -> Vec<KeyBinding> {
         KeyBinding::new("cmd-7", SelectTab7, None),
         KeyBinding::new("cmd-8", SelectTab8, None),
         KeyBinding::new("cmd-9", SelectTab9, None),
-        KeyBinding::new("ctrl-tab", NextWorkspace, None),
-        KeyBinding::new("ctrl-shift-tab", PreviousWorkspace, None),
+        // the switcher (DESIGN.md, "Layout"): ⌃⇥ goes to the workspace used before this one; held, it shows every
+        // workspace as a card, by last use, and each ⌃⇥ (⇧ to go back) moves on
+        KeyBinding::new("ctrl-tab", SwitchNext, None),
+        KeyBinding::new("ctrl-shift-tab", SwitchPrevious, None),
+        // ⇧⌘] and ⇧⌘[ go along the tabs of the top row
         KeyBinding::new("cmd-}", NextWorkspace, None),
         KeyBinding::new("cmd-{", PreviousWorkspace, None),
         // the New workspace dialog for the project on screen
@@ -134,7 +141,7 @@ pub fn key_bindings() -> Vec<KeyBinding> {
         KeyBinding::new("alt-cmd-l", ToggleSideLayout, None),
         KeyBinding::new("alt-cmd-b", ToggleTerminalOnly, None),
         KeyBinding::new("cmd-shift-e", ToggleFullReview, None),
-        // the panels at the right edge (DESIGN.md, "The right edge is a tool bar"): Changed files and Files
+        // the panel at the right (DESIGN.md, "Layout"): Changed files and Files
         // the text of what has the keyboard (item 8.4): ⌘+ (and ⌘=, the same key without Shift), ⌘− and ⌘0
         KeyBinding::new("cmd-=", TextBigger, None),
         KeyBinding::new("cmd-+", TextBigger, None),
@@ -142,6 +149,8 @@ pub fn key_bindings() -> Vec<KeyBinding> {
         KeyBinding::new("cmd-0", TextUsualSize, None),
         KeyBinding::new("alt-cmd-1", ToggleChangedFiles, None),
         KeyBinding::new("alt-cmd-2", ToggleFiles, None),
+        // the hidden mode: the rail and the files' column go, and come back
+        KeyBinding::new("cmd-s", ToggleLists, None),
         // with the keyboard in the changes: the remarks go into Claude's prompt (a text field's own ⌘↩ comes first, and
         // in a terminal the key is the terminal's)
         KeyBinding::new("cmd-enter", TypeRemarks, Some(changes_island::KEYS)),
@@ -247,7 +256,16 @@ pub fn menus() -> Vec<Menu> {
                 MenuItem::os_action("Select All", SelectAll, OsAction::SelectAll),
             ],
         ),
-        menu("View", vec![MenuItem::action("Enter Full Screen", ToggleFullScreen)]),
+        menu(
+            "View",
+            vec![
+                MenuItem::action("Changes", ToggleChangedFiles),
+                MenuItem::action("Files", ToggleFiles),
+                MenuItem::action("Hide or Show the Lists", ToggleLists),
+                MenuItem::separator(),
+                MenuItem::action("Enter Full Screen", ToggleFullScreen),
+            ],
+        ),
         menu(
             "Window",
             vec![

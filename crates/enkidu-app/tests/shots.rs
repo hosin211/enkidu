@@ -395,7 +395,12 @@ fn at_work(options: WindowOptions, cx: &mut App) -> AnyWindowHandle {
                 terminal_height: 384,
                 ..Default::default()
             };
-            Shell::with_work_and_changes(frame, work, vec![view], enkidu_app::demo::tree_changes(), ui, window, cx)
+            let shell =
+                Shell::with_work_and_changes(frame, work, vec![view], enkidu_app::demo::tree_changes(), ui, window, cx);
+            // the second project is this app's own: its button shows the icon in its folder, the first one its letter
+            let own = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../../bundle/icon.svg"));
+            shell.show_icons(std::collections::HashMap::from([("p2".to_string(), own)]), cx);
+            shell
         })
     })
     .expect("a window drawn offscreen")
@@ -842,7 +847,7 @@ const STATES: &[State] = &[
         name: "project-menu",
         size: Size { width: px(1360.), height: px(860.) },
         open: demo,
-        then: Some(|window, cx| window.click(("project", 0usize), cx)),
+        then: Some(|window, cx| window.click("project-menu", cx)),
     },
     // the New workspace dialog, opened by ⌘N (item 1.19; with no core behind it, so no branches)
     State {
@@ -899,12 +904,16 @@ const STATES: &[State] = &[
         open: demo,
         then: Some(|window, cx| window.dispatch_action(Box::new(enkidu_app::TogglePalette), cx)),
     },
-    // the folder's path copied from the status line: the toast says so (item 1.18)
+    // the folder's path copied from the workspace's menu: the toast says so (item 1.18)
     State {
         name: "path-copied",
         size: Size { width: px(1360.), height: px(860.) },
         open: demo,
-        then: Some(|window, cx| window.click("status-path", cx)),
+        then: Some(|window, cx| {
+            window.click("ws-menu", cx);
+            window.render_frame(cx);
+            window.click("ws-copy-path", cx);
+        }),
     },
     // toasts (item 4.6): what went wrong, and news with a long detail folded to three lines
     State {
@@ -1289,6 +1298,53 @@ const STATES: &[State] = &[
             });
         }),
     },
+    // the hidden mode (⌘S): the rail and the files' column are away, the stage has the window's width, the top row
+    // keeps the project's tabs; and the files over the stage, opened by their key
+    State {
+        name: "hidden",
+        size: Size { width: px(1600.), height: px(1000.) },
+        open: at_work,
+        then: Some(|window, cx| {
+            if let Some(terminal) = AT_WORK.with(|kept| kept.borrow_mut().take()) {
+                terminal.feed(&enkidu_app::demo::working_session(terminal.size().cols as usize));
+            }
+            window.dispatch_action(Box::new(enkidu_app::ToggleLists), cx);
+            window.defer(cx, |window, cx| {
+                window.render_frame(cx);
+                window.click("terminal", cx);
+            });
+        }),
+    },
+    State {
+        name: "hidden-files",
+        size: Size { width: px(1600.), height: px(1000.) },
+        open: at_work,
+        then: Some(|window, cx| {
+            if let Some(terminal) = AT_WORK.with(|kept| kept.borrow_mut().take()) {
+                terminal.feed(&enkidu_app::demo::working_session(terminal.size().cols as usize));
+            }
+            window.dispatch_action(Box::new(enkidu_app::ToggleLists), cx);
+            window.defer(cx, |window, cx| {
+                window.render_frame(cx);
+                window.dispatch_action(Box::new(enkidu_app::ToggleChangedFiles), cx);
+            });
+        }),
+    },
+    // the switcher: ⌃⇥ held shows every workspace as a card, by last use, the blue edge on the one used before
+    State {
+        name: "switcher",
+        size: Size { width: px(1600.), height: px(1000.) },
+        open: at_work,
+        then: Some(|window, cx| {
+            if let Some(terminal) = AT_WORK.with(|kept| kept.borrow_mut().take()) {
+                terminal.feed(&enkidu_app::demo::working_session(terminal.size().cols as usize));
+            }
+            window.defer(cx, |window, cx| {
+                window.render_frame(cx);
+                window.dispatch_action(Box::new(enkidu_app::SwitchNext), cx);
+            });
+        }),
+    },
     // Search (item 4.1): its Files tab before anything is typed, with something typed, its Symbols and its Text
     State {
         name: "search-files",
@@ -1456,7 +1512,25 @@ const STATES: &[State] = &[
             });
         }),
     },
-    // a project's page further down: what is read from GitHub and Jira (items 5.16a and 5.16)
+    // a project's page further down: its button on the rail (its own icon, or its letter)
+    State {
+        name: "settings-project-rail",
+        size: Size { width: px(1360.), height: px(860.) },
+        open: demo,
+        then: Some(|window, cx| {
+            window.dispatch_action(Box::new(enkidu_app::OpenSettings), cx);
+            window.defer(cx, |window, cx| {
+                window.render_frame(cx);
+                window.click(("settings-nav", 3usize), cx);
+                window.defer(cx, |window, cx| {
+                    window.render_frame(cx);
+                    let down = gpui_kit::ScrollDelta::Pixels(gpui_kit::point(px(0.), px(-1010.)));
+                    window.scroll("settings-body", down, cx);
+                });
+            });
+        }),
+    },
+    // then what is read from GitHub and Jira (items 5.16a and 5.16)
     State {
         name: "settings-project-work",
         size: Size { width: px(1360.), height: px(860.) },
@@ -1468,7 +1542,7 @@ const STATES: &[State] = &[
                 window.click(("settings-nav", 3usize), cx);
                 window.defer(cx, |window, cx| {
                     window.render_frame(cx);
-                    let down = gpui_kit::ScrollDelta::Pixels(gpui_kit::point(px(0.), px(-1010.)));
+                    let down = gpui_kit::ScrollDelta::Pixels(gpui_kit::point(px(0.), px(-1251.)));
                     window.scroll("settings-body", down, cx);
                 });
             });
@@ -2178,7 +2252,7 @@ impl gpui_kit::Render for MovedGlow {
         };
         gpui_kit::div()
             .size_full()
-            .bg(theme::FRAME)
+            .bg(theme::PANE)
             .p(px(24.))
             .flex()
             .gap(px(24.))
@@ -2330,6 +2404,117 @@ fn measure_report(cx: &mut HeadlessAppContext) {
     println!("MEASURE report: drawn {w}x{h}");
 }
 
+/// A piece's own name, as a test names it: `tab:0`, `tabs-row`.
+fn named(path: &[gpui_kit::ElementId]) -> String {
+    match path.last() {
+        Some(gpui_kit::ElementId::Name(name)) => name.to_string(),
+        Some(gpui_kit::ElementId::NamedInteger(name, n)) => format!("{name}:{n}"),
+        Some(other) => format!("{other:?}"),
+        None => "the window".to_string(),
+    }
+}
+
+/// `SHOTS_MEASURE=spacing`: the spaces of one screen, read from what was drawn (DESIGN.md, "Space, size, shape": "A
+/// 4 px grid, and one scale for every space"). Every piece a test can name is taken with the named piece that holds
+/// it. The pieces that stand in one row inside it give the spaces between them, and from the first and the last of
+/// them to its edges; the ones stacked across its width give the spaces between rows. Between two named pieces
+/// there may stand others without a name (an icon and its gap), so a space is fine when it is on the 4 px grid; so
+/// is none, a line (1 px), a space with one line in it, the 2 px inside a switch, and free room (more than 32 px,
+/// which stretches). What can be pressed and is no higher than a bar gives its height too: 16, 20, 24, 28, 32 or
+/// 40 px. Returns how many were measured, and each one that is off the grid, in words.
+fn spaces(window: &gpui_kit::Window) -> (usize, Vec<String>) {
+    use gpui_kit::{ElementId, Pixels, Role};
+    let pieces: Vec<(Vec<ElementId>, Bounds<Pixels>, Option<Role>)> = gpui_kit::base::test_support::snapshots(window)
+        .into_iter()
+        .filter(|piece| piece.visible() && piece.bounds().size.width > px(0.) && piece.bounds().size.height > px(0.))
+        .map(|piece| (piece.path().to_vec(), piece.bounds(), piece.role()))
+        .collect();
+    // each piece's holder: the named piece with the longest path that begins its own
+    let holder = |at: usize| -> Option<usize> {
+        let path = &pieces[at].0;
+        (0..pieces.len())
+            .filter(|other| *other != at && pieces[*other].0.len() < path.len() && path.starts_with(&pieces[*other].0))
+            .max_by_key(|other| pieces[*other].0.len())
+    };
+    let mut held: std::collections::BTreeMap<usize, Vec<usize>> = Default::default();
+    for at in 0..pieces.len() {
+        if let Some(holder) = holder(at) {
+            held.entry(holder).or_default().push(at);
+        }
+    }
+    let on_grid = |space: f32, in_switch: bool| {
+        let near = |step: f32| (space - step).abs() < 0.01;
+        // (two things with a line between them keep each its own space to it: 16 px, the line, 8 px; and what stands
+        // inside an edge keeps its space from the edge's inside: the edge, 4 px)
+        let on = |space: f32| (space - (space / 4.).round() * 4.).abs() < 0.01;
+        space > 32. || near(0.) || near(1.) || (in_switch && near(2.)) || on(space) || (space > 4. && on(space - 1.))
+    };
+    let (mut measured, mut off) = (0usize, Vec::new());
+    let mut measure = |space: Pixels, in_switch: bool, said: String| {
+        let space = f32::from(space);
+        if space < 0. {
+            return;
+        }
+        measured += 1;
+        if !on_grid(space, in_switch) {
+            off.push(format!("{space} px {said}"));
+        }
+    };
+    for (holder, inside) in &held {
+        let (room, holder_name) = (pieces[*holder].1, named(&pieces[*holder].0));
+        let in_switch = pieces[*holder].2 == Some(Role::RadioGroup);
+        // the rows: pieces whose heights overlap by more than half the lower one's
+        let mut by_top = inside.clone();
+        by_top.sort_by(|a, b| pieces[*a].1.top().partial_cmp(&pieces[*b].1.top()).unwrap());
+        let mut rows: Vec<Vec<usize>> = Vec::new();
+        for at in by_top {
+            let piece = pieces[at].1;
+            let joins = rows.last().is_some_and(|row| {
+                let first = pieces[row[0]].1;
+                let overlap = piece.bottom().min(first.bottom()) - piece.top().max(first.top());
+                overlap > piece.size.height.min(first.size.height) / 2.
+            });
+            match joins {
+                true => rows.last_mut().unwrap().push(at),
+                false => rows.push(vec![at]),
+            }
+        }
+        for row in &mut rows {
+            row.sort_by(|a, b| pieces[*a].1.left().partial_cmp(&pieces[*b].1.left()).unwrap());
+            let (first, last) = (row[0], row[row.len() - 1]);
+            let before = format!("before {} in {holder_name}", named(&pieces[first].0));
+            measure(pieces[first].1.left() - room.left(), in_switch, before);
+            let after = format!("after {} in {holder_name}", named(&pieces[last].0));
+            measure(room.right() - pieces[last].1.right(), in_switch, after);
+            for pair in row.windows(2) {
+                let (a, b) = (pieces[pair[0]].1, pieces[pair[1]].1);
+                let between = format!("between {} and {}", named(&pieces[pair[0]].0), named(&pieces[pair[1]].0));
+                measure(b.left() - a.right(), in_switch, format!("{between} in {holder_name}"));
+            }
+        }
+        // rows of one piece that spans most of its holder, one under the other: the space between them
+        let wide: Vec<usize> = (rows.iter().filter(|row| row.len() == 1).map(|row| row[0]))
+            .filter(|at| pieces[*at].1.size.width > room.size.width * 0.6)
+            .collect();
+        for pair in wide.windows(2) {
+            let (a, b) = (pieces[pair[0]].1, pieces[pair[1]].1);
+            let under = format!("under {} above {}", named(&pieces[pair[0]].0), named(&pieces[pair[1]].0));
+            measure(b.top() - a.bottom(), false, format!("{under} in {holder_name}"));
+        }
+    }
+    // what can be pressed, when it is no higher than a bar (a card or a row of two lines is as high as what it says)
+    for (path, bounds, role) in &pieces {
+        let height = f32::from(bounds.size.height);
+        if matches!(role, Some(Role::Button | Role::Tab | Role::RadioButton | Role::TextInput)) && height <= 40. {
+            measured += 1;
+            if ![16., 20., 24., 28., 32., 40.].iter().any(|step| (height - step).abs() < 0.01) {
+                off.push(format!("{height} px high: {}", named(path)));
+            }
+        }
+    }
+    (measured, off)
+}
+
 fn main() {
     let out = std::env::var("SHOTS_DIR")
         .unwrap_or_else(|_| concat!(env!("CARGO_MANIFEST_DIR"), "/../../shots/out").to_string());
@@ -2353,6 +2538,9 @@ fn main() {
         return;
     }
     cx.update(made_up_screenshots);
+    // `SHOTS_MEASURE=spacing`: every screen's spaces, and at the end how many are off the scale and which ones most
+    let spacing = std::env::var("SHOTS_MEASURE").as_deref() == Ok("spacing");
+    let (mut measured, mut off_scale): (usize, std::collections::BTreeMap<String, usize>) = Default::default();
 
     for state in STATES.iter().filter(|s| only.is_empty() || only.iter().any(|o| o == s.name)) {
         let started = std::time::Instant::now();
@@ -2385,6 +2573,46 @@ fn main() {
         cx.advance_clock(std::time::Duration::from_secs(1));
         cx.run_until_parked();
         cx.update_window(handle, |_, window, cx| window.render_frame(cx)).expect("a frame");
+        if spacing {
+            // `SHOTS_DUMP=<name>`: where every piece inside the one of that name stands, to find a space's cause
+            if let Ok(inside) = std::env::var("SHOTS_DUMP") {
+                cx.update_window(handle, |_, window, _| {
+                    for piece in gpui_kit::base::test_support::snapshots(window) {
+                        let at = piece.path().iter().position(|id| named(std::slice::from_ref(id)) == inside);
+                        if let (Some(at), true) = (at, piece.visible()) {
+                            let path: Vec<String> =
+                                piece.path()[at..].iter().map(|id| named(std::slice::from_ref(id))).collect();
+                            let b = piece.bounds();
+                            println!(
+                                "DUMP {:>7.1} {:>7.1} {:>7.1} x {:>6.1}  {}",
+                                f32::from(b.left()),
+                                f32::from(b.top()),
+                                f32::from(b.size.width),
+                                f32::from(b.size.height),
+                                path.join(" / ")
+                            );
+                        }
+                    }
+                })
+                .expect("the window");
+            }
+            let (count, off) = cx.update_window(handle, |_, window, _| spaces(window)).expect("the window");
+            println!("SPACING {}: {count} measured, {} off the scale", state.name, off.len());
+            measured += count;
+            for said in off {
+                if only.len() == 1 {
+                    println!("SPACING   {said}");
+                }
+                *off_scale.entry(said).or_default() += 1;
+            }
+            cx.update_window(handle, |_, window, cx| {
+                cx.stop_active_drag(window);
+                window.remove_window()
+            })
+            .expect("the window closes");
+            cx.run_until_parked();
+            continue;
+        }
         // `SHOTS_MEASURE=frames`: what one frame of this state costs where the real text system shapes it and Metal
         // draws it (a test window does neither). Run it in a release build; it prints lines that start with MEASURE.
         if std::env::var("SHOTS_MEASURE").as_deref() == Ok("frames") {
@@ -2413,50 +2641,98 @@ fn main() {
             let path = format!("{out}/{}.png", state.name);
             image.save(&path).expect("the PNG is written");
             println!("shots: {path} {w}x{h} in {} ms", started.elapsed().as_millis());
-            // The edge of the tab on screen, read from the picture itself, half a pixel inside the pill's top:
-            // signal blue in the front window, gray behind another app (DESIGN.md, "States").
+            // The edge of the tab on screen, read from the picture itself, in the middle of its left side: blue in
+            // the front window, gray behind another app (DESIGN.md, "States").
             if matches!(state.name, "window" | "window-behind") {
-                let pill = cx
-                    .update_window(handle, |_, window, _| window.find("workspace-tabs-pill").bounds())
-                    .expect("the pill of the tab on screen");
+                let tab = cx
+                    .update_window(handle, |_, window, _| window.find(("tab", 0usize)).bounds())
+                    .expect("the tab of the workspace on screen");
                 let scale = w as f32 / f32::from(state.size.width);
                 let at = |v: gpui_kit::Pixels, add: f32| ((f32::from(v) + add) * scale) as u32;
-                let [red, green, blue, _] = image.get_pixel(at(pill.center().x, 0.), at(pill.top(), 0.5)).0;
-                let bluer = blue as i32 - red as i32;
+                let [red, green, blue, _] = image.get_pixel(at(tab.left(), 0.5), at(tab.center().y, 0.)).0;
+                let gray = (red as i32 - blue as i32).abs() < 12 && (red as i32 - green as i32).abs() < 12;
                 match state.name {
-                    "window" => assert!(bluer > 80, "the tab on screen's edge isn't blue: {red} {green} {blue}"),
-                    _ => assert!(bluer.abs() < 40 && red > 70, "behind, it isn't gray: {red} {green} {blue}"),
+                    "window" => assert!(
+                        blue > 200 && blue as i32 - red as i32 > 80,
+                        "the edge of the tab on screen isn't blue: {red} {green} {blue}"
+                    ),
+                    _ => assert!(gray && (90..140).contains(&red), "behind, it isn't gray: {red} {green} {blue}"),
                 }
             }
-            // The squint test of DESIGN.md, "States": the two top rows of five workspaces, blurred. The tab on
-            // screen must still be the shape that stands out, and that is read from the blurred picture: inside
-            // the pill against the bare row above it, 1.2 to 1 or more (before 14 Nov 2026 the pill stood at 1.05).
+            // The squint test of DESIGN.md, "States": the top row with five workspaces, blurred. The tab on screen
+            // must still be the shape that stands out, and that is read from the blurred picture: the light along
+            // that tab's edge against the same band of every other tab in sight, 1.2 to 1 or more. The blur mixes
+            // light, as an eye that squints does: the picture's values are turned into light first (a blur of the
+            // values themselves darkens a thin bright line on black far more than an eye does).
             if state.name == "tabs-narrow" {
                 let scale = w as f32 / f32::from(state.size.width);
-                let rows = (100. * scale) as u32;
-                let top = image::imageops::crop_imm(&image, 0, 0, w, rows.min(h)).to_image();
-                let squint = image::imageops::blur(&top, 4. * scale);
-                let path = format!("{out}/tabs-squint.png");
-                squint.save(&path).expect("the PNG is written");
-                let pill = cx
-                    .update_window(handle, |_, window, _| window.find("workspace-tabs-pill").bounds())
-                    .expect("the pill of the tab on screen");
-                // how light the blurred picture is at a place of the window (WCAG's relative luminance)
-                let light = |x: f32, y: f32| {
-                    let [red, green, blue, _] = squint.get_pixel((x * scale) as u32, (y * scale) as u32).0;
-                    let lin = |c: u8| {
-                        let c = c as f32 / 255.;
-                        if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }
-                    };
-                    0.2126 * lin(red) + 0.7152 * lin(green) + 0.0722 * lin(blue)
+                let high = (f32::from(enkidu_ui::tokens::TOP_ROW) * scale) as u32;
+                let row = image::imageops::crop_imm(&image, 0, 0, w, high.min(h)).to_image();
+                let lin = |c: u8| {
+                    let c = c as f32 / 255.;
+                    if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }
                 };
-                // inside the pill, left of its lamp; and the bare row, the same way in, above the pill
-                let (x, inside, above) =
-                    (f32::from(pill.left()) + 6., f32::from(pill.center().y), f32::from(pill.top()));
-                let (tab, row) = (light(x, inside), light(x, above - 12.));
-                let apart = (tab.max(row) + 0.05) / (tab.min(row) + 0.05);
-                assert!(apart >= 1.2, "blurred, the tab on screen is lost in its row: {apart:.2} to 1");
-                println!("shots: {path} {w}x{rows}, the top rows blurred: the tab on screen at {apart:.2} to 1");
+                let light = image::Rgb32FImage::from_fn(row.width(), row.height(), |x, y| {
+                    let [red, green, blue, _] = row.get_pixel(x, y).0;
+                    image::Rgb([lin(red), lin(green), lin(blue)])
+                });
+                let squint = image::imageops::blur(&light, 4. * scale);
+                // (the blurred picture as a file, in the screen's own values again)
+                let value = |c: f32| {
+                    let c = c.clamp(0., 1.);
+                    let v = if c <= 0.003_130_8 { 12.92 * c } else { 1.055 * c.powf(1. / 2.4) - 0.055 };
+                    (v * 255.).round() as u8
+                };
+                let path = format!("{out}/tabs-squint.png");
+                image::RgbImage::from_fn(squint.width(), squint.height(), |x, y| {
+                    let [red, green, blue] = squint.get_pixel(x, y).0;
+                    image::Rgb([value(red), value(green), value(blue)])
+                })
+                .save(&path)
+                .expect("the PNG is written");
+                // how light the blurred picture is along a tab's edge: the band 3 px to either side of where the
+                // edge of the tab on screen is drawn (WCAG's relative luminance, its mean)
+                let along = |tab: gpui_kit::Bounds<gpui_kit::Pixels>| {
+                    let (left, right) =
+                        ((f32::from(tab.left()) * scale) as u32, (f32::from(tab.right()) * scale) as u32);
+                    let (top, bottom) =
+                        ((f32::from(tab.top()) * scale) as u32, (f32::from(tab.bottom()) * scale) as u32);
+                    let band = (3. * scale) as u32;
+                    let (mut sum, mut count) = (0f32, 0u32);
+                    for y in top.saturating_sub(band)..(bottom + band).min(high) {
+                        for x in left.saturating_sub(band)..(right + band).min(w) {
+                            let inside = x >= left + band && x + band < right && y >= top + band && y + band < bottom;
+                            if inside {
+                                continue;
+                            }
+                            let [red, green, blue] = squint.get_pixel(x, y).0;
+                            sum += 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+                            count += 1;
+                        }
+                    }
+                    sum / count.max(1) as f32
+                };
+                // the tabs in sight: the first is on screen; the row scrolls, so one may be cut at its edge
+                let tabs: Vec<gpui_kit::Bounds<gpui_kit::Pixels>> = cx
+                    .update_window(handle, |_, window, _| {
+                        let strip = window.find("tab-strip").bounds();
+                        (0..5usize)
+                            .map(|n| window.find(("tab", n)).bounds())
+                            .filter(|tab| tab.right() <= strip.right())
+                            .collect()
+                    })
+                    .expect("the tabs of the row");
+                // (a name keeps what can be read of it, so the narrow window holds fewer tabs than it has)
+                assert!(
+                    tabs.len() >= 2,
+                    "the tab on screen and one more are whole in the narrow window: {}",
+                    tabs.len()
+                );
+                let here = along(tabs[0]);
+                let apart =
+                    (tabs[1..].iter()).map(|tab| (here + 0.05) / (along(*tab) + 0.05)).fold(f32::INFINITY, f32::min);
+                assert!(apart >= 1.2, "blurred, the tab on screen is lost in the row: {apart:.2} to 1");
+                println!("shots: {path} {w}x{high}, the top row blurred: the tab on screen at {apart:.2} to 1 or more");
             }
         }
         // The window goes. One that stayed was drawn again whenever a later state moved the clock (a cursor blinks
@@ -2468,5 +2744,15 @@ fn main() {
         })
         .expect("the window closes");
         cx.run_until_parked();
+    }
+    if spacing {
+        let off: usize = off_scale.values().sum();
+        let share = if measured == 0 { 0. } else { 100. * off as f64 / measured as f64 };
+        println!("SPACING all: {measured} measured, {off} off the scale ({share:.1} %), {} of a kind", off_scale.len());
+        let mut kinds: Vec<(&String, &usize)> = off_scale.iter().collect();
+        kinds.sort_by(|a, b| b.1.cmp(a.1).then(a.0.cmp(b.0)));
+        for (said, times) in kinds.iter() {
+            println!("SPACING   {times} x {said}");
+        }
     }
 }

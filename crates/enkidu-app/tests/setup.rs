@@ -127,8 +127,19 @@ fn a_project_whose_tickets_arent_read_leads_to_its_page_and_a_build_says_what_it
         assert!(python.as_deref().is_some_and(|said| said.starts_with("Missing: ⌘-click in Python")), "{python:?}");
         assert_eq!(commands(w, "python"), ["Copy sh scripts/fetch-ty.sh", "Copy sh scripts/install.sh"]);
     });
-    // the project's name goes to its own page, where the keys are typed
-    cx.update_window(window, |_, w, cx| w.click(("setup-jira-project", 0usize), cx)).unwrap();
+    // the project's name goes to its own page, where the keys are typed (it stands under the connections: the page
+    // scrolls to it)
+    cx.update_window(window, |_, w, cx| {
+        let down = gpui_kit::ScrollDelta::Pixels(gpui_kit::point(gpui_kit::px(0.), gpui_kit::px(-2000.)));
+        w.scroll("settings-body", down, cx);
+    })
+    .unwrap();
+    cx.run_until_parked();
+    cx.update_window(window, |_, w, cx| {
+        w.render_frame(cx);
+        w.click(("setup-jira-project", 0usize), cx)
+    })
+    .unwrap();
     look(cx, window, |w| {
         assert_eq!(page(w).as_deref(), Some("enkidu"));
         assert!(w.try_find("setup-page").is_none());

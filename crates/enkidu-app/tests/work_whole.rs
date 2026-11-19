@@ -45,7 +45,7 @@ fn workspace(cx: &mut TestAppContext, app: &App) -> enkidu_core::db::Workspace {
 /// Waits (up to a minute) until the terminal on screen holds `words`.
 fn until_terminal(cx: &mut TestAppContext, app: &App, words: &str) -> bool {
     for _ in 0..6000 {
-        if app.terminal_text(cx).contains(words) {
+        if common::holds(&app.terminal_text(cx), words) {
             return true;
         }
         std::thread::sleep(Duration::from_millis(10));
@@ -115,10 +115,16 @@ fn reads_github_and_jira_through_the_fakes_and_puts_each_ticket_with_its_prs_and
     assert!(pr.is_some(), "the PR's box");
     app.press(cx, "escape");
     assert!(app.until(cx, |w| w.try_find("task-dialog").is_none()));
-    let line = cx.update_window(app.window, |_, w, _| said(w, "work-status-line")).unwrap().unwrap_or_default();
-    assert!(line.contains("GitHub read") && line.contains("as me-dev"), "{line}");
-    assert!(line.contains("Jira read") && line.contains("as Me Dev"), "{line}");
-    // back to the workspace: its tab carries its PR, the status line what waits there
+    // each source's lamp in the header says who it was read as
+    let (github, jira) = cx
+        .update_window(app.window, |_, w, _| {
+            let read = |id: &'static str| w.try_find(id).and_then(|lamp| lamp.description().map(String::from));
+            (read("health-github").unwrap_or_default(), read("health-jira").unwrap_or_default())
+        })
+        .unwrap();
+    assert!(github.contains("read") && github.contains("as me-dev"), "{github}");
+    assert!(jira.contains("read") && jira.contains("as Me Dev"), "{jira}");
+    // back to the workspace: its row carries its PR, the top bar what waits there
     app.press(cx, "cmd-i");
     assert!(app.until(cx, |w| w.try_find(("tab-pr", 0usize)).is_some()), "the tab's PR");
     let chip = cx.update_window(app.window, |_, w, _| said(w, ("tab-pr", 0usize))).unwrap().unwrap_or_default();

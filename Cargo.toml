@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 publish = false
 # The app's own code. crates/enkidu-diff, a changed copy of gpui-component's diff view, stays under Apache-2.0 (NOTICE).

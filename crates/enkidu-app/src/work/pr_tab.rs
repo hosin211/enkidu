@@ -44,7 +44,7 @@ fn tag(word: &'static str) -> Div {
         .rounded(px(4.))
         .bg(theme::THUMB)
         .px(px(4.))
-        .text_size(px(10.5))
+        .text_size(theme::CAPTION)
         .text_color(theme::INK_3)
         .child(word)
 }
@@ -83,17 +83,19 @@ fn section(id: &'static str, title: &'static str, count: Option<AnyElement>, sai
     )
 }
 
-/// A quiet button under a list: "Show the 5 that passed or were skipped".
-fn more(id: &'static str, words: String) -> enkidu_ui::pieces::Pressed {
+/// A quiet button under a text or a list: "Show the 5 that passed or were skipped", "Show the whole description".
+pub(super) fn more(id: impl Into<gpui_kit::ElementId>, words: impl Into<SharedString>) -> enkidu_ui::pieces::Pressed {
+    let words = words.into();
     enkidu_ui::press::pressable(div().id(id))
         .test_support()
         .role(Role::Button)
-        .aria_label(SharedString::from(words.clone()))
-        .mt(px(6.))
+        .aria_label(words.clone())
+        .mt(px(4.))
         .flex()
         .child(
             div()
-                .text_size(px(12.))
+                .text_size(theme::TEXT_SMALL)
+                .line_height(theme::TEXT_SMALL_LINE)
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(theme::INK_3)
                 .cursor_pointer()
@@ -110,7 +112,7 @@ fn check_row(n: usize, check: &CheckRow) -> AnyElement {
         Bucket::Pending => "icons/circle-dashed.svg",
         Bucket::Pass => "icons/circle-check.svg",
     };
-    let sign = tinted(icon, color, 13.);
+    let sign = tinted(icon, color, 16.);
     // a check that runs turns, in steps, on the lamps' clock
     let sign = match check.bucket {
         Bucket::Pending => sign
@@ -136,8 +138,8 @@ fn check_row(n: usize, check: &CheckRow) -> AnyElement {
         .items_center()
         .gap(px(8.))
         .rounded(px(6.))
-        .px(px(4.))
-        .py(px(3.))
+        .px(px(8.))
+        .h(theme::LIST_ROW)
         .text_size(px(12.5))
         .hover(|s| s.bg(theme::HOVER))
         .child(sign)
@@ -149,8 +151,8 @@ fn check_row(n: usize, check: &CheckRow) -> AnyElement {
 
 fn thread_row(n: usize, thread: &ThreadRow) -> AnyElement {
     let sign = match thread.resolved {
-        true => tinted("icons/message-square-dashed.svg", theme::INK_3, 13.),
-        false => tinted("icons/message-square.svg", theme::ACCENT, 13.),
+        true => tinted("icons/message-square-dashed.svg", theme::INK_3, 16.),
+        false => tinted("icons/message-square.svg", theme::ACCENT, 16.),
     };
     let said = format!("{}: {}", thread.who, thread.text);
     let open = thread.url.clone().map(|url| {
@@ -190,11 +192,11 @@ fn thread_row(n: usize, thread: &ThreadRow) -> AnyElement {
             .collect::<Vec<_>>()
             .join(", "),
         ))
-        .rounded(px(10.))
+        .rounded(theme::RADIUS_CARD)
         .border_1()
-        .border_color(theme::RULE)
-        .px(px(12.))
-        .py(px(10.))
+        .border_color(theme::LINE)
+        .px(px(16.))
+        .py(px(12.))
         .when(thread.resolved, |row| row.opacity(0.7))
         .child(
             div()
@@ -211,12 +213,12 @@ fn thread_row(n: usize, thread: &ThreadRow) -> AnyElement {
                 .child(div().flex_1())
                 .children(open),
         )
-        .child(div().mt(px(6.)).text_size(px(12.5)).line_height(px(18.)).line_clamp(4).child(text))
+        .child(div().mt(px(8.)).text_size(px(12.5)).line_height(px(18.)).line_clamp(4).child(text))
         .children(
             thread
                 .replies
                 .clone()
-                .map(|replies| div().mt(px(6.)).text_size(px(11.5)).text_color(theme::INK_3).child(replies)),
+                .map(|replies| div().mt(px(4.)).text_size(px(11.5)).text_color(theme::INK_3).child(replies)),
         )
         .into_any_element()
 }
@@ -233,7 +235,7 @@ fn comment_row(n: usize, comment: &CommentRow) -> AnyElement {
         .aria_label(SharedString::from(format!("{who}: {}", comment.text)))
         .aria_description(SharedString::from(comment.when.clone()))
         .flex()
-        .gap(px(10.))
+        .gap(px(8.))
         .when(comment.bot, |row| row.opacity(0.75))
         .child(face)
         .child(
@@ -258,7 +260,7 @@ fn comment_row(n: usize, comment: &CommentRow) -> AnyElement {
                 )
                 .child(
                     div()
-                        .mt(px(2.))
+                        .mt(px(4.))
                         .text_size(px(12.5))
                         .line_height(px(18.))
                         .text_color(theme::INK_2)
@@ -283,7 +285,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
         .flex_wrap()
         .items_center()
         .gap_x(px(16.))
-        .gap_y(px(6.))
+        .gap_y(px(8.))
         .text_size(px(12.5))
         .text_color(theme::INK_3);
     if let Some((author, when)) = &pr.opened {
@@ -292,7 +294,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
             div()
                 .flex()
                 .items_center()
-                .gap(px(6.))
+                .gap(px(8.))
                 .child(badge(author, 16.))
                 .child(div().text_color(theme::INK_2).child(author.clone()))
                 .child(format!("opened it {when}")),
@@ -322,7 +324,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
             div()
                 .rounded_full()
                 .border_1()
-                .border_color(theme::RULE_STRONG)
+                .border_color(theme::LINE_STRONG)
                 .px(px(8.))
                 .py(px(1.))
                 .text_size(px(11.5))
@@ -352,7 +354,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
             .child(
                 svg()
                     .path("icons/external-link.svg")
-                    .size(px(11.))
+                    .size(theme::MARK)
                     .text_color(theme::INK_3)
                     .group_hover("pr-open", |s| s.text_color(theme::ACCENT)),
             )
@@ -364,7 +366,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
     if let Some(blocks) = &pr.body {
         let folded = pr.long_body && !opened.body;
         let fade = folded.then(|| {
-            let (clear, solid) = (alpha(theme::RAISED, 0.), theme::RAISED);
+            let (clear, solid) = (alpha(theme::SHEET, 0.), theme::SHEET);
             div().absolute().left_0().right_0().bottom_0().h(px(56.)).bg(linear_gradient(
                 180.,
                 linear_color_stop(clear, 0.),
@@ -412,7 +414,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
         });
         parts.push(
             section("pr-checks-list", "Checks", Some(counts.into_any_element()), pr.check_words())
-                .child(div().flex().flex_col().gap(px(2.)).children(rows))
+                .child(div().mx(px(-8.)).flex().flex_col().children(rows))
                 .children(hidden)
                 .into_any_element(),
         );
@@ -430,7 +432,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
                 .items_center()
                 .gap(px(8.))
                 .text_size(px(12.5))
-                .child(badge(&review.who, 18.))
+                .child(badge(&review.who, 20.))
                 .child(div().text_color(theme::INK).child(review.who.clone()))
                 .when(review.bot, |row| row.child(tag("bot")))
                 .child(div().font_weight(FontWeight::MEDIUM).text_color(ink(review.tone).color()).child(review.word))
@@ -449,12 +451,12 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
                 .text_size(px(12.5))
                 .child(
                     div()
-                        .size(px(18.))
+                        .size(px(20.))
                         .flex_none()
                         .rounded_full()
                         .border_1()
                         .border_dashed()
-                        .border_color(theme::RULE_STRONG),
+                        .border_color(theme::LINE_STRONG),
                 )
                 .child(div().text_color(theme::INK_2).child(who.clone()))
                 .child(div().text_color(theme::INK_3).child("asked to review, hasn't yet"))
@@ -463,7 +465,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
         let said = format!("{} reviewed, {} asked", pr.reviews.len(), pr.requested.len());
         parts.push(
             section("pr-reviews", "Reviews", None, said)
-                .child(div().flex().flex_col().gap(px(6.)).children(reviews).children(asked))
+                .child(div().flex().flex_col().gap(px(8.)).children(reviews).children(asked))
                 .into_any_element(),
         );
     }
@@ -498,7 +500,7 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
         let rows = pr.comments.iter().enumerate().map(|(n, comment)| comment_row(n, comment));
         parts.push(
             section("pr-conversation", "Conversation", Some(count.into_any_element()), pr.comments.len().to_string())
-                .child(div().flex().flex_col().gap(px(10.)).children(rows))
+                .child(div().flex().flex_col().gap(px(12.)).children(rows))
                 .into_any_element(),
         );
     }
@@ -514,13 +516,13 @@ pub fn pr_tab(pr: &PrTab, opened: Opened, window: &mut Window, cx: &mut Context<
                 .items_center()
                 .gap(px(8.))
                 .text_size(px(12.5))
-                .child(tinted("icons/git-commit-horizontal.svg", theme::INK_3, 13.))
+                .child(tinted("icons/git-commit-horizontal.svg", theme::INK_3, 16.))
                 .child(mono(div()).flex_none().text_size(px(11.5)).text_color(theme::INK_3).child(oid.clone()))
                 .child(div().min_w_0().truncate().text_color(theme::INK_2).child(headline.clone()))
         });
         parts.push(
             section("pr-commits", "Latest commits", Some(count.into_any_element()), headlines.join("\n"))
-                .child(div().flex().flex_col().gap(px(2.)).children(rows))
+                .child(div().flex().flex_col().gap(px(4.)).children(rows))
                 .into_any_element(),
         );
     }

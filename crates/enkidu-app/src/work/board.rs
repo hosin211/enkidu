@@ -1,5 +1,6 @@
-//! The Work board, drawn (DESIGN.md, "The Work page"): a column per Jira status, each an island with its ring, its name
-//! as Jira writes it and its count; a card per ticket, which says only what you read at a glance. What they say is
+//! The Work board, drawn (DESIGN.md, "The Work page"): a column per Jira status, each with a head (its ring, its name
+//! as Jira writes it and its count) and a line between it and the next; a card per ticket, which says only what you
+//! read at a glance. What they say is
 //! worked out in `enkidu_model::work::page` (`ColumnView`, `CardFace`); here it is drawn.
 
 use enkidu_model::work::board::{Glyph, StatusLook, Tone};
@@ -12,7 +13,7 @@ use gpui_kit::{
 
 use crate::work::page::Press;
 use enkidu_ui::lamp::{Status, lamp};
-use enkidu_ui::pieces::{changes_seen, island, lit_edge, mono, tick};
+use enkidu_ui::pieces::{changes_seen, mono, tick};
 use enkidu_ui::tips::Tipped as _;
 use enkidu_ui::tokens::{self as theme, bezier};
 use enkidu_ui::work::{
@@ -22,7 +23,7 @@ use enkidu_ui::work::{
 /// A column is never narrower than this, nor wider than [`COLUMN_MAX`].
 pub const COLUMN_MIN: f32 = 244.;
 pub const COLUMN_MAX: f32 = 380.;
-/// The space between two columns.
+/// What a column keeps free on each side of its cards, and under each card.
 pub const GAP: f32 = 8.;
 /// How far above and below a column's view its cards are still drawn, so none pops in while it scrolls.
 pub const OVERDRAW: f32 = 240.;
@@ -32,7 +33,7 @@ pub const FADE: f32 = 36.;
 /// Whether the board goes on past its left and its right edge: `columns` of at least [`COLUMN_MIN`] in `room` px,
 /// scrolled by `offset` (0, or less once it is scrolled to the right).
 pub fn more(columns: usize, room: f32, offset: f32) -> (bool, bool) {
-    let needed = columns as f32 * COLUMN_MIN + columns.saturating_sub(1) as f32 * GAP;
+    let needed = columns as f32 * COLUMN_MIN;
     let hidden = needed - room;
     (offset < -2., hidden + offset > 2.)
 }
@@ -66,9 +67,9 @@ pub fn ink(tone: Tone) -> Ink {
     }
 }
 
-/// A card as a row of its column's list: 8 px from the column's edges, and 8 px to the next card.
+/// A card as a row of its column's list: 8 px to the next card (the column itself keeps 8 px on each side).
 pub fn in_list(card: AnyElement) -> AnyElement {
-    div().px(px(GAP)).pb(px(GAP)).child(card).into_any_element()
+    div().pb(px(GAP)).child(card).into_any_element()
 }
 
 /// A card's id on screen: `work-card:` and the card's own (`ticket:SH-1`, `pr:owner/repo#2`).
@@ -161,8 +162,8 @@ pub fn card(
             .aria_label(words)
             .aria_toggled(if picked { gpui_kit::Toggled::True } else { gpui_kit::Toggled::False })
             .absolute()
-            .left(px(8.))
-            .top(px(8.))
+            .left(px(12.))
+            .top(px(12.))
             .size(px(20.))
             .flex()
             .items_center()
@@ -171,15 +172,13 @@ pub fn card(
             .border_1()
             .cursor_pointer()
             .map(|pick| match picked {
-                true => pick.border_color(theme::ACCENT).bg(theme::ACCENT_STRONG).child(tinted(
+                // picked: blue with a white tick, as every box that is ticked
+                true => pick.border_color(theme::ACCENT_STRONG).bg(theme::ACCENT_STRONG).child(tinted(
                     "icons/check.svg",
                     theme::white(1.0),
                     12.,
                 )),
-                false => pick
-                    .border_color(theme::RULE_STRONG)
-                    .bg(theme::CHROME)
-                    .hover(|s| s.border_color(enkidu_ui::tokens::alpha(theme::ACCENT, 0.7))),
+                false => pick.border_color(theme::LINE_STRONG).bg(theme::PANE).hover(|s| s.border_color(theme::INK_3)),
             })
             // out of sight until the card is pointed at, unless you are picking
             .when(!picked && !picking, |pick| pick.opacity(0.).group_hover(group.clone(), |s| s.opacity(1.)))
@@ -194,24 +193,24 @@ pub fn card(
             .min_w_0()
             .flex()
             .items_center()
-            .gap(px(6.))
-            .child(type_icon(kind.name(), 13.))
+            .gap(px(8.))
+            .child(type_icon(kind.name(), 16.))
             .child(mono(div()).truncate().text_size(px(11.5)).text_color(theme::INK_3).child(key.clone()))
             .children(priority.as_ref().map(|(level, _)| priority_icon(*level, 12.))),
         CardHead::Pr { state, name } => div()
             .min_w_0()
             .flex()
             .items_center()
-            .gap(px(6.))
-            .child(pr_glyph(pr_state(*state), 13.))
+            .gap(px(8.))
+            .child(pr_glyph(pr_state(*state), 16.))
             .child(mono(div()).truncate().text_size(px(11.5)).text_color(theme::INK_3).child(name.clone())),
         // a task of your own (item 8.5): signal blue is what is yours (DESIGN.md, "Color"); then the project it is for
         CardHead::Own { project, .. } => div()
             .min_w_0()
             .flex()
             .items_center()
-            .gap(px(6.))
-            .child(tinted("icons/user-round.svg", theme::ACCENT, 13.))
+            .gap(px(8.))
+            .child(tinted("icons/user-round.svg", theme::ACCENT, 16.))
             .child(
                 div()
                     .flex_none()
@@ -234,20 +233,20 @@ pub fn card(
             .flex()
             .items_center()
             .gap(px(4.))
-            .text_size(px(11.))
+            .text_size(theme::TEXT_STATUS)
             .line_height(px(16.))
             .text_color(color)
             .tipped(flow.words.clone(), None)
-            .child(tinted("icons/calendar-clock.svg", color, 11.))
+            .child(tinted("icons/calendar-clock.svg", color, 12.))
             .child(flow.text.clone())
     });
     let first = div()
         .h(px(20.))
         .flex()
         .items_center()
-        .gap(px(6.))
+        .gap(px(8.))
         // room for the round box while it is there
-        .when(picked || picking, |line| line.pl(px(26.)))
+        .when(picked || picking, |line| line.pl(px(28.)))
         .child(head)
         .child(div().flex_1().min_w(px(8.)))
         .children(flow)
@@ -267,7 +266,7 @@ pub fn card(
         // a ticket's PRs: its state's glyph, its number, its state in a word or two
         CardHead::Ticket { .. } if !face.prs.is_empty() => Some(
             div()
-                .mt(px(8.))
+                .mt(px(4.))
                 .flex()
                 .flex_col()
                 .gap(px(4.))
@@ -280,9 +279,9 @@ pub fn card(
                         .min_w_0()
                         .flex()
                         .items_center()
-                        .gap(px(6.))
+                        .gap(px(8.))
                         .text_size(px(12.))
-                        .line_height(px(16.))
+                        .h(px(20.))
                         .child(pr_glyph(pr_state(pr.state), 12.))
                         .child(
                             mono(div())
@@ -296,7 +295,8 @@ pub fn card(
                 .when(face.more > 0, |lines| {
                     lines.child(
                         div()
-                            .pl(px(18.))
+                            .pl(px(20.))
+                            .line_height(px(20.))
                             .text_size(px(11.5))
                             .text_color(theme::INK_3)
                             .child(format!("and {} more", face.more)),
@@ -306,9 +306,9 @@ pub fn card(
         // a PR without a ticket: its state alone (its number is in the first line)
         CardHead::Pr { .. } => face.prs.first().map(|pr| {
             div()
-                .mt(px(8.))
+                .mt(px(4.))
                 .text_size(px(12.))
-                .line_height(px(16.))
+                .line_height(px(20.))
                 .text_color(ink(pr.phrase.tone).color())
                 .child(pr.phrase.text)
         }),
@@ -316,7 +316,8 @@ pub fn card(
     };
     let foot = (face.claude.is_some() || face.report.is_some()).then(|| {
         div()
-            .mt(px(8.))
+            .mt(px(4.))
+            .h(px(20.))
             .min_w_0()
             .flex()
             .items_center()
@@ -331,13 +332,13 @@ pub fn card(
                     .min_w_0()
                     .flex()
                     .items_center()
-                    .gap(px(6.))
+                    .gap(px(8.))
+                    .h(px(20.))
                     .text_size(px(12.))
-                    .line_height(px(16.))
                     .text_color(theme::INK_2)
-                    .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 11.))
+                    .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 12.))
                     .child(div().truncate().child(workspace.clone()))
-                    .child(lamp(named("card-lamp"), status, 11., 0))
+                    .child(lamp(named("card-lamp"), status, 16., 0))
             }))
             // how Claude's latest report says the task ended
             .children(face.report.as_ref().map(|report| {
@@ -362,13 +363,13 @@ pub fn card(
                     .when(report.images > 0, |mark| {
                         mark.child(
                             div()
-                                .ml(px(2.))
+                                .ml(px(4.))
                                 .flex()
                                 .items_center()
-                                .gap(px(2.))
+                                .gap(px(4.))
                                 .font_weight(FontWeight::NORMAL)
                                 .text_color(theme::INK_3)
-                                .child(tinted("icons/image.svg", theme::INK_3, 11.))
+                                .child(tinted("icons/image.svg", theme::INK_3, 12.))
                                 .child(report.images.to_string()),
                         )
                     })
@@ -381,9 +382,7 @@ pub fn card(
         .aria_label(SharedString::from(face.name().to_string()))
         .aria_description(SharedString::from(card_words(face)))
         .aria_selected(selected)
-        .px(px(12.))
-        .pt(px(8.))
-        .pb(px(10.))
+        .p(px(12.))
         .when(face.stale, |card| card.tipped("From the last good read: this source can't be read right now", None))
         .group(group)
         .child(pick_box)
@@ -408,30 +407,37 @@ pub fn card(
     }
 }
 
-/// A column: an island with the status's ring, its name as Jira writes it and its count, then its cards, which
-/// scroll on their own (`cards`: the column's list, see [`in_list`]).
+/// A column: its head with the status's ring, its name as Jira writes it and its count, then its cards, which
+/// scroll on their own (`cards`: the column's list, see [`in_list`]). A line parts it from the column before it.
 pub fn column(ix: usize, column: &ColumnView, cards: AnyElement, window: &mut Window, cx: &mut App) -> AnyElement {
     let count = column.cards.len();
     // the count ticks when it changes while you watch
     let changes = changes_seen(SharedString::from(format!("work-count-{}", column.id)), count as u64, window, cx);
     let words = if count == 1 { "1 card".to_string() } else { format!("{count} cards") };
-    island(("work-column", ix), false)
+    div()
+        .id(("work-column", ix))
+        .test_support()
         .aria_label(SharedString::from(column.name.clone()))
         .aria_description(SharedString::from(words))
+        .relative()
         .flex_1()
         .min_w(px(COLUMN_MIN))
         .max_w(px(COLUMN_MAX))
         .h_full()
+        .flex()
+        .flex_col()
+        .px(px(GAP))
+        // the line between this column and the one before it, drawn over the column so it takes no room
+        .when(ix > 0, |column| column.child(div().absolute().left_0().top_0().bottom_0().w(px(1.)).bg(theme::LINE)))
         .child(
             div()
-                .h(px(40.))
+                .h(theme::SUB_BAR)
                 .flex_none()
                 .flex()
                 .items_center()
                 .gap(px(8.))
-                .pl(px(14.))
-                .pr(px(12.))
-                .child(status_ring(ring(&column.look), column.look.hue, 14.))
+                .px(px(4.))
+                .child(status_ring(ring(&column.look), column.look.hue, 16.))
                 .child(
                     div()
                         .truncate()
@@ -440,7 +446,7 @@ pub fn column(ix: usize, column: &ColumnView, cards: AnyElement, window: &mut Wi
                         .text_color(theme::INK)
                         .child(column.name.clone()),
                 )
-                .child(div().flex_none().text_size(px(12.)).text_color(theme::INK_3).child(tick(
+                .child(div().flex_none().text_size(theme::TEXT_SMALL).text_color(theme::INK_3).child(tick(
                     SharedString::from(format!("work-count-tick-{}", column.id)),
                     count.to_string(),
                     changes,
@@ -448,7 +454,6 @@ pub fn column(ix: usize, column: &ColumnView, cards: AnyElement, window: &mut Wi
         )
         // its cards: a list that draws only the ones in view (`cards`), found by tests through this
         .child(div().id(("work-cards", ix)).test_support().flex_1().min_h_0().child(cards))
-        .child(lit_edge())
         .into_any_element()
 }
 
@@ -458,7 +463,7 @@ mod tests {
 
     #[test]
     fn an_edge_fades_where_the_board_goes_on_past_it() {
-        // nine columns need 2,260 px; in 1,344 the board goes on to the right
+        // nine columns need 2,196 px; in 1,344 the board goes on to the right
         assert_eq!(more(9, 1344., 0.), (false, true));
         // scrolled a little: both ways; scrolled to its end: only to the left
         assert_eq!(more(9, 1344., -300.), (true, true));

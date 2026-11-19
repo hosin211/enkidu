@@ -117,7 +117,7 @@ fn shows_only_your_own_work_while_a_merge_is_on_not_what_the_merge_brings_in(cx:
     cx.update_window(app.window, |_, w, cx| {
         w.render_frame(cx);
         assert_eq!(said(w, "changes-count").as_deref(), Some("2 files"));
-        assert_eq!(said(w, "rail-count").as_deref(), Some("2"));
+        assert_eq!(said(w, "panel-count").as_deref(), Some("2"));
         assert_eq!(all(w, "row-kind"), ["Modified", "New file"]);
         // your edit against what the merge makes of the file: one line out, one in
         assert!(has_line(w, "    return sum(items)", "Line 2, before, removed"));

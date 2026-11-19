@@ -34,13 +34,19 @@ fn the_first_run_checks_now_and_the_page_is_there_again_after_a_restart(cx: &mut
         std::thread::sleep(std::time::Duration::from_millis(5));
     }
     assert!(asked, "Check now asked the core for a read");
-    // its watcher reads (through the fakes): the first run's words go, and the status line says how each source stands
+    // its watcher reads (through the fakes): the first run's words go, and each source's lamp in the header says how
+    // it stands
     app.start_watcher();
     assert!(app.until(cx, |w| w.try_find("work-first-run").is_none()), "something was read");
-    assert!(app.until(cx, |w| {
-        common::said(w, "work-status-line").as_deref()
-            == Some("GitHub read just now as me-dev | Jira read just now as Me Dev")
-    }));
+    let lamp = |w: &gpui_kit::Window, id: &'static str| {
+        w.try_find(id).map(|lamp| (lamp.value().map(String::from), lamp.description().map(String::from)))
+    };
+    let read = |as_whom: &str| Some((Some("ok".to_string()), Some(format!("shop: read just now as {as_whom}"))));
+    assert!(
+        app.until(cx, |w| lamp(w, "health-github") == read("me-dev") && lamp(w, "health-jira") == read("Me Dev")),
+        "{:?}",
+        cx.update_window(app.window, |_, w, _| (lamp(w, "health-github"), lamp(w, "health-jira"))).unwrap()
+    );
     // the page is where you are: kept a moment after you got there
     cx.executor().advance_clock(std::time::Duration::from_millis(400));
     let view = app.home.path().join("data").join("view.json");
@@ -63,13 +69,11 @@ fn the_first_run_checks_now_and_the_page_is_there_again_after_a_restart(cx: &mut
     // quit and open again: the page is on screen at once, with what the core's database has (no first run)
     let app = common::restart_as(cx, app, false);
     assert!(app.until(cx, |w| w.try_find("work-page").is_some()), "the Work page is where you were");
-    assert!(
-        app.until(cx, |w| { common::said(w, "work-status-line").is_some_and(|line| line.starts_with("GitHub read ")) })
-    );
+    assert!(app.until(cx, |w| lamp(w, "health-github").is_some_and(|(state, _)| state.as_deref() == Some("ok"))));
     assert!(app.until(cx, |w| w.try_find("work-first-run").is_none()));
     // and ⌘I goes back to the workspace
     app.press(cx, "cmd-i");
-    assert!(app.until(cx, |w| w.try_find("work-page").is_none() && w.try_find("status-line").is_some()));
+    assert!(app.until(cx, |w| w.try_find("work-page").is_none() && w.try_find("tabs-row").is_some()));
 }
 
 /// The app with the Work page open on what the fakes give: both sources read, the board on screen, in a window

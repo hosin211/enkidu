@@ -16,7 +16,7 @@ use enkidu_model::work::pr::Checks;
 use enkidu_model::work::prtab::PrTab;
 use enkidu_model::work::rich::{Block, jira_doc};
 use enkidu_ui::pieces::changes_seen;
-use enkidu_ui::pieces::{Observed, mono};
+use enkidu_ui::pieces::{ButtonKind, ButtonSize, Observed, button_with, chip, icon_button, mono};
 use enkidu_ui::tips::Tipped as _;
 use enkidu_ui::tokens::{self as theme, alpha, tone};
 use enkidu_ui::work::{SourceLook, checks_dot, pr_glyph, priority_icon, tinted, type_icon};
@@ -36,7 +36,7 @@ use crate::work::board::{ink, pr_state};
 use crate::work::composer::TakenOffer;
 use crate::work::drafts::Drafts;
 use crate::work::page::WorkPage;
-use crate::work::pr_tab::{Opened, pr_tab};
+use crate::work::pr_tab::{Opened, more, pr_tab};
 use crate::work::report::ReportsMade;
 use crate::work::rich::rich;
 use crate::work::send::Way;
@@ -55,10 +55,10 @@ actions!(work_card, [NextItem, PrevItem, ToggleItem, ItemNote, ItemDone, ItemSno
 const WIDE: f32 = 1040.;
 const NARROW: f32 = 560.;
 /// The column of facts at its right.
-const FACTS: f32 = 316.;
-/// A description is at most this wide (the old 68 characters), and a long one shows this much of its start: less
+const FACTS: f32 = 348.;
+/// A description is at most this wide (about 80 characters), and a long one shows this much of its start: less
 /// when something needs you under it. One that is only a little longer than that is shown whole.
-pub(super) const TASK_WIDTH: f32 = 548.;
+pub(super) const TASK_WIDTH: f32 = 620.;
 const TASK_SHORT: f32 = 168.;
 const TASK_TALL: f32 = 440.;
 const TASK_SLACK: f32 = 48.;
@@ -439,7 +439,7 @@ impl Card {
                 .flex()
                 .items_center()
                 .gap(px(8.))
-                .child(type_icon(kind.name(), 14.))
+                .child(type_icon(kind.name(), 16.))
                 .children(type_name.clone().map(|name| div().text_size(px(12.5)).text_color(theme::INK_3).child(name)))
                 .child(
                     mono(div())
@@ -451,7 +451,7 @@ impl Card {
                         .child(key.clone()),
                 ),
             CardHead::Pr { state, name } => {
-                div().flex().items_center().gap(px(8.)).child(pr_glyph(pr_state(*state), 14.)).child(
+                div().flex().items_center().gap(px(8.)).child(pr_glyph(pr_state(*state), 16.)).child(
                     mono(div())
                         .id("task-key")
                         .test_support()
@@ -466,7 +466,7 @@ impl Card {
                 .flex()
                 .items_center()
                 .gap(px(8.))
-                .child(tinted("icons/user-round.svg", theme::ACCENT, 14.))
+                .child(tinted("icons/user-round.svg", theme::ACCENT, 16.))
                 .child(
                     div()
                         .id("task-key")
@@ -481,10 +481,8 @@ impl Card {
         };
         // its words and its state are yours to change: Edit opens its dialog in front of the card
         let edit = model.own.as_ref().map(|_| {
-            quiet_button("task-edit", "Edit")
+            button_with("task-edit", Some("icons/pencil.svg"), "Edit", None, ButtonKind::Ghost, ButtonSize::Small)
                 .tipped("Change its words, or delete it", None)
-                .child(svg().path("icons/pencil.svg").flex_none().size(px(12.)).text_color(theme::INK_3))
-                .child("Edit")
                 .on_click(cx.listener(|card, _, window, cx| card.edit_own(window, cx)))
         });
         let hidden = model.hidden;
@@ -492,28 +490,12 @@ impl Card {
             true => ("icons/eye.svg", "Unhide", "Put it back on the board"),
             false => ("icons/eye-off.svg", "Hide", "Take it off the board (Hidden, in the header, shows it again)"),
         };
-        let hide = quiet_button("task-hide", hide_words)
+        let hide = button_with("task-hide", Some(hide_icon), hide_words, None, ButtonKind::Ghost, ButtonSize::Small)
             .tipped(hide_tip, None)
-            .child(svg().path(hide_icon).flex_none().size(px(12.)).text_color(theme::INK_3))
-            .child(hide_words)
             .on_click(cx.listener(|card, _, window, cx| card.hide(window, cx)));
         // a PR without a ticket has its link in its box below: never twice
         let jira = model.jira_url.clone().map(|url| open_link("detail-open", "Open in Jira", url));
-        let close = div()
-            .id("task-close")
-            .test_support()
-            .role(Role::Button)
-            .aria_label("Close")
-            .ml(px(4.))
-            .size(px(28.))
-            .flex()
-            .flex_none()
-            .items_center()
-            .justify_center()
-            .rounded(px(7.))
-            .cursor_pointer()
-            .hover(|s| s.bg(theme::HOVER))
-            .child(svg().path("icons/x.svg").size(px(15.)).text_color(theme::INK_3))
+        let close = icon_button("task-close", "icons/x.svg", "Close")
             .on_click(cx.listener(|card, _, window, cx| card.close(window, cx)));
         let first = div()
             .h(px(24.))
@@ -522,33 +504,30 @@ impl Card {
             .gap(px(8.))
             .child(what)
             .when(hidden, |line| {
-                line.child(
-                    div()
-                        .id("task-hidden")
-                        .test_support()
-                        .aria_label("Hidden")
-                        .rounded(px(5.))
-                        .bg(theme::HOVER)
-                        .px(px(6.))
-                        .py(px(1.))
-                        .text_size(px(11.))
-                        .text_color(theme::INK_3)
-                        .child("Hidden"),
-                )
+                line.child(chip("Hidden", theme::INK_2).id("task-hidden").test_support().aria_label("Hidden"))
             })
             .child(div().flex_1())
-            .children(edit)
-            .child(hide)
-            .children(jira)
-            .child(close);
+            // what you can do with it, 4 px apart; the last button's box ends 12 px before the dialog's edge
+            .child(
+                div()
+                    .flex()
+                    .flex_none()
+                    .items_center()
+                    .gap(px(4.))
+                    .mr(px(-12.))
+                    .children(edit)
+                    .child(hide)
+                    .children(jira)
+                    .child(close),
+            );
         let title = div()
             .id("task-title")
             .test_support()
             .aria_label(SharedString::from(model.title.clone()))
             .mt(px(8.))
             .max_w(px(780.))
-            .text_size(px(19.))
-            .line_height(px(26.))
+            .text_size(px(20.))
+            .line_height(px(28.))
             .font_weight(FontWeight::SEMIBOLD)
             .text_color(theme::INK)
             .child(model.title.clone());
@@ -558,41 +537,22 @@ impl Card {
                 .id("task-tabs")
                 .role(Role::TabList)
                 .aria_label("Show")
-                .mt(px(12.))
+                .mt(px(8.))
+                // the first tab's words stand where the title does
+                .ml(px(-8.))
+                .h(theme::BAR)
                 .flex()
-                .items_center()
-                .gap(px(2.))
                 .children(model.tabs.iter().map(|tab| {
                     let on = current.as_ref() == Some(tab);
                     let pick = tab.clone();
-                    div()
-                        .id(tab_id(tab))
-                        .test_support()
-                        .role(Role::Tab)
-                        .aria_label(SharedString::from(tab.label()))
-                        .aria_selected(on)
-                        .h(px(26.))
-                        .flex()
-                        .flex_none()
-                        .items_center()
-                        .rounded(px(8.))
-                        .px(px(10.))
-                        .text_size(px(12.5))
-                        .cursor_pointer()
-                        .map(|tab| match on {
-                            true => {
-                                tab.bg(theme::SELECTED).font_weight(FontWeight::MEDIUM).text_color(theme::INK).child(
-                                    div().absolute().top_0().left(px(6.)).right(px(6.)).h(px(1.)).bg(theme::HIGHLIGHT),
-                                )
-                            }
-                            false => tab.text_color(theme::INK_3).hover(|s| s.bg(theme::HOVER).text_color(theme::INK)),
-                        })
-                        .relative()
+                    enkidu_ui::pieces::tab(tab_id(tab), tab.label(), on)
                         .child(tab.label())
                         .on_click(cx.listener(move |card, _, _, cx| card.pick_tab(pick.clone(), cx)))
                 }))
         });
-        div().flex_none().px(px(24.)).pt(px(18.)).pb(px(12.)).child(first).child(title).children(tabs)
+        // (with tabs, their row ends the head on the line under it)
+        let foot = if tabs.is_some() { 0. } else { 16. };
+        div().flex_none().px(px(24.)).pt(px(16.)).pb(px(foot)).child(first).child(title).children(tabs)
     }
 
     /// The timeline: what happened to the ticket and its PRs, the newest first; the first eight, then "Show all".
@@ -612,28 +572,18 @@ impl Card {
                 .child(div().min_w_0().flex_1().text_color(theme::INK_2).child(text.clone()))
         });
         let more = (timeline.len() > shown).then(|| {
-            let words = format!("Show all {}", timeline.len());
-            div()
-                .id("timeline-more")
-                .test_support()
-                .role(Role::Button)
-                .aria_label(SharedString::from(words.clone()))
-                .mt(px(8.))
-                .text_size(px(12.))
-                .text_color(theme::INK_3)
-                .cursor_pointer()
-                .hover(|s| s.text_color(theme::ACCENT))
-                .child(words)
-                .on_click(cx.listener(|card, _, _, cx| {
+            more("timeline-more", format!("Show all {}", timeline.len())).mt(px(8.)).on_click(cx.listener(
+                |card, _, _, cx| {
                     card.all_events = true;
                     cx.notify();
-                }))
+                },
+            ))
         });
         div()
             .id("detail-timeline")
             .test_support()
             .aria_label("Activity")
-            .child(div().flex().flex_col().gap(px(6.)).children(rows))
+            .child(div().flex().flex_col().gap(px(8.)).children(rows))
             .children(more)
             .into_any_element()
     }
@@ -683,7 +633,7 @@ impl Card {
                 },
             );
         let fade = (folded && long).then(|| {
-            let (clear, solid) = (alpha(theme::RAISED, 0.), theme::RAISED);
+            let (clear, solid) = (alpha(theme::SHEET, 0.), theme::SHEET);
             div().absolute().left_0().right_0().bottom_0().h(px(56.)).bg(linear_gradient(
                 180.,
                 linear_color_stop(clear, 0.),
@@ -692,26 +642,10 @@ impl Card {
         });
         let more = long.then(|| {
             let words = if self.task_open { "Show less" } else { "Show the whole description" };
-            div()
-                .id("task-description-more")
-                .test_support()
-                .role(Role::Button)
-                .aria_label(words)
-                .mt(px(6.))
-                .flex()
-                .child(
-                    div()
-                        .text_size(px(12.))
-                        .font_weight(FontWeight::MEDIUM)
-                        .text_color(theme::INK_3)
-                        .cursor_pointer()
-                        .hover(|s| s.text_color(theme::ACCENT))
-                        .child(words),
-                )
-                .on_click(cx.listener(|card, _, _, cx| {
-                    card.task_open = !card.task_open;
-                    cx.notify();
-                }))
+            more("task-description-more", words).on_click(cx.listener(|card, _, _, cx| {
+                card.task_open = !card.task_open;
+                cx.notify();
+            }))
         });
         div()
             .id("task-description")
@@ -802,22 +736,25 @@ impl Card {
 /// A section's heading on the left, with the count of what is under it when that says something.
 pub(super) fn heading(words: &'static str, count: Option<usize>) -> Div {
     div()
-        .mb(px(10.))
+        .mb(px(8.))
         .flex()
         .items_center()
         .gap(px(8.))
-        .text_size(px(12.))
+        .text_size(px(12.5))
         .font_weight(FontWeight::SEMIBOLD)
-        .text_color(theme::INK_3)
+        .text_color(theme::INK_2)
         .child(words)
         .children(count.filter(|count| *count > 0).map(|count| {
             enkidu_ui::pieces::tabular(div())
+                .h(theme::CHIP)
+                .flex()
+                .items_center()
                 .rounded_full()
-                .bg(theme::HOVER)
-                .px(px(6.))
-                .text_size(px(11.))
+                .bg(theme::SOFT)
+                .px(px(8.))
+                .text_size(theme::TEXT_SMALL)
                 .font_weight(FontWeight::NORMAL)
-                .text_color(theme::INK_2)
+                .text_color(theme::INK)
                 .child(count.to_string())
         }))
 }
@@ -842,24 +779,6 @@ pub fn open_in_browser(url: &str, window: &mut Window, cx: &mut App) {
 }
 
 /// A quiet button in the card's header (Hide): its words, an icon before them, lit when pointed at.
-fn quiet_button(id: &'static str, label: &'static str) -> enkidu_ui::pieces::Pressed {
-    enkidu_ui::press::pressable(div().id(id))
-        .test_support()
-        .role(Role::Button)
-        .aria_label(label)
-        .flex()
-        .flex_none()
-        .items_center()
-        .gap(px(4.))
-        .rounded(px(6.))
-        .px(px(6.))
-        .py(px(2.))
-        .text_size(px(12.))
-        .text_color(theme::INK_3)
-        .cursor_pointer()
-        .hover(|s| s.bg(theme::HOVER).text_color(theme::INK))
-}
-
 /// A link that opens in the browser: its words, then the sign for "outside".
 pub(super) fn open_link(id: impl Into<gpui_kit::ElementId>, label: &'static str, url: String) -> Observed {
     let group = SharedString::from(format!("open-link:{url}"));
@@ -870,15 +789,16 @@ pub(super) fn open_link(id: impl Into<gpui_kit::ElementId>, label: &'static str,
         .aria_label(label)
         .aria_description(SharedString::from(url.clone()))
         .group(group.clone())
+        .h(theme::CONTROL)
         .flex()
         .flex_none()
         .items_center()
         .gap(px(4.))
-        .rounded(px(6.))
-        .px(px(6.))
-        .py(px(2.))
-        .text_size(px(12.))
-        .text_color(theme::INK_3)
+        .rounded(theme::RADIUS_CONTROL)
+        .px(px(8.))
+        .text_size(theme::TEXT)
+        .font_weight(FontWeight::MEDIUM)
+        .text_color(theme::INK_2)
         .cursor_pointer()
         .hover(|s| s.bg(theme::HOVER).text_color(theme::ACCENT))
         .child(label)
@@ -886,7 +806,7 @@ pub(super) fn open_link(id: impl Into<gpui_kit::ElementId>, label: &'static str,
             svg()
                 .path("icons/external-link.svg")
                 .flex_none()
-                .size(px(11.))
+                .size(theme::MARK)
                 .text_color(theme::INK_3)
                 .group_hover(group, |s| s.text_color(theme::ACCENT)),
         )
@@ -907,32 +827,31 @@ pub(super) fn fact_box(
         .aria_label(title)
         .aria_description(SharedString::from(said))
         .flex_none()
-        .rounded(px(12.))
+        .rounded(theme::RADIUS_CARD)
         .border_1()
-        .border_color(theme::RULE)
-        .bg(alpha(theme::CANVAS, 0.7))
-        .px(px(14.))
-        .pb(px(12.))
-        .pt(px(10.))
+        .border_color(theme::LINE)
+        .bg(theme::PANE)
+        .px(px(16.))
+        .py(px(12.))
         .flex()
         .flex_col()
-        .gap(px(6.))
+        .gap(px(8.))
         .child(
             div()
-                .mb(px(2.))
-                .h(px(24.))
+                .h(theme::CONTROL)
                 .flex()
                 .items_center()
                 .gap(px(8.))
                 .child(
                     div()
                         .flex_1()
-                        .text_size(px(12.))
+                        .text_size(px(12.5))
                         .font_weight(FontWeight::SEMIBOLD)
-                        .text_color(theme::INK_3)
+                        .text_color(theme::INK_2)
                         .child(title),
                 )
-                .children(action),
+                // (a link here is a button: its box ends 8 px before the box's edge, so its sign stands at 16)
+                .children(action.map(|action| div().flex_none().mr(px(-8.)).child(action))),
         )
 }
 
@@ -945,28 +864,29 @@ fn fact(id: impl Into<gpui_kit::ElementId>, label: &'static str, said: &str) -> 
         .min_h(px(24.))
         .flex()
         .items_start()
-        .gap(px(12.))
+        .gap(px(8.))
         .text_size(px(12.5))
         .line_height(px(18.))
-        .child(div().w(px(68.)).flex_none().pt(px(3.)).text_color(theme::INK_3).child(label));
+        // (what it is takes 88 px with the space after it)
+        .child(div().w(px(80.)).flex_none().pt(px(3.)).text_color(theme::INK_3).child(label));
     let value =
-        div().min_w_0().flex_1().flex().flex_wrap().items_center().gap(px(6.)).pt(px(3.)).text_color(theme::INK_2);
+        div().min_w_0().flex_1().flex().flex_wrap().items_center().gap(px(8.)).pt(px(3.)).text_color(theme::INK_2);
     (row, value)
 }
 
 /// A Jira status as a pill in the hue of its column's ring (to do and on hold gray, in progress blue, review
 /// violet, QA amber, done green): `large` as the card's right column shows it, else small, beside a key.
 pub(super) fn status_pill(status: &str, hue: Option<f32>, large: bool) -> Div {
-    let (height, radius, side, text) = if large { (24., 7., 10., 12.5) } else { (18., 5., 6., 11.) };
+    let (height, side, text) = if large { (24., 12., 12.5) } else { (20., 8., 11.5) };
     let pill = div()
         .h(px(height))
         .flex()
         .flex_none()
         .items_center()
-        .rounded(px(radius))
+        .rounded_full()
         .px(px(side))
         .text_size(px(text))
-        .font_weight(FontWeight::MEDIUM)
+        .font_weight(FontWeight::SEMIBOLD)
         .child(status.to_string());
     match hue {
         Some(hue) => pill.bg(alpha(tone(hue, 0.12), 0.12)).text_color(tone(hue, 0.12)),
@@ -1012,7 +932,7 @@ fn pr_box(pr: &PrFacts, window: &mut Window, cx: &mut App) -> AnyElement {
         .flex()
         .items_center()
         .gap(px(8.))
-        .child(pr_glyph(pr_state(pr.state), 15.))
+        .child(pr_glyph(pr_state(pr.state), 16.))
         .child(
             mono(div())
                 .text_size(px(13.))
@@ -1025,12 +945,14 @@ fn pr_box(pr: &PrFacts, window: &mut Window, cx: &mut App) -> AnyElement {
                 .id(id("task-pr-state"))
                 .test_support()
                 .aria_label(state)
-                .rounded(px(6.))
-                .bg(theme::HOVER)
-                .px(px(6.))
-                .py(px(2.))
-                .text_size(px(11.5))
-                .font_weight(FontWeight::MEDIUM)
+                .h(theme::CHIP)
+                .flex()
+                .items_center()
+                .rounded_full()
+                .bg(alpha(ink(pr.tone).color(), 0.14))
+                .px(px(8.))
+                .text_size(theme::TEXT_STATUS)
+                .font_weight(FontWeight::SEMIBOLD)
                 .text_color(ink(pr.tone).color())
                 .child(state),
         );
@@ -1040,13 +962,13 @@ fn pr_box(pr: &PrFacts, window: &mut Window, cx: &mut App) -> AnyElement {
         .min_w_0()
         .flex()
         .items_center()
-        .gap(px(6.))
+        .gap(px(8.))
         .pb(px(4.))
         .text_size(px(11.5))
         .text_color(theme::INK_3)
-        .child(tinted("icons/git-branch.svg", theme::INK_3, 11.))
+        .child(tinted("icons/git-branch.svg", theme::INK_3, 12.))
         .child(div().truncate().child(pr.head.clone()))
-        .child(tinted("icons/arrow-right.svg", theme::INK_3, 11.))
+        .child(tinted("icons/arrow-right.svg", theme::INK_3, 12.))
         .child(div().flex_none().child(pr.base.clone()));
     let mut rows: Vec<AnyElement> = vec![first.into_any_element(), title.into_any_element(), branch.into_any_element()];
     if let Some((checks, words)) = &pr.checks {
@@ -1060,15 +982,22 @@ fn pr_box(pr: &PrFacts, window: &mut Window, cx: &mut App) -> AnyElement {
         let color = if *checks == Checks::Failing { theme::LAMP_RED } else { theme::INK_2 };
         rows.push(
             row.child(
-                value
-                    // the dot pops once when the checks flip while the card is open
-                    .child(checks_dot(
-                        id("task-checks-lamp"),
-                        look,
-                        7.,
-                        changes_seen(id("task-checks-seen"), *checks as u64, window, cx),
-                    ))
-                    .child(div().min_w_0().text_color(color).child(words.clone())),
+                // the dot stays beside the first line of what it says, however long that is
+                value.child(
+                    div()
+                        .min_w_0()
+                        .flex()
+                        .items_start()
+                        .gap(px(8.))
+                        // (it pops once when the checks flip while the card is open)
+                        .child(div().h(theme::TEXT_LINE).flex().flex_none().items_center().child(checks_dot(
+                            id("task-checks-lamp"),
+                            look,
+                            8.,
+                            changes_seen(id("task-checks-seen"), *checks as u64, window, cx),
+                        )))
+                        .child(div().min_w_0().flex_1().text_color(color).child(words.clone())),
+                ),
             )
             .into_any_element(),
         );
@@ -1119,18 +1048,12 @@ impl Render for Card {
             .flex()
             .flex_col()
             .gap(px(12.))
-            .px(px(16.))
-            .py(px(20.))
+            .p(px(16.))
             .overflow_y_scroll()
             .track_scroll(&self.facts_scroll)
             .children(self.facts(window, cx))
             .map(|facts| match story {
-                true => facts
-                    .w(px(FACTS))
-                    .flex_none()
-                    .border_l_1()
-                    .border_color(theme::RULE)
-                    .bg(alpha(gpui_kit::rgb(0x000000), 0.12)),
+                true => facts.w(px(FACTS)).flex_none().border_l_1().border_color(theme::LINE),
                 false => facts.flex_1().min_w_0(),
             });
         let body = div()
@@ -1138,7 +1061,7 @@ impl Render for Card {
             .min_h_0()
             .flex()
             .border_t_1()
-            .border_color(theme::RULE)
+            .border_color(theme::LINE)
             .when(story, |body| {
                 body.child(
                     div()
@@ -1151,7 +1074,7 @@ impl Render for Card {
                         .flex_col()
                         .gap(px(24.))
                         .px(px(24.))
-                        .py(px(20.))
+                        .py(px(16.))
                         .overflow_y_scroll()
                         .track_scroll(&self.story_scroll)
                         .children(self.story(window, cx)),
@@ -1193,7 +1116,6 @@ impl Render for Card {
             .child(body)
             // what you tell Claude, always in view
             .child(composer)
-            .child(crate::dialog_parts::lit_edge())
             // a screenshot as large as the window, over the card
             .child(self.shots.clone())
     }

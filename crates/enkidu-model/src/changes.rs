@@ -18,6 +18,19 @@ fn in_order(mut files: Vec<Change>) -> Vec<Change> {
     files
 }
 
+/// A list of changes as the mark of what something was made from (a tree of its folders, the rows of a pane): equal
+/// only to the very same list, as the store hands it out until it changes; a look at where each one is kept, whatever
+/// their length. The mark keeps its list. An address alone is no mark: once its list is let go, the next list can be
+/// given the very place it stood in, and what was made from the old one would be taken for made from the new.
+#[derive(Clone)]
+pub struct Same(pub Arc<Vec<Change>>);
+
+impl PartialEq for Same {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+}
+
 /// Every workspace's changed files.
 #[derive(Default)]
 pub struct ChangeLists {
@@ -101,6 +114,33 @@ impl OneAtATime {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_list_is_the_same_only_as_itself_and_its_mark_keeps_it() {
+        let change = |path: &str| Change {
+            path: path.into(),
+            old_path: None,
+            kind: "modified".into(),
+            staged: false,
+            additions: Some(1),
+            deletions: Some(0),
+            sig: "1".into(),
+        };
+        let list = Arc::new(vec![change("a.py")]);
+        let mark = Same(list.clone());
+        assert!(mark == Same(list.clone()), "the very same list");
+        assert!(mark != Same(Arc::new(vec![change("a.py")])), "another list that says the same is another list");
+        // the list is let go everywhere else: the mark still keeps it, so no list made later can stand where it
+        // stands. (With only its address kept, the first list made after it was let go was given that address
+        // often: the tree of changed files then stayed as it was, empty beside a changed file.)
+        drop(list);
+        assert_eq!(Arc::strong_count(&mark.0), 1);
+        let empty = Same(Arc::default());
+        for _ in 0..1000 {
+            let next = Same(Arc::new(vec![change("b.py")]));
+            assert!(next != mark && next != empty);
+        }
+    }
 
     #[test]
     fn git_is_asked_once_at_a_time_for_a_workspace_and_once_more_for_the_visits_meanwhile() {

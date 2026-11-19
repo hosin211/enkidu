@@ -3,10 +3,13 @@
 
 use std::rc::Rc;
 
-use enkidu_ui::pieces::{ButtonKind, ButtonSize, Observed, button, button_with, mono, rise_in_place};
+use enkidu_ui::pieces::{
+    ButtonKind, ButtonSize, Observed, button, button_with, line_over, mono, rise_in_place, text_area,
+};
 use enkidu_ui::tips::Tipped as _;
 use enkidu_ui::tokens::{self as theme, alpha, hsla};
 use gpui_kit::base::TestSupportExt as _;
+use gpui_kit::component::Sizable as _;
 use gpui_kit::component::input::{Escape, Textarea, TextareaState};
 use gpui_kit::prelude::*;
 use gpui_kit::{
@@ -47,12 +50,12 @@ fn card_button(id: &'static str, icon: &'static str, label: &'static str, hot: R
         .test_support()
         .role(gpui_kit::Role::Button)
         .aria_label(label)
-        .size(px(20.))
+        .size(theme::CHIP)
         .flex()
         .flex_none()
         .items_center()
         .justify_center()
-        .rounded(px(4.))
+        .rounded(theme::RADIUS_TAG)
         .cursor_pointer()
         .group("card-button")
         .hover(|s| s.bg(theme::HOVER))
@@ -61,7 +64,7 @@ fn card_button(id: &'static str, icon: &'static str, label: &'static str, hot: R
         .child(
             svg()
                 .path(icon)
-                .size(px(11.))
+                .size(theme::MARK)
                 .text_color(theme::INK_3)
                 .group_hover("card-button", move |s| s.text_color(hot)),
         )
@@ -70,11 +73,11 @@ fn card_button(id: &'static str, icon: &'static str, label: &'static str, hot: R
 /// One remark under its lines, in the diff or in an opened file.
 pub fn card(view: &CardView, edit: Act, delete: Act) -> AnyElement {
     let said = div()
-        .h(px(20.))
+        .h(theme::CHIP)
         .flex()
         .items_center()
         .gap(px(8.))
-        .text_size(px(11.))
+        .text_size(theme::TEXT_SMALL)
         .text_color(theme::INK_3)
         .child(div().font_weight(FontWeight::MEDIUM).text_color(theme::INK_2).child(view.label.clone()))
         .when(view.removed, |row| row.child(if view.many { "removed lines" } else { "removed line" }))
@@ -84,10 +87,14 @@ pub fn card(view: &CardView, edit: Act, delete: Act) -> AnyElement {
                     .id("remark-outdated")
                     .test_support()
                     .aria_label("Code changed since")
-                    .px(px(6.))
+                    .h(theme::CHIP)
+                    .flex()
+                    .items_center()
+                    .px(px(8.))
                     .rounded_full()
                     .bg(alpha(theme::LAMP_AMBER, 0.15))
-                    .font_weight(FontWeight::MEDIUM)
+                    .text_size(theme::TEXT_STATUS)
+                    .font_weight(FontWeight::SEMIBOLD)
                     .text_color(theme::LAMP_AMBER)
                     .child("Code changed since"),
             )
@@ -97,7 +104,7 @@ pub fn card(view: &CardView, edit: Act, delete: Act) -> AnyElement {
             // the card's own controls show while the pointer is on the card
             div()
                 .flex()
-                .gap(px(2.))
+                .gap(px(4.))
                 .opacity(0.)
                 .group_hover("remark", |s| s.opacity(1.))
                 .child(
@@ -116,13 +123,12 @@ pub fn card(view: &CardView, edit: Act, delete: Act) -> AnyElement {
         .group("remark")
         .relative()
         .max_w(px(680.))
-        .rounded(px(9.))
-        .bg(theme::RAISED)
+        .rounded(theme::RADIUS_CARD)
+        .bg(theme::SHEET)
         .border_1()
-        .border_color(theme::RULE)
+        .border_color(theme::LINE)
         .py(px(8.))
-        .pl(px(14.))
-        .pr(px(10.))
+        .px(px(12.))
         // the remarks' blue, down its left edge
         .child(div().absolute().top(px(8.)).bottom(px(8.)).left_0().w(px(2.)).rounded_full().bg(theme::ACCENT))
         .child(said)
@@ -140,9 +146,9 @@ pub fn card(view: &CardView, edit: Act, delete: Act) -> AnyElement {
         })
         .child(
             div()
-                .mt(px(2.))
+                .mt(px(4.))
                 .text_size(theme::TEXT)
-                .line_height(px(18.))
+                .line_height(theme::TEXT_LINE)
                 .text_color(theme::INK)
                 // (its words can be selected and copied)
                 .child(enkidu_ui::selectable::words(
@@ -186,9 +192,10 @@ pub fn composer(view: &ComposerView, save: Act, cancel: Act, cx: &App) -> AnyEle
         .test_support()
         .aria_label(SharedString::from(view.label.clone()))
         .max_w(px(680.))
-        .rounded(px(12.))
-        .bg(theme::RAISED)
-        .p(px(8.))
+        .rounded(theme::RADIUS_CARD)
+        .bg(theme::SHEET)
+        .px(px(8.))
+        .py(px(12.))
         // a blue edge and a faint glow: the keyboard is here
         .shadow(vec![ring(theme::ACCENT, 1.), ring(alpha(theme::ACCENT, 0.16), 4.)])
         .on_action(move |_: &Escape, window, cx| on_escape(window, cx))
@@ -200,27 +207,27 @@ pub fn composer(view: &ComposerView, save: Act, cancel: Act, cx: &App) -> AnyEle
             field.update(cx, |field, cx| field.focus(window, cx));
         })
         .child(
-            // 10 px in: where the text field's own words start
+            // 4 px in: where the text field's own words start
             div()
-                .px(px(10.))
-                .pb(px(4.))
-                .text_size(px(11.))
+                .px(px(4.))
+                .pb(px(8.))
+                .text_size(theme::TEXT_SMALL)
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(theme::INK_2)
                 .child(view.label.clone()),
         )
-        .child(Textarea::new(&view.input).appearance(false).aria_label("What should Claude do here?"))
+        .child(text_area(&view.input, false).xsmall().appearance(false).aria_label("What should Claude do here?"))
         .child(
             div()
-                .mt(px(6.))
+                .mt(px(8.))
+                .px(px(4.))
                 .flex()
                 .items_center()
-                .gap(px(6.))
+                .gap(px(8.))
                 .child(
                     div()
                         .flex_1()
-                        .pl(px(10.))
-                        .text_size(px(11.))
+                        .text_size(theme::TEXT_SMALL)
                         .text_color(theme::INK_3)
                         .child("⌘↩ to save, Esc to cancel"),
                 )
@@ -268,7 +275,7 @@ pub struct BarActs {
 /// prompt. Faintly blue, the remarks' color, so it reads as theirs.
 pub fn bar(view: &BarView, acts: BarActs, window: &Window, cx: &App) -> AnyElement {
     let BarActs { add_note, close_note, discard, keep, delete, send } = acts;
-    let medium = |id: &'static str, label: String, kind: ButtonKind| button(id, label, kind, ButtonSize::Medium);
+    let medium = |id: &'static str, label: String, kind: ButtonKind| button(id, label, kind, ButtonSize::Small);
     let note = view.note.as_ref().map(|note| {
         let state = note.read(cx);
         let (lit, empty) = (state.focus_handle(cx).is_focused(window), state.value().is_empty());
@@ -276,9 +283,9 @@ pub fn bar(view: &BarView, acts: BarActs, window: &Window, cx: &App) -> AnyEleme
             .id("remarks-note")
             .test_support()
             .mb(px(8.))
-            .rounded(px(7.))
-            .bg(theme::CANVAS)
-            .shadow(vec![ring(if lit { theme::ACCENT } else { theme::RULE_STRONG }, 1.)])
+            .rounded(theme::RADIUS_CONTROL)
+            .bg(theme::WELL)
+            .shadow(vec![ring(if lit { theme::ACCENT } else { theme::LINE_STRONG }, 1.)])
             // Escape closes a note without words; one with words stays
             .on_action(move |_: &Escape, window, cx| {
                 if empty {
@@ -293,10 +300,9 @@ pub fn bar(view: &BarView, acts: BarActs, window: &Window, cx: &App) -> AnyEleme
         .flex()
         .items_center()
         .gap(px(8.))
-        .pl(px(2.))
-        .text_size(px(12.))
+        .text_size(theme::TEXT_SMALL)
         .text_color(theme::INK_2)
-        .child(div().flex_none().size(px(6.)).rounded_full().bg(theme::ACCENT))
+        .child(div().flex_none().size(px(8.)).rounded_full().bg(theme::ACCENT))
         .child(div().min_w_0().truncate().child(view.waiting.clone()));
     let buttons: Vec<AnyElement> = if view.confirming {
         vec![
@@ -311,7 +317,7 @@ pub fn bar(view: &BarView, acts: BarActs, window: &Window, cx: &App) -> AnyEleme
         let label =
             if view.sending { "Typing\u{2026}".to_string() } else { enkidu_model::remarks::send_words(view.count) };
         let type_them =
-            button_with("send-remarks", Some("icons/send.svg"), label, None, ButtonKind::Accent, ButtonSize::Medium)
+            button_with("send-remarks", Some("icons/send.svg"), label, None, ButtonKind::Accent, ButtonSize::Small)
                 .tipped_in(
                     "Types the remarks into Claude's prompt; you press Enter there to send them",
                     Box::new(crate::TypeRemarks),
@@ -339,13 +345,13 @@ pub fn bar(view: &BarView, acts: BarActs, window: &Window, cx: &App) -> AnyEleme
         .id("review-bar")
         .test_support()
         .aria_label(SharedString::from(view.waiting.clone()))
+        .relative()
         .flex_none()
-        .px(px(12.))
+        .pl(theme::INSET)
+        .pr(px(12.))
         .py(px(8.))
-        .border_t_1()
-        .border_color(alpha(theme::ACCENT, 0.22))
-        .bg(alpha(theme::ACCENT, 0.06))
+        .child(line_over())
         .children(note)
-        .child(div().flex().items_center().gap(px(6.)).child(said).children(buttons))
+        .child(div().flex().items_center().gap(px(8.)).child(said).children(buttons))
         .into_any_element()
 }

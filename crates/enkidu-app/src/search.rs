@@ -37,7 +37,7 @@ use futures::channel::mpsc::unbounded;
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::WindowExt as _;
 use gpui_kit::component::dialog::DialogEntrance;
-use gpui_kit::component::input::{IndentInline, Input, InputEvent, InputState, MoveDown, MoveUp, OutdentInline};
+use gpui_kit::component::input::{IndentInline, InputEvent, InputState, MoveDown, MoveUp, OutdentInline};
 use gpui_kit::component::menu::PopupMenuItem;
 use gpui_kit::prelude::*;
 use gpui_kit::{
@@ -54,20 +54,24 @@ pub const KEYS: &str = "Search";
 
 /// A row of the Files and Symbols tabs, and one of the Text tab (its rows are all one height, so only the ones in
 /// view are made: a search can list a thousand lines).
-const ROW: f32 = 36.;
+const ROW: f32 = 32.;
 const LINE_ROW: f32 = 28.;
+/// The room around the rows of a list, on every side: with a row's own 8 px its words start 16 px in.
+const LIST_PAD: f32 = 8.;
+/// The popup's own bars: its tabs (40), its field (48) and its foot (40).
+const BARS: f32 = 40. + 48. + 40.;
 /// How many kinds of file the filter of Find in files offers: the most common ones.
 const KINDS_OFFERED: usize = 8;
 /// How long a line of Find in files is the picked one before its file is read for the preview under the rows (item
 /// 10.6): ↓ held through the rows reads nothing on its way.
 const PREVIEW_WAIT: Duration = Duration::from_millis(80);
 /// The preview: its band, and how many lines of the file it shows when the window has the room.
-const PREVIEW_HEAD: f32 = 30.;
+const PREVIEW_HEAD: f32 = 32.;
 const PREVIEW_LINES: f32 = 14.;
 /// The fewest lines a preview is worth showing; in a window too short for them there is none.
 const PREVIEW_LEAST: f32 = 6.;
 /// With a preview under them the rows take at most this: seven of them.
-const ROWS_OVER_PREVIEW: f32 = 7. * LINE_ROW + 12.;
+const ROWS_OVER_PREVIEW: f32 = 7. * LINE_ROW + 2. * LIST_PAD;
 
 /// What Search keeps while the app runs (the tab used last, what was typed, Find in files' options), the files
 /// opened lately in each workspace, and the result that was just picked.
@@ -813,6 +817,9 @@ impl Search {
                     .decorations([target])
                     .marks(found)
                     .change_marks(differs)
+                    // (no frame of its own: no box stands inside a box)
+                    .border_0()
+                    .bg(theme::WELL)
                     .into_any_element()
             }
         };
@@ -825,7 +832,7 @@ impl Search {
             .flex()
             .flex_col()
             .border_t_1()
-            .border_color(theme::RULE_STRONG)
+            .border_color(theme::LINE_STRONG)
             .child(
                 div()
                     .h(px(PREVIEW_HEAD))
@@ -833,11 +840,11 @@ impl Search {
                     .flex()
                     .items_center()
                     .gap(px(8.))
-                    .px(px(12.))
-                    .bg(Rgba { r: 0., g: 0., b: 0., a: 0.18 })
+                    .px(theme::INSET)
+                    .bg(theme::PANE)
                     .border_b_1()
-                    .border_color(theme::RULE)
-                    .child(file_icon(&path, 13.))
+                    .border_color(theme::LINE)
+                    .child(file_icon(&path, 16.))
                     .child(
                         div()
                             .flex_none()
@@ -863,7 +870,7 @@ impl Search {
                             .map(|kind| glyph_named("search-preview-kind", kind).into_any_element()),
                     ),
             )
-            .child(div().h(px(height)).bg(theme::CANVAS).child(body))
+            .child(div().h(px(height)).bg(theme::WELL).child(body))
             .into_any_element()
     }
 
@@ -893,26 +900,7 @@ impl Search {
     fn tabs(&self, status: &Status, cx: &mut Context<Self>) -> impl IntoElement {
         let tabs = Tab::ALL.into_iter().enumerate().map(|(ix, tab)| {
             let on = tab == self.tab;
-            div()
-                .id(("search-tab", ix))
-                .test_support()
-                .role(Role::Tab)
-                .aria_label(tab.label())
-                .aria_selected(on)
-                .h(px(28.))
-                .px(px(10.))
-                .flex()
-                .flex_none()
-                .items_center()
-                .gap(px(8.))
-                .rounded(px(6.))
-                .text_size(theme::TEXT_SMALL)
-                .font_weight(FontWeight::MEDIUM)
-                .cursor_pointer()
-                .map(|tab| match on {
-                    true => tab.bg(theme::SELECTED).text_color(theme::INK),
-                    false => tab.text_color(theme::INK_3).hover(|s| s.bg(theme::HOVER).text_color(theme::INK_2)),
-                })
+            enkidu_ui::pieces::tab(("search-tab", ix), tab.label(), on)
                 .child(tab.label())
                 .child(
                     div()
@@ -932,15 +920,14 @@ impl Search {
                 .flex()
                 .flex_none()
                 .items_center()
-                .gap(px(6.))
-                .pr(px(8.))
-                .text_size(theme::TEXT_STATUS)
+                .gap(px(4.))
+                .text_size(theme::TEXT_SMALL)
                 .text_color(theme::INK_3)
                 .when(status.busy, |said| {
                     said.child(
                         svg()
                             .flex_none()
-                            .size(px(11.))
+                            .size(theme::MARK)
                             .path("icons/loader-circle.svg")
                             .text_color(theme::INK_3)
                             .with_animation(
@@ -954,15 +941,17 @@ impl Search {
                 })
                 .child(status.words.clone())
         });
+        // (a tab brings 8 px itself: the first one's words start 16 px in)
         div()
-            .h(px(40.))
+            .h(theme::BAR)
             .flex_none()
             .flex()
             .items_center()
-            .gap(px(4.))
-            .px(px(8.))
-            .border_b_1()
-            .border_color(theme::RULE)
+            .pl(px(8.))
+            .pr(theme::INSET)
+            // (its line is drawn over it: a tab is as high as the strip, and its own line stands on this one)
+            .relative()
+            .child(enkidu_ui::pieces::line_under())
             .children(tabs)
             .child(div().flex_1())
             .children(said)
@@ -979,21 +968,20 @@ impl Search {
         let set = picked.is_some();
         MenuTrigger::new("search-kind", SharedString::from(words.clone()))
             .tip("The kind of file to search in")
-            .h(px(26.))
+            .h(theme::CONTROL)
             .flex_none()
             .flex()
             .items_center()
-            .gap(px(6.))
-            .pl(px(10.))
-            .pr(px(7.))
+            .gap(px(4.))
+            .px(px(8.))
             .mr(px(4.))
-            .rounded(px(7.))
+            .rounded(theme::RADIUS_CONTROL)
             .cursor_pointer()
             .border_1()
             .map(|button| match set {
                 // a kind is picked: the scan is not of every file, and the button says so in signal blue
                 true => button.border_color(alpha(theme::FOCUS, 0.5)).bg(alpha(theme::FOCUS, 0.10)),
-                false => button.border_color(theme::RULE_STRONG).hover(|s| s.bg(theme::HOVER)),
+                false => button.border_color(theme::LINE_STRONG).hover(|s| s.bg(theme::HOVER)),
             })
             .child(match set {
                 true => mono(div()).text_size(px(12.)).text_color(theme::INK).child(words),
@@ -1055,25 +1043,25 @@ impl Search {
                         },
                         KEYS,
                     )
-                    .size(px(28.))
+                    .size(theme::CONTROL)
                     .flex()
                     .flex_none()
                     .items_center()
                     .justify_center()
-                    .rounded(px(6.))
+                    .rounded(theme::RADIUS_CONTROL)
                     .cursor_pointer()
                     .map(|switch| match on {
                         true => switch.bg(alpha(theme::FOCUS, 0.2)).border_1().border_color(alpha(theme::FOCUS, 0.45)),
                         false => switch.hover(|s| s.bg(theme::HOVER)),
                     })
-                    .child(svg().path(icon).size(px(15.)).text_color(if on { theme::INK } else { theme::INK_3 }))
+                    .child(svg().path(icon).size(theme::ICON).text_color(if on { theme::INK } else { theme::INK_3 }))
                     .on_click(cx.listener(move |this, _, _, cx| this.toggle(which, cx)))
             };
             div()
                 .flex()
                 .flex_none()
                 .items_center()
-                .gap(px(2.))
+                .gap(px(4.))
                 .child(switch(Toggle::Case, "toggle-case", "icons/case-sensitive.svg", cx))
                 .child(switch(Toggle::Word, "toggle-word", "icons/whole-word.svg", cx))
                 .child(switch(Toggle::Regex, "toggle-regex", "icons/regex.svg", cx))
@@ -1083,12 +1071,19 @@ impl Search {
             .flex_none()
             .flex()
             .items_center()
-            .gap(px(10.))
-            .px(px(16.))
+            // (the field brings 8 px itself: its words stand 12 px after the sign)
+            .gap(px(4.))
+            .pl(theme::INSET)
+            .pr(px(12.))
             .border_b_1()
-            .border_color(theme::RULE)
-            .child(svg().path("icons/search.svg").flex_none().size(px(16.)).text_color(theme::INK_3))
-            .child(div().flex_1().min_w_0().child(Input::new(&self.query).id("search-input").appearance(false)))
+            .border_color(theme::LINE)
+            .child(svg().path("icons/search.svg").flex_none().size(theme::ICON).text_color(theme::INK_3))
+            .child(
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .child(enkidu_ui::pieces::bare_field(&self.query, theme::DIALOG_CONTROL).id("search-input")),
+            )
             .children(kind)
             .children(toggles)
     }
@@ -1104,18 +1099,19 @@ impl Search {
                 .flex()
                 .flex_none()
                 .items_center()
-                .gap(px(6.))
-                .px(px(10.))
+                .gap(px(4.))
+                .px(px(8.))
                 .pt(px(8.))
                 .pb(px(4.))
                 .text_size(theme::CAPTION)
+                .line_height(px(16.))
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(theme::INK_3)
                 .child(
                     svg()
                         .path(if *group == Group::Changed { "icons/file-diff.svg" } else { "icons/clock.svg" })
                         .flex_none()
-                        .size(px(11.))
+                        .size(theme::MARK)
                         .text_color(theme::INK_3),
                 )
                 .child(group.label())
@@ -1128,7 +1124,7 @@ impl Search {
                     .when_some(from.map(Group::label), |row, group| row.aria_description(group))
                     .h(px(ROW))
                     .text_size(theme::TEXT)
-                    .child(file_icon(path, 15.))
+                    .child(file_icon(path, 16.))
                     .child(
                         div()
                             .flex_none()
@@ -1159,15 +1155,15 @@ impl Search {
                     .text_size(theme::TEXT)
                     .child(
                         mono(div())
-                            .size(px(18.))
+                            .size(theme::BADGE)
                             .flex()
                             .flex_none()
                             .items_center()
                             .justify_center()
-                            .rounded(px(5.))
+                            .rounded(theme::RADIUS_SMALL)
                             .bg(alpha(color, 0.15))
                             .text_color(color)
-                            .text_size(px(10.5))
+                            .text_size(px(10.))
                             .font_weight(FontWeight::SEMIBOLD)
                             .child(kind_letter(hit.kind)),
                     )
@@ -1177,7 +1173,7 @@ impl Search {
                             .min_w_0()
                             .flex()
                             .items_baseline()
-                            .gap(px(6.))
+                            .gap(px(8.))
                             .child(mono(div()).min_w_0().truncate().text_size(px(12.5)).text_color(theme::INK).child(
                                 marked(
                                     &hit.name,
@@ -1219,21 +1215,18 @@ impl Search {
 
     fn footer(&self) -> impl IntoElement {
         let hint = |keys: &[&'static str], words: &'static str| {
-            div().flex().flex_none().items_center().gap(px(6.)).children(keys.iter().map(|key| kbd(*key))).child(words)
+            div().flex().flex_none().items_center().gap(px(8.)).children(keys.iter().map(|key| kbd(*key))).child(words)
         };
         div()
             .flex_none()
             .flex()
             .items_center()
+            .h(theme::BAR)
             .gap(px(16.))
-            .px(px(16.))
-            .py(px(8.))
+            .px(theme::INSET)
             .border_t_1()
-            .border_color(theme::RULE)
-            .bg(Rgba { r: 0., g: 0., b: 0., a: 0.25 })
-            // its fill follows the dialog's corner (nothing clips to a rounded corner here)
-            .rounded_b(crate::dialog_parts::INNER_RADIUS)
-            .text_size(theme::CAPTION)
+            .border_color(theme::LINE)
+            .text_size(theme::TEXT_SMALL)
             .text_color(theme::INK_3)
             .child(hint(&["↑", "↓"], "move"))
             .child(hint(&["↩"], "open"))
@@ -1256,9 +1249,9 @@ fn opens(ix: usize, label: &str, active: bool, search: WeakEntity<Search>) -> Ob
         .flex()
         .flex_none()
         .items_center()
-        .gap(px(10.))
-        .px(px(10.))
-        .rounded(px(7.))
+        .gap(px(8.))
+        .px(px(8.))
+        .rounded(theme::RADIUS_CONTROL)
         .cursor_pointer()
         .when(active, |row| row.bg(theme::SELECTED))
         .on_mouse_move(move |_, _, cx| {
@@ -1284,8 +1277,7 @@ fn line_row(ix: usize, row: &Row, active: bool, colors: CodeColors, search: Weak
     opens(ix, &hit.text, active, search)
         .aria_description(SharedString::from(place))
         .h(px(LINE_ROW))
-        .gap(px(14.))
-        .pl(px(12.))
+        .gap(px(16.))
         .text_size(theme::TEXT_SMALL)
         .child(
             mono(div())
@@ -1461,8 +1453,9 @@ pub(crate) fn kind_option(of: &'static str, kind: Option<&str>, count: Option<us
             .flex()
             .items_center()
             .gap(px(8.))
+            .map(enkidu_ui::pieces::in_menu)
             .text_color(theme::INK)
-            .child(svg().path("icons/check.svg").flex_none().size(px(13.)).text_color(if picked {
+            .child(svg().path("icons/check.svg").flex_none().size(theme::MARK).text_color(if picked {
                 theme::INK
             } else {
                 alpha(theme::INK, 0.)
@@ -1520,14 +1513,14 @@ impl Render for Search {
         let viewport = f32::from(window.viewport_size().height);
         let room = (viewport * 0.58).min(460.);
         // under the rows of Find in files, the file around the picked line, when the window has the room (item 10.6).
-        // The popup stands 12% down the window; its tabs, its field and its foot take 122 px
+        // The popup stands 12% down the window, with its own bars around the rows
         let row_height = code_row_height(self.ui.read(cx).code_size) as f32;
-        let rows_over = (self.rows.len() as f32 * LINE_ROW + 12.).min(ROWS_OVER_PREVIEW);
+        let rows_over = (self.rows.len() as f32 * LINE_ROW + 2. * LIST_PAD).min(ROWS_OVER_PREVIEW);
         let preview =
             self.previewed.as_ref().filter(|_| self.tab == Tab::Text && !self.rows.is_empty()).and_then(|previewed| {
-                let space = viewport * 0.88 - 24. - 122. - PREVIEW_HEAD - rows_over;
+                let space = viewport * 0.88 - 24. - BARS - PREVIEW_HEAD - rows_over;
                 let lines = (space / row_height).floor().min(PREVIEW_LINES);
-                (lines >= PREVIEW_LEAST).then(|| self.preview_view(previewed, lines * row_height + 6., cx))
+                (lines >= PREVIEW_LEAST).then(|| self.preview_view(previewed, lines * row_height + 8., cx))
             });
         let note = note.map(|note| {
             // one text that wraps, its code in the code face
@@ -1563,7 +1556,7 @@ impl Render for Search {
             // with the preview under them the rows take seven rows at most, and no more than they are
             let height = match preview {
                 Some(_) => rows_over,
-                None => (rows.len() as f32 * LINE_ROW + 12.).min(room).max(88.),
+                None => (rows.len() as f32 * LINE_ROW + 2. * LIST_PAD).min(room).max(88.),
             };
             let list = uniform_list("search-line-rows", rows.len(), {
                 let rows = rows.clone();
@@ -1576,7 +1569,7 @@ impl Render for Search {
             .track_scroll(&self.lines)
             .size_full();
             // a list that only makes the rows in view can't be found by a test: the space it fills can
-            div().id("search-lines").test_support().h(px(height)).p(px(6.)).child(list).into_any_element()
+            div().id("search-lines").test_support().h(px(height)).p(px(LIST_PAD)).child(list).into_any_element()
         } else {
             let changes = self.changes(cx);
             let list: Vec<AnyElement> =
@@ -1589,7 +1582,7 @@ impl Render for Search {
                 .flex_col()
                 .overflow_y_scroll()
                 .track_scroll(&self.scroll)
-                .p(px(6.))
+                .p(px(LIST_PAD))
                 .children(note)
                 .children(list)
                 .into_any_element()
@@ -1646,7 +1639,6 @@ impl Render for Search {
             .child(results)
             .children(preview)
             .child(self.footer())
-            .child(crate::dialog_parts::lit_edge())
     }
 }
 

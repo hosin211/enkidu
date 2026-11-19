@@ -354,7 +354,7 @@ fn two_huge_workspaces_stay_quick(cx: &mut TestAppContext) {
     let writing = written.elapsed();
     let words = format!("{CHANGED} changed files");
     let (hidden, longest_hidden) = until(cx, &app, "the changes of the workspace that isn't on screen", |w| {
-        said(w, ("tab-words", 1usize)).as_deref() == Some(words.as_str())
+        said(w, ("tab-changed", 1usize)).as_deref() == Some(words.as_str())
     });
     println!(
         "LOAD {CHANGED} changed files in the workspace that isn't on screen (written in {:.0} ms): on its tab {:.0} \
@@ -430,7 +430,7 @@ fn two_huge_workspaces_stay_quick(cx: &mut TestAppContext) {
     }
     let rounds: usize = std::env::var("ENKIDU_LOAD_EDITS").ok().and_then(|n| n.parse().ok()).unwrap_or(10);
     let trace = std::env::var("ENKIDU_LOAD_TRACE").is_ok();
-    let seen = |w: &Window| (said(w, "changes-count"), said(w, "status-counts"));
+    let seen = |w: &Window| (said(w, "changes-count"), said(w, "changes-added"), said(w, "changes-removed"));
     let (mut edits, mut longest_edit): (Vec<f64>, Longest) = (Vec::new(), Longest::default());
     for n in 0..rounds {
         let (before, _) = frame(cx, &app, seen);
@@ -1054,7 +1054,7 @@ fn the_work_board_stays_quick_with_an_index_ten_times_his(cx: &mut TestAppContex
             project_id: "p1".into(),
             name: format!("task-{n}"),
             path: format!("/w/task-{n}"),
-            branch: format!("feature/X{n}-12780-export"),
+            branch: format!("feature/X{n}-21309-export"),
             base: Some("development".into()),
             session_id: format!("s-w{n}"),
             transcript_path: None,

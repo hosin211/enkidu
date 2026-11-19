@@ -25,8 +25,10 @@ pub enum Pick {
     FullReview,
     /// The diffs in one column, or before and after side by side.
     DiffLayout,
-    /// A panel at the right edge: opened, or closed if it was the one open (⌥⌘1, ⌥⌘2).
+    /// A tab of the files' column: shown, or the column folded away if it was the one shown (⌥⌘1, ⌥⌘2).
     Panel(Panel),
+    /// The rail and the files' column go, or come back (⌘S).
+    Lists,
     /// Search, on one of its tabs (⇧⌘O, ⌘O, ⇧⌘F).
     Search(crate::search::Tab),
     /// The Settings dialog (⌘,).
@@ -113,8 +115,8 @@ pub fn groups(frame: &Frame, ui: Option<&Ui>) -> Vec<Group> {
         actions.push(action(pick, &crate::live::command(&ws.name, live), None));
     }
     if frame.workspaces.len() > 1 {
-        actions.push(action(Pick::NextWorkspace, "Next workspace", Some("⌃⇥")));
-        actions.push(action(Pick::PreviousWorkspace, "Previous workspace", Some("⌃⇧⇥")));
+        actions.push(action(Pick::NextWorkspace, "Next workspace", Some("⇧⌘]")));
+        actions.push(action(Pick::PreviousWorkspace, "Previous workspace", Some("⇧⌘[")));
     }
     // Search, for the workspace on screen, in a window that has it (`ui` says so: the app's own window)
     if ui.is_some() && frame.current_workspace().is_some() {
@@ -152,6 +154,8 @@ pub fn groups(frame: &Frame, ui: Option<&Ui>) -> Vec<Group> {
             _ => "Show the project's files",
         };
         layouts.push(action(Pick::Panel(Panel::Files), files, Some("⌥⌘2")));
+        let lists = if ui.lists_hidden { "Show the lists" } else { "Hide the lists" };
+        layouts.push(action(Pick::Lists, lists, Some("⌘S")));
         let diffs = match ui.diff_layout {
             DiffLayout::Split => "Diffs in one column",
             DiffLayout::Unified => "Diffs before and after, side by side",
@@ -459,6 +463,7 @@ mod tests {
                 ("Changes in full size".to_string(), false, Some("⇧⌘E")),
                 ("Hide the changed files".to_string(), false, Some("⌥⌘1")),
                 ("Show the project's files".to_string(), false, Some("⌥⌘2")),
+                ("Hide the lists".to_string(), false, Some("⌘S")),
                 ("Diffs in one column".to_string(), false, None),
             ]
         );
@@ -467,7 +472,8 @@ mod tests {
         ui.diff_layout = DiffLayout::Unified;
         let rows = layouts(&ui);
         assert!(rows[0].1 && !rows[1].1, "beside is the current one: {rows:?}");
-        assert_eq!(rows[6].0, "Diffs before and after, side by side");
+        assert_eq!(rows[7].0, "Diffs before and after, side by side");
+        assert_eq!(rows[6].0, "Hide the lists");
         ui.toggle_panel(Panel::Files);
         let rows = layouts(&ui);
         assert_eq!((rows[4].0.as_str(), rows[5].0.as_str()), ("Show the changed files", "Hide the project's files"));
@@ -488,9 +494,13 @@ mod tests {
                 Pick::FullReview,
                 Pick::Panel(Panel::Changes),
                 Pick::Panel(Panel::Files),
+                Pick::Lists,
                 Pick::DiffLayout
             ]
         );
+        // with the lists hidden the row brings them back
+        ui.toggle_lists();
+        assert_eq!(layouts(&ui)[6].0, "Show the lists");
     }
 
     #[test]

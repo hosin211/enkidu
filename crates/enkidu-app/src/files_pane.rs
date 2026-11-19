@@ -12,15 +12,15 @@ use std::sync::Arc;
 
 use enkidu_core::git::Change;
 use enkidu_core::state::Shared;
-use enkidu_model::changes::ChangeLists;
+use enkidu_model::changes::{ChangeLists, Same};
 use enkidu_model::filetree::{self, Files, Found, Tree};
 use enkidu_model::frame::Frame;
 use enkidu_model::review::split_path;
-use enkidu_ui::pieces::{Observed, file_icon, folder_icon, on_screen_bar};
+use enkidu_ui::pieces::{Observed, file_icon, folder_icon};
 use enkidu_ui::tips::Tipped as _;
 use enkidu_ui::tokens::{self as theme, tone};
 use gpui_kit::base::TestSupportExt as _;
-use gpui_kit::component::input::{Input, InputEvent, InputState};
+use gpui_kit::component::input::{InputEvent, InputState};
 use gpui_kit::prelude::*;
 use gpui_kit::{
     AnyElement, App, Context, Entity, Focusable as _, FontWeight, Render, Role, SharedString, Subscription,
@@ -126,8 +126,8 @@ pub struct FilesPane {
 struct Made {
     workspace: String,
     turn: u64,
-    /// The list of changes, by where it is kept: the store hands out the very same one until it changes.
-    changes: usize,
+    /// The list of changes itself: the store hands out the very same one until it changes.
+    changes: Same,
     current: Option<String>,
 }
 
@@ -408,7 +408,10 @@ impl FilesPane {
     }
 }
 
-/// "1,234 files", as the band says it.
+/// A step of the tree: how far a folder's rows stand in from its own.
+const STEP: f32 = 16.;
+
+/// "1,234 files", as the row over the tree says it.
 fn files_words(count: usize, more: bool) -> String {
     let lines = enkidu_model::review::lines_words(count);
     let number = lines.split(' ').next().unwrap_or_default();
@@ -422,35 +425,37 @@ fn row_frame(id: (&'static str, usize), label: &str) -> Observed {
         .role(Role::TreeItem)
         .aria_label(SharedString::from(label.to_string()))
         .relative()
-        .h(theme::TREE_ROW)
+        .h(theme::LIST_ROW)
         .w_full()
         .flex()
         .items_center()
-        .rounded(px(6.))
+        .rounded(theme::RADIUS_CONTROL)
         .cursor_pointer()
 }
 
-fn row(ix: usize, row: &Row, pane: WeakEntity<FilesPane>, in_front: bool) -> AnyElement {
+fn row(ix: usize, row: &Row, pane: WeakEntity<FilesPane>) -> AnyElement {
     match row {
         Row::Folder { label, path, depth, open, changed } => {
             let asked = path.clone();
             row_frame(("folder-row", ix), path)
                 .aria_description(if *open { "open" } else { "closed" })
-                .gap(px(4.))
-                .pl(px(4. + *depth as f32 * 12.))
+                // a step is 16 px; the arrow stands in a 16 px slot, 4 px before the folder's icon
+                .gap(px(8.))
+                .pl(px(8. + *depth as f32 * STEP))
                 .pr(px(8.))
                 .text_size(theme::TEXT)
                 .text_color(theme::INK_2)
                 .hover(|s| s.bg(theme::HOVER).text_color(theme::INK))
                 .child(
-                    svg()
-                        .path(if *open { "icons/chevron-down.svg" } else { "icons/chevron-right.svg" })
-                        .flex_none()
-                        .size(px(13.))
-                        .text_color(theme::INK_3),
+                    div().flex_none().w(theme::ICON).mr(px(-4.)).flex().justify_center().child(
+                        svg()
+                            .path(if *open { "icons/chevron-down.svg" } else { "icons/chevron-right.svg" })
+                            .size(theme::MARK)
+                            .text_color(theme::INK_3),
+                    ),
                 )
-                .child(folder_icon(*open, 14.))
-                .child(div().ml(px(2.)).min_w_0().truncate().child(label.clone()))
+                .child(folder_icon(*open, 16.))
+                .child(div().min_w_0().truncate().child(label.clone()))
                 .when(*changed, |row| {
                     row.child(div().flex_1()).child(
                         div()
@@ -476,17 +481,15 @@ fn row(ix: usize, row: &Row, pane: WeakEntity<FilesPane>, in_front: bool) -> Any
             row_frame(("file-row", ix), path)
                 .aria_selected(*current)
                 .tipped(tip.clone(), None)
-                .gap(px(6.))
-                // a file's icon lines up with the folder icons beside it, past their chevrons
-                .pl(px(if found { 8. } else { 21. + *depth as f32 * 12. }))
-                .pr(px(6.))
+                .gap(px(8.))
+                // a file's icon stands under its folder's, past the arrow's slot
+                .pl(px(if found { 8. } else { 8. + *depth as f32 * STEP + 20. }))
+                .pr(px(8.))
+                // the file that is open has the chosen fill, and its name is semibold
                 .map(|row| if *current { row.bg(theme::SELECTED) } else { row.hover(|s| s.bg(theme::HOVER)) })
-                // the blue bar of the file that is open; gray while the window is behind another app
-                .when(*current, |row| row.child(on_screen_bar(6., in_front)))
-                .child(file_icon(path, 14.))
+                .child(file_icon(path, 16.))
                 .child(
                     div()
-                        .ml(px(2.))
                         .min_w_0()
                         .flex_shrink_0()
                         .max_w_full()
@@ -494,12 +497,20 @@ fn row(ix: usize, row: &Row, pane: WeakEntity<FilesPane>, in_front: bool) -> Any
                         .text_size(theme::TEXT)
                         // bright is for the file on screen alone: a changed file has its letter at the right
                         // (DESIGN.md, "States": chosen never rests on brightness that means something else too)
-                        .text_color(if *current { theme::INK } else { theme::INK_2 })
+                        .map(|name| match *current {
+                            true => name.font_weight(theme::WEIGHT_TITLE).text_color(theme::INK),
+                            false => name.text_color(theme::INK_2),
+                        })
                         .child(name.to_string()),
                 )
                 .when(found && !dir.is_empty(), |row| {
                     row.child(
-                        div().min_w_0().truncate().text_size(px(11.5)).text_color(theme::INK_3).child(dir.to_string()),
+                        div()
+                            .min_w_0()
+                            .truncate()
+                            .text_size(theme::TEXT_SMALL)
+                            .text_color(theme::INK_3)
+                            .child(dir.to_string()),
                     )
                 })
                 .children(
@@ -515,9 +526,9 @@ fn row(ix: usize, row: &Row, pane: WeakEntity<FilesPane>, in_front: bool) -> Any
             let words = format!("Show all {}", files_words(*count, false));
             let asked = dir.clone();
             row_frame(("show-all", ix), &words)
-                .pl(px(21. + *depth as f32 * 12.))
+                .pl(px(8. + *depth as f32 * STEP + 20.))
                 .pr(px(8.))
-                .text_size(px(12.))
+                .text_size(theme::TEXT_SMALL)
                 .text_color(theme::INK_3)
                 .hover(|s| s.bg(theme::HOVER).text_color(theme::INK))
                 .child(words)
@@ -589,7 +600,7 @@ impl Render for FilesPane {
         let made = Made {
             workspace: workspace.clone(),
             turn: self.turn,
-            changes: Arc::as_ptr(&changes) as usize,
+            changes: Same(changes.clone()),
             current: current.clone(),
         };
         let rows = match &self.drawn {
@@ -620,82 +631,70 @@ impl Render for FilesPane {
         let count = rows.len();
         let list = uniform_list("files-rows", count, {
             let pane = pane.clone();
-            move |range, window, _| {
-                let in_front = window.is_window_active();
-                range.map(|ix| row(ix, &rows[ix], pane.clone(), in_front)).collect::<Vec<_>>()
-            }
+            move |range, _, _| range.map(|ix| row(ix, &rows[ix], pane.clone())).collect::<Vec<_>>()
         })
         .track_scroll(&self.scroll)
         .size_full()
-        .px(px(6.))
-        .pb(px(8.));
+        .px(px(8.))
+        .pt(px(4.))
+        .pb(px(12.));
         // a list that only makes the rows in view can't be found by a test: the space it fills can
         let list = div().id("files-tree").test_support().flex_1().min_h_0().child(list);
         let lit = field.read(cx).focus_handle(cx).contains_focused(window, cx);
-        let band = crate::right_edge::band("Files")
-            .children(listing.as_ref().map(|listing| {
-                let words = files_words(listing.files.len(), listing.truncated);
-                div()
-                    .id("files-count")
-                    .test_support()
-                    .aria_label(SharedString::from(words.clone()))
-                    .text_size(px(12.))
-                    .text_color(theme::INK_3)
-                    .child(words)
-            }))
-            .child(div().flex_1())
-            .child(
-                div()
-                    .id("files-refresh")
-                    .test_support()
-                    .role(Role::Button)
-                    .aria_label("Read the files again")
-                    .tipped("Read the files again", None)
-                    .size(px(26.))
-                    .flex()
-                    .flex_none()
-                    .items_center()
-                    .justify_center()
-                    .rounded(px(8.))
-                    .cursor_pointer()
-                    .group("files-refresh")
-                    .hover(|s| s.bg(theme::HOVER))
-                    .child(
-                        svg()
-                            .path("icons/refresh-cw.svg")
-                            .size(px(12.))
-                            .text_color(theme::INK_3)
-                            .group_hover("files-refresh", |s| s.text_color(theme::INK)),
-                    )
-                    .on_click(cx.listener(|this, _, _, cx| {
-                        if let Some(workspace) = this.workspace(cx) {
-                            this.read(&workspace, cx);
-                        }
-                    })),
-            );
-        let filter = div()
-            .mx(px(8.))
-            .mt(px(8.))
-            .mb(px(4.))
-            .h(px(28.))
+        // how many files, and reading them again
+        let count = listing.as_ref().map(|listing| {
+            let words = files_words(listing.files.len(), listing.truncated);
+            div()
+                .id("files-count")
+                .test_support()
+                .aria_label(SharedString::from(words.clone()))
+                .flex_none()
+                .text_size(theme::TEXT_SMALL)
+                .text_color(theme::INK_3)
+                .child(words)
+        });
+        let refresh = div()
+            .id("files-refresh")
+            .test_support()
+            .role(Role::Button)
+            .aria_label("Read the files again")
+            .tipped("Read the files again", None)
+            .size(theme::CONTROL)
+            .flex()
             .flex_none()
+            .items_center()
+            .justify_center()
+            .rounded(theme::RADIUS_CONTROL)
+            .cursor_pointer()
+            .group("files-refresh")
+            .hover(|s| s.bg(theme::HOVER))
+            .child(
+                svg()
+                    .path("icons/refresh-cw.svg")
+                    .size(theme::ICON)
+                    .text_color(theme::INK_3)
+                    .group_hover("files-refresh", |s| s.text_color(theme::INK)),
+            )
+            .on_click(cx.listener(|this, _, _, cx| {
+                if let Some(workspace) = this.workspace(cx) {
+                    this.read(&workspace, cx);
+                }
+            }));
+        let filter = div()
+            .h(theme::CONTROL)
+            .flex_1()
+            .min_w_0()
             .flex()
             .items_center()
-            .gap(px(6.))
+            // (the field brings 8 px itself: its words stand 8 px after the sign)
             .pl(px(8.))
             .pr(px(4.))
-            .rounded(px(6.))
-            .bg(theme::CANVAS)
+            .rounded(theme::RADIUS_CONTROL)
+            .bg(theme::WELL)
             .border_1()
-            .border_color(if lit { theme::ACCENT } else { theme::RULE_STRONG })
-            .child(svg().path("icons/search.svg").flex_none().size(px(13.)).text_color(theme::INK_3))
-            .child(
-                div()
-                    .flex_1()
-                    .min_w_0()
-                    .text_size(px(12.))
-                    .child(Input::new(&field).id("files-filter").appearance(false)),
-            )
+            .border_color(if lit { theme::ACCENT } else { theme::LINE_STRONG })
+            .child(svg().path("icons/search.svg").flex_none().size(theme::ICON).text_color(theme::INK_3))
+            .child(div().flex_1().min_w_0().child(enkidu_ui::pieces::bare_field(&field, px(20.)).id("files-filter")))
             .when(!typed.is_empty(), |filter| {
                 let field = field.clone();
                 let pane = pane.clone();
@@ -705,12 +704,12 @@ impl Render for FilesPane {
                         .test_support()
                         .role(Role::Button)
                         .aria_label("Clear the filter")
-                        .size(px(20.))
+                        .size(theme::BADGE)
                         .flex()
                         .flex_none()
                         .items_center()
                         .justify_center()
-                        .rounded(px(4.))
+                        .rounded(theme::RADIUS_SMALL)
                         .cursor_pointer()
                         .group("files-clear")
                         .hover(|s| s.bg(theme::HOVER))
@@ -732,13 +731,26 @@ impl Render for FilesPane {
                         }),
                 )
             });
+        // the row over the tree: the filter, how many files, and reading them again
+        let tools = div()
+            .id("files-tools")
+            .test_support()
+            .flex_none()
+            .h(theme::SUB_BAR)
+            .pl(px(8.))
+            .pr(px(12.))
+            .flex()
+            .items_center()
+            .gap(px(8.))
+            .child(filter)
+            .children(count)
+            .child(refresh);
         div()
             .size_full()
             .flex()
             .flex_col()
             .font_weight(FontWeight::NORMAL)
-            .child(band)
-            .child(filter)
+            .child(tools)
             .child(list)
             .children(under.map(note))
             .into_any_element()

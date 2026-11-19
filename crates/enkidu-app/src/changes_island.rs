@@ -23,8 +23,8 @@ use enkidu_model::frame::{Changes, Frame};
 use enkidu_model::remarks as remark_logic;
 use enkidu_model::review::{self, FileSet, Opened, Read, split_path};
 use enkidu_model::search::Shown;
-use enkidu_model::ui::{CodeColors, DiffLayout, Panel, Ui, code_row_height};
-use enkidu_ui::pieces::{changes_seen, file_icon, island, lit_edge, ticking};
+use enkidu_model::ui::{CodeColors, DiffLayout, Ui, code_row_height};
+use enkidu_ui::pieces::{changes_seen, file_icon, island, line_under, ticking};
 use enkidu_ui::segmented::{segment, segmented};
 use enkidu_ui::tips::Tipped as _;
 use enkidu_ui::tokens::{self as theme, alpha, hsla, tone};
@@ -369,8 +369,8 @@ pub(crate) fn colors(code: CodeColors) -> DiffColors {
         mark_removed,
         // a name that leads to its definition, while ⌘ is held over it (item 10.11)
         link: hsla(theme::ACCENT),
-        header: hsla(theme::CHROME),
-        rule: hsla(theme::RULE),
+        header: hsla(theme::PANE),
+        rule: hsla(theme::LINE),
         added: hsla(theme::ADD_BG),
         added_word: hsla(theme::ADD_WORD),
         added_sign: hsla(theme::ADD_INK),
@@ -379,7 +379,10 @@ pub(crate) fn colors(code: CodeColors) -> DiffColors {
         removed_sign: hsla(theme::DEL_INK),
         gap: hsla(theme::GAP_BG),
         selected: hsla(theme::REMARK_BAND),
-        note: hsla(theme::CANVAS),
+        note: hsla(theme::WELL),
+        // the plus that starts a remark, in the remarks' blue
+        add_note: hsla(theme::ACCENT_STRONG),
+        add_note_sign: hsla(theme::white(1.0)),
     }
 }
 
@@ -998,6 +1001,15 @@ impl ChangesIsland {
         self.open_at(path, line, None, cx);
     }
 
+    /// A file was picked: the panel that stood over the work (the lists are hidden) has done its job and goes.
+    fn files_picked(&mut self, cx: &mut Context<Self>) {
+        self.ui.update(cx, |ui, cx| {
+            if ui.close_files_over() {
+                cx.notify();
+            }
+        });
+    }
+
     /// The files that are opened are remembered there.
     pub fn remember_in(&mut self, store: Entity<crate::search::SearchStore>) {
         self.opened_lately = Some(store);
@@ -1009,6 +1021,7 @@ impl ChangesIsland {
         let Some(ws) = self.workspace(cx) else {
             return;
         };
+        self.files_picked(cx);
         if !self.reviews.contains_key(&ws) {
             return;
         }
@@ -1129,6 +1142,7 @@ impl ChangesIsland {
         let Some(ws) = self.workspace(cx) else {
             return;
         };
+        self.files_picked(cx);
         self.reveal(cx);
         self.close_file(window, cx);
         if let Some(review) = self.reviews.get_mut(&ws) {
@@ -1469,11 +1483,11 @@ impl ChangesIsland {
         &self,
         totals: Changes,
         layout: DiffLayout,
+        typing: bool,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let files = review::files_words(totals.files);
-        let listed = self.ui.read(cx).right_panel == Some(Panel::Changes);
         let of = self.workspace(cx).unwrap_or_default();
         let choice = |id: &'static str, icon: &'static str, title: &'static str, layout: DiffLayout, on: bool| {
             segment(id, icon, title, on)
@@ -1493,34 +1507,51 @@ impl ChangesIsland {
         );
         div()
             .id("changes-band")
-            .h(theme::BAND)
+            .h(theme::BAR)
             .flex_none()
             .flex()
             .items_center()
             .gap(px(8.))
-            .pl(px(12.))
-            .pr(px(5.))
-            .bg(theme::CHROME)
-            .border_b_1()
-            .border_color(theme::RULE)
+            .pl(theme::INSET)
+            .pr(px(12.))
+            .relative()
+            .child(line_under())
+            // its title (while your typing goes to the changes, the pane has the blue edge: DESIGN.md, "States")
             .child(
-                div().text_size(theme::TEXT).font_weight(FontWeight::SEMIBOLD).text_color(theme::INK).child("Changes"),
+                div()
+                    .id("changes-title")
+                    .test_support()
+                    .aria_label("Changes")
+                    .aria_description(if typing { "has the keyboard" } else { "" })
+                    .h_full()
+                    .flex()
+                    .flex_none()
+                    .items_center()
+                    .text_size(theme::PANEL_TITLE)
+                    .font_weight(FontWeight::SEMIBOLD)
+                    .text_color(theme::INK)
+                    .child("Changes"),
             )
-            // with remarks only and no changed file there is no count: nothing says "0 files"; and while the Changed
-            // files panel is open, it says how many
-            .when(totals.files > 0 && !listed, |band| {
+            // how many files, and their lines (DESIGN.md, "Layout": "The changed files with +/− stand in the bar of
+            // the changes"). With remarks only and no changed file there is no count: nothing says "0 files"
+            .when(totals.files > 0, |band| {
                 band.child(
                     div()
                         .id("changes-count")
                         .test_support()
                         .aria_label(files.clone())
-                        .text_size(px(12.))
+                        .text_size(theme::TEXT_SMALL)
                         .text_color(theme::INK_3)
                         .child(files),
                 )
-            })
-            .when(!listed, |band| {
-                band.child(counts("changes", &of, Some(totals.additions), Some(totals.deletions), window, cx))
+                .child(counts(
+                    "changes",
+                    &of,
+                    Some(totals.additions),
+                    Some(totals.deletions),
+                    window,
+                    cx,
+                ))
             })
             .child(div().flex_1())
             .child(switch)
@@ -1541,20 +1572,20 @@ impl ChangesIsland {
             .role(gpui_kit::Role::Button)
             .aria_label(label)
             .tipped(label, Some(Box::new(crate::ToggleFullReview)))
-            .size(px(26.))
+            .size(theme::CONTROL)
             .flex()
             .flex_none()
             .items_center()
             .justify_center()
-            .rounded(px(6.))
+            .rounded(theme::RADIUS_CONTROL)
             .cursor_pointer()
             .group("maximize-review")
             .hover(|s| s.bg(theme::HOVER))
             .child(
                 svg()
                     .path(icon)
-                    .size(px(14.))
-                    .text_color(theme::INK_2)
+                    .size(theme::ICON)
+                    .text_color(theme::INK_3)
                     .group_hover("maximize-review", |s| s.text_color(theme::INK)),
             )
             .on_click(cx.listener(|this, _, _, cx| {
@@ -1604,7 +1635,7 @@ pub(crate) fn counts(
         .flex()
         .flex_none()
         .items_center()
-        .gap(px(6.))
+        .gap(px(8.))
         .text_size(px(12.))
         .font_weight(FontWeight::MEDIUM)
         .children(added)
@@ -1632,7 +1663,7 @@ pub(crate) fn glyph_named(id: &'static str, kind: &str) -> impl IntoElement {
         .flex_none()
         .items_center()
         .justify_center()
-        .rounded(px(5.))
+        .rounded(theme::RADIUS_SMALL)
         .bg(alpha(color, 0.15))
         .text_color(color)
         .text_size(px(10.))
@@ -1670,7 +1701,7 @@ fn header(
         .flex()
         .items_center()
         .gap(px(8.))
-        .child(file_icon(&path, 14.))
+        .child(file_icon(&path, 16.))
         .child(
             div()
                 .id("file-head")
@@ -1688,7 +1719,7 @@ fn header(
                         .max_w_full()
                         .truncate()
                         .text_size(theme::TEXT)
-                        .font_weight(FontWeight::MEDIUM)
+                        .font_weight(FontWeight::SEMIBOLD)
                         .text_color(theme::INK)
                         .child(name),
                 )
@@ -1705,10 +1736,13 @@ fn header(
                     .test_support()
                     .aria_label(words.clone())
                     .flex_none()
-                    .px(px(6.))
+                    .h(theme::CHIP)
+                    .flex()
+                    .items_center()
+                    .px(px(8.))
                     .rounded_full()
                     .bg(theme::REMARK_BAND)
-                    .text_size(px(11.))
+                    .text_size(theme::TEXT_STATUS)
                     .font_weight(FontWeight::SEMIBOLD)
                     .text_color(theme::ACCENT)
                     .child(words),
@@ -1743,12 +1777,12 @@ fn header(
                     .role(gpui_kit::Role::Button)
                     .aria_label(label)
                     .tipped("Open the whole file, to leave remarks on any line", None)
-                    .size(px(24.))
+                    .size(theme::CONTROL)
                     .flex()
                     .flex_none()
                     .items_center()
                     .justify_center()
-                    .rounded(px(5.))
+                    .rounded(theme::RADIUS_CONTROL)
                     .cursor_pointer()
                     .group("open-file")
                     .hover(|s| s.bg(theme::HOVER))
@@ -1760,7 +1794,7 @@ fn header(
                     .child(
                         svg()
                             .path("icons/file-text.svg")
-                            .size(px(13.))
+                            .size(theme::ICON)
                             .text_color(theme::INK_3)
                             .group_hover("open-file", |s| s.text_color(theme::INK)),
                     ),
@@ -1814,7 +1848,7 @@ enum Note {
 impl Render for ChangesIsland {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let Some(ws) = self.workspace(cx) else {
-            return island("island-changes", false).size_full().child(lit_edge());
+            return island("island-changes").size_full();
         };
         self.settle(&ws, cx);
         // a name with several definitions was clicked: the list to pick from opens (a dialog needs its window)
@@ -1881,7 +1915,7 @@ impl Render for ChangesIsland {
         }
         let layout = self.ui.read(cx).diff_layout;
         let Some(review) = self.reviews.get(&ws) else {
-            return island("island-changes", false).size_full().child(lit_edge());
+            return island("island-changes").size_full();
         };
         // what is on screen: the opened file, or the diffs
         let opened = review.opened.as_ref();
@@ -2033,7 +2067,8 @@ impl Render for ChangesIsland {
             remark_views::bar(&view, acts, window, cx)
         });
 
-        // (no part has the keyboard's edge while the window is behind another app: DESIGN.md, "States")
+        // your typing goes here: the bar's title says so (no part has the keyboard's mark while the window is behind
+        // another app: DESIGN.md, "States")
         let focused = self.has_keyboard(window, cx) && window.is_window_active();
         // code is 12/20 (DESIGN.md, "Type") until you change its size (item 8.4); the lines keep that share
         let code_size = self.ui.read(cx).code_size;
@@ -2056,7 +2091,7 @@ impl Render for ChangesIsland {
             })
             .size_full()
             .border_0()
-            .bg(theme::CANVAS);
+            .bg(theme::WELL);
         let (band, body) = match opened {
             // an opened file: its own band, and its lines (or why it has none)
             Some(opened) => {
@@ -2067,6 +2102,7 @@ impl Render for ChangesIsland {
                     remarks: opened.placed.len(),
                     has_review: !list.is_empty() || !waiting.is_empty(),
                     back_to,
+                    typing: focused,
                 };
                 let path = opened.path.clone();
                 let acts = opened_file::BandActs {
@@ -2172,10 +2208,10 @@ impl Render for ChangesIsland {
                         }
                     });
                 let body = div().id("diff-view").test_support().flex_1().min_h_0().child(lines);
-                (self.band(totals, layout, window, cx).into_any_element(), body)
+                (self.band(totals, layout, focused, window, cx).into_any_element(), body)
             }
         };
-        island("island-changes", focused)
+        island("island-changes")
             .size_full()
             // ⌘↩ with the keyboard in the changes types the remarks into Claude (a text field's own ⌘↩ comes first)
             .key_context(KEYS)
@@ -2200,7 +2236,6 @@ impl Render for ChangesIsland {
             .child(band)
             .child(body)
             .children(bar)
-            .child(lit_edge())
     }
 }
 

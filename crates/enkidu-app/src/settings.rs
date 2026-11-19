@@ -16,9 +16,9 @@ use enkidu_model::frame::Frame;
 use enkidu_model::settings::{GeneralForm, Look, Page, ProjectForm, WorkflowsForm, size_words};
 use enkidu_model::ui::{CodeColors, Layout, Ui};
 use enkidu_ui::pieces::{
-    ButtonKind, ButtonSize, Observed, button, icon_button, mono, tabular, text_area, text_field, with_code,
+    ButtonKind, ButtonSize, Observed, button, icon_button, mono, switch, tabular, text_area, text_field, with_code,
 };
-use enkidu_ui::tab_pill::tab_row;
+use enkidu_ui::tab_pill::{word_segment, word_switch};
 use enkidu_ui::tokens as theme;
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::WindowExt as _;
@@ -165,6 +165,9 @@ pub(crate) struct ProjectFields {
     pub(crate) send_failed_checks: bool,
     pub(crate) morning_summary: bool,
     pub(crate) morning_at: Entity<InputState>,
+    /// The rail: the project's own icon is shown, and another picture than the one found in its folder.
+    pub(crate) icon: bool,
+    icon_picture: Entity<InputState>,
 }
 
 fn line(text: &str, placeholder: &'static str, window: &mut Window, cx: &mut App) -> Entity<InputState> {
@@ -226,6 +229,8 @@ impl ProjectFields {
             send_failed_checks: read.send_failed_checks,
             morning_summary: read.morning_summary,
             morning_at: line(&read.morning_at, "09:00", window, cx),
+            icon: read.icon,
+            icon_picture: line(&read.icon_picture, "The one found in the project's folder", window, cx),
             read,
         }
     }
@@ -250,6 +255,8 @@ impl ProjectFields {
         form.send_failed_checks = self.send_failed_checks;
         form.morning_summary = self.morning_summary;
         form.morning_at = self.morning_at.read(cx).value().to_string();
+        form.icon = self.icon;
+        form.icon_picture = self.icon_picture.read(cx).value().to_string();
         form
     }
 }
@@ -599,8 +606,63 @@ impl Settings {
                 }
             });
         }
+        // a project's own icon may be another one now, or its letter
+        crate::stores::Stores::read_icons(cx);
         window.close_dialog(cx);
         toast::good(window, "Settings saved", cx);
+    }
+
+    /// Choose…: a file picker for the project's picture; the file picked stands in the field.
+    fn choose_picture(&mut self, project: &str, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(field) = self.projects.get(project).map(|fields| fields.icon_picture.clone()) else { return };
+        let picked = cx.prompt_for_paths(gpui_kit::PathPromptOptions {
+            files: true,
+            directories: false,
+            multiple: false,
+            prompt: Some("Choose".into()),
+        });
+        cx.spawn_in(window, async move |_, cx: &mut AsyncWindowContext| {
+            let Ok(Ok(Some(paths))) = picked.await else { return };
+            let Some(path) = paths.into_iter().next() else { return };
+            let path = path.to_string_lossy().to_string();
+            let _ = cx.update(|window, cx| field.update(cx, |field, cx| field.set_value(path, window, cx)));
+        })
+        .detach();
+    }
+
+    /// "On the rail": the project's own icon, or its letter.
+    fn rail_part(
+        &self,
+        id: &str,
+        fields: &ProjectFields,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> gpui_kit::Div {
+        let (for_switch, for_picker) = (id.to_string(), id.to_string());
+        let shown = switch("rail-icon", "Show the project's own icon", fields.icon, window, cx)
+            .on_click(cx.listener(move |this, _, _, cx| this.flip(&for_switch, |fields| &mut fields.icon, cx)));
+        let choose = button("rail-picture-choose", "Choose…", ButtonKind::Secondary, ButtonSize::Large)
+            .on_click(cx.listener(move |this, _, window, cx| this.choose_picture(&for_picker, window, cx)));
+        section(
+            "On the rail",
+            "The project's button on the rail shows its own icon when it has one, else its letter.",
+            vec![
+                crate::settings_work::switch_row("Show the project's own icon", shown),
+                field(
+                    "Another picture",
+                    Some(
+                        "Optional: a PNG, SVG or ICO file, as a path from the project's folder or a whole one. Empty: \
+                         the icon found in the project's folder (.idea/icon.svg, a favicon, an app's icon).",
+                    ),
+                    div()
+                        .flex()
+                        .gap(px(8.))
+                        .child(div().flex_1().min_w_0().child(text_field(&fields.icon_picture).id("rail-picture")))
+                        .child(choose),
+                ),
+            ],
+            false,
+        )
     }
 
     fn nav(&self, cx: &mut Context<Self>) -> impl IntoElement {
@@ -619,12 +681,12 @@ impl Settings {
                 .role(Role::Tab)
                 .aria_label(SharedString::from(label.clone()))
                 .aria_selected(active)
-                .h(px(30.))
+                .h(theme::LIST_ROW)
                 .flex()
                 .flex_none()
                 .items_center()
                 .gap(px(8.))
-                .px(px(10.))
+                .px(px(8.))
                 .rounded(px(6.))
                 .text_size(theme::TEXT)
                 .cursor_pointer()
@@ -632,7 +694,7 @@ impl Settings {
                     true => item.bg(theme::SELECTED).font_weight(FontWeight::MEDIUM).text_color(theme::INK),
                     false => item.text_color(theme::INK_2).hover(|s| s.bg(theme::HOVER).text_color(theme::INK)),
                 })
-                .child(svg().path(icon).flex_none().size(px(14.)).text_color(if active {
+                .child(svg().path(icon).flex_none().size(theme::ICON).text_color(if active {
                     theme::INK
                 } else {
                     theme::INK_3
@@ -671,10 +733,10 @@ impl Settings {
         if !projects.is_empty() {
             list.push(
                 div()
-                    .px(px(10.))
+                    .px(px(8.))
                     .pt(px(16.))
-                    .pb(px(4.))
-                    .text_size(theme::CAPTION)
+                    .pb(px(8.))
+                    .text_size(theme::TEXT_SMALL)
                     .font_weight(FontWeight::MEDIUM)
                     .text_color(theme::INK_3)
                     .child("Projects")
@@ -697,23 +759,22 @@ impl Settings {
             );
         }
         div()
-            .w(px(210.))
+            .w(px(232.))
             .h_full()
             .flex_none()
             .flex()
             .flex_col()
-            .gap(px(2.))
             .px(px(8.))
             .py(px(16.))
             .border_r_1()
-            .border_color(theme::RULE)
-            .bg(theme::CHROME)
+            .border_color(theme::LINE)
+            .bg(theme::PANE)
             // its fill follows the dialog's corner (nothing clips to a rounded corner here)
             .rounded_l(crate::dialog_parts::INNER_RADIUS)
             .child(
                 div()
-                    .px(px(10.))
-                    .pb(px(12.))
+                    .px(px(8.))
+                    .pb(px(16.))
                     .text_size(theme::DIALOG_TITLE)
                     .font_weight(FontWeight::SEMIBOLD)
                     .text_color(theme::INK)
@@ -724,21 +785,7 @@ impl Settings {
 
     fn general_page(&self, general: &General, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
         let choice = |id: &'static str, words: &'static str, layout: Layout, cx: &mut Context<Self>| -> Observed {
-            let on = general.look.layout == layout;
-            div()
-                .id(id)
-                .test_support()
-                .role(Role::Tab)
-                .aria_label(words)
-                .aria_selected(on)
-                .h(theme::SEGMENT_HEIGHT)
-                .px(px(10.))
-                .flex()
-                .items_center()
-                .text_size(theme::TEXT_SMALL)
-                .text_color(if on { theme::INK } else { theme::INK_2 })
-                .cursor_pointer()
-                .child(words)
+            word_segment(id, words, general.look.layout == layout)
                 .on_click(cx.listener(move |this, _, _, cx| this.set_layout(layout, cx)))
         };
         let choices = vec![
@@ -746,43 +793,23 @@ impl Settings {
             choice("settings-layout-side", "Beside the terminal", Layout::Side, cx),
         ];
         let selected = usize::from(general.look.layout == Layout::Side);
-        let switch = div().flex().child(div().p(px(2.)).rounded(px(8.)).bg(theme::FRAME).child(tab_row(
-            "settings-layout",
-            selected,
-            choices,
-            window,
-            cx,
-        )));
+        let switch = div().flex().child(word_switch("settings-layout", selected, choices, window, cx));
         // the code's colors (item 8.3): an IDE's, or the quiet ones
         let colors = |id: &'static str, words: &'static str, colors: CodeColors, cx: &mut Context<Self>| -> Observed {
-            let on = general.look.code_colors == colors;
-            div()
-                .id(id)
-                .test_support()
-                .role(Role::Tab)
-                .aria_label(words)
-                .aria_selected(on)
-                .h(theme::SEGMENT_HEIGHT)
-                .px(px(10.))
-                .flex()
-                .items_center()
-                .text_size(theme::TEXT_SMALL)
-                .text_color(if on { theme::INK } else { theme::INK_2 })
-                .cursor_pointer()
-                .child(words)
+            word_segment(id, words, general.look.code_colors == colors)
                 .on_click(cx.listener(move |this, _, _, cx| this.set_code_colors(colors, cx)))
         };
         let color_choices = vec![
             colors("settings-colors-ide", "Like an IDE", CodeColors::Ide, cx),
             colors("settings-colors-quiet", "Quiet", CodeColors::Quiet, cx),
         ];
-        let color_switch = div().flex().child(div().p(px(2.)).rounded(px(8.)).bg(theme::FRAME).child(tab_row(
+        let color_switch = div().flex().child(word_switch(
             "settings-colors",
             usize::from(general.look.code_colors == CodeColors::Quiet),
             color_choices,
             window,
             cx,
-        )));
+        ));
         // the two sizes (item 8.4): a minus, the size in words, a plus
         let size = |name: &'static str, terminal: bool, size: f32, cx: &mut Context<Self>| {
             let step = |id: String, icon: &'static str, label: String, up: bool, cx: &mut Context<Self>| {
@@ -793,7 +820,7 @@ impl Settings {
             div()
                 .flex()
                 .items_center()
-                .gap(px(2.))
+                .gap(px(8.))
                 .child(step(
                     format!("settings-{name}-smaller"),
                     "icons/minus.svg",
@@ -806,7 +833,7 @@ impl Settings {
                         .id(SharedString::from(format!("settings-{name}-size")))
                         .test_support()
                         .aria_label(SharedString::from(words.clone()))
-                        .w(px(58.))
+                        .w(px(56.))
                         .flex()
                         .justify_center()
                         .text_size(theme::TEXT)
@@ -832,7 +859,7 @@ impl Settings {
             .gap(px(24.))
             .child(section(
                 "Layout",
-                "Can also be switched from the tab row, the command palette or the keyboard.",
+                "Can also be switched from the top row, the command palette or the keyboard.",
                 vec![field("Changes", Some("⌥⌘L switches. Above the terminal gives diffs the full width."), switch)],
                 true,
             ))
@@ -902,7 +929,7 @@ impl Settings {
                     .id(SharedString::from(format!("workflow-words-{kind}")))
                     .test_support()
                     .child(text_area(words, false));
-                field_named(label.clone(), None, div().flex().flex_col().gap(px(6.)).child(area).children(usual))
+                field_named(label.clone(), None, div().flex().flex_col().gap(px(8.)).child(area).children(usual))
             })
             .collect();
         div()
@@ -934,9 +961,9 @@ impl Settings {
                     .test_support()
                     .aria_label(SharedString::from(command.clone()))
                     .px(px(12.))
-                    .py(px(10.))
+                    .py(px(12.))
                     .rounded(px(8.))
-                    .bg(theme::CHROME)
+                    .bg(theme::PANE)
                     .text_size(theme::TEXT_STATUS)
                     .line_height(px(18.))
                     .text_color(theme::INK_2)
@@ -1060,6 +1087,7 @@ impl Settings {
                             .role(Role::Button)
                             .aria_label(show)
                             .text_size(theme::TEXT_SMALL)
+                            .line_height(theme::TEXT_SMALL_LINE)
                             .text_color(theme::INK_3)
                             .hover(|s| s.text_color(theme::INK))
                             .cursor_pointer()
@@ -1078,9 +1106,9 @@ impl Settings {
                         .max_h(px(220.))
                         .overflow_y_scroll()
                         .rounded(px(8.))
-                        .bg(theme::CHROME)
+                        .bg(theme::PANE)
                         .px(px(12.))
-                        .py(px(10.))
+                        .py(px(12.))
                         .text_size(px(11.))
                         .line_height(px(16.))
                         .text_color(theme::INK_2)
@@ -1180,6 +1208,7 @@ impl Settings {
                 ],
                 false,
             ))
+            .child(self.rail_part(id, fields, window, cx))
             // what is read from GitHub and Jira for the Work page, and the project's workflows
             .child(self.work_part(id, fields, window, cx))
             .child(self.workflows_part(id, fields, window, cx))
@@ -1212,12 +1241,12 @@ pub(crate) fn section_with(
         .flex()
         .flex_col()
         .gap(px(16.))
-        .when(!first, |section| section.pt(px(20.)).border_t_1().border_color(theme::RULE))
+        .when(!first, |section| section.pt(px(24.)).border_t_1().border_color(theme::LINE))
         .child(
             div()
                 .flex()
                 .flex_col()
-                .gap(px(2.))
+                .gap(px(4.))
                 .child(
                     div()
                         .text_size(theme::TEXT)
@@ -1245,7 +1274,7 @@ fn field_named(label: String, hint: Option<&'static str>, control: impl IntoElem
     div()
         .flex()
         .flex_col()
-        .gap(px(6.))
+        .gap(px(8.))
         .min_w_0()
         .child(div().text_size(theme::TEXT_SMALL).font_weight(FontWeight::MEDIUM).text_color(theme::INK).child(label))
         .child(control)
@@ -1286,16 +1315,16 @@ impl Render for Settings {
         // opened from the list, has Cancel and Save
         let foot: Vec<AnyElement> = if self.setup.welcome && self.page == Page::Setup {
             vec![
-                button("setup-done", "Done", ButtonKind::Primary, ButtonSize::Medium)
+                button("setup-done", "Done", ButtonKind::Primary, ButtonSize::Large)
                     .on_click(|_, window, cx| window.close_dialog(cx))
                     .into_any_element(),
             ]
         } else {
             vec![
-                button("settings-cancel", "Cancel", ButtonKind::Secondary, ButtonSize::Medium)
+                button("settings-cancel", "Cancel", ButtonKind::Secondary, ButtonSize::Large)
                     .on_click(|_, window, cx| window.close_dialog(cx))
                     .into_any_element(),
-                button("save-settings", "Save", ButtonKind::Primary, ButtonSize::Medium)
+                button("save-settings", "Save", ButtonKind::Primary, ButtonSize::Large)
                     .when(!ready, |save| save.opacity(0.45).cursor_default())
                     .on_click(cx.listener(move |this, _, window, cx| {
                         if ready {
@@ -1334,13 +1363,13 @@ impl Render for Settings {
                             .pl(px(24.))
                             .pr(px(12.))
                             .border_b_1()
-                            .border_color(theme::RULE)
+                            .border_color(theme::LINE)
                             .child(
                                 div()
                                     .id("settings-title")
                                     .test_support()
                                     .aria_label(SharedString::from(title.clone()))
-                                    .text_size(px(14.))
+                                    .text_size(theme::DIALOG_TITLE)
                                     .font_weight(FontWeight::SEMIBOLD)
                                     .text_color(theme::INK)
                                     .child(title),
@@ -1351,14 +1380,14 @@ impl Render for Settings {
                                     .test_support()
                                     .role(Role::Button)
                                     .aria_label("Close")
-                                    .size(px(28.))
+                                    .size(theme::CONTROL)
                                     .flex()
                                     .items_center()
                                     .justify_center()
                                     .rounded(px(6.))
                                     .cursor_pointer()
                                     .hover(|s| s.bg(theme::HOVER))
-                                    .child(svg().path("icons/x.svg").size(px(15.)).text_color(theme::INK_3))
+                                    .child(svg().path("icons/x.svg").size(theme::ICON).text_color(theme::INK_3))
                                     .on_click(|_, window, cx| window.close_dialog(cx)),
                             ),
                     )
@@ -1371,7 +1400,7 @@ impl Render for Settings {
                             .overflow_y_scroll()
                             .track_scroll(&self.scroll)
                             .px(px(24.))
-                            .py(px(20.))
+                            .py(px(24.))
                             .children(body),
                     )
                     .child(
@@ -1382,14 +1411,13 @@ impl Render for Settings {
                             .justify_end()
                             .gap(px(8.))
                             .px(px(24.))
-                            .py(px(12.))
+                            .py(px(16.))
                             .border_t_1()
-                            .border_color(theme::RULE)
+                            .border_color(theme::LINE)
                             .children(error)
                             .children(foot),
                     ),
             )
-            .child(crate::dialog_parts::lit_edge())
     }
 }
 

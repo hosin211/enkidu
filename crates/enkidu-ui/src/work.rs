@@ -134,7 +134,7 @@ pub fn status_ring(ring: StatusRing, hue: Option<f32>, size: f32) -> impl IntoEl
                 check.move_to(to(4.3, 7.2));
                 check.line_to(to(6.1, 9.0));
                 check.line_to(to(9.7, 5.2));
-                paint(check, tokens::RAISED);
+                paint(check, tokens::SHEET);
                 return;
             }
             let mut edge = PathBuilder::stroke(px(1.5 * scale));
@@ -260,19 +260,18 @@ pub fn needs_badge(id: impl Into<ElementId>, count: usize, blocked: bool, label:
         .justify_center()
         .rounded_full()
         .bg(color)
-        .shadow(vec![glow(alpha(color, 0.4), 8., 0., 0.)])
         .text_color(tokens::white(1.0))
-        .font_weight(FontWeight::SEMIBOLD)
+        .font_weight(FontWeight::BOLD)
         .child(count.to_string())
         .with_animation(
             SharedString::from(format!("needs-pop-{count}")),
             Animation::new(tokens::DUR_SLOW).with_easing(|t| bezier(EASE_POP, t)),
             |pill, t| {
                 let scale = 0.5 + 0.5 * t;
-                pill.h(px(18. * scale))
-                    .min_w(px(18. * scale))
+                pill.h(px(16. * scale))
+                    .min_w(px(16. * scale))
                     .px(px(4. * scale))
-                    .text_size(px(10.5 * scale))
+                    .text_size(px(11. * scale))
                     .opacity(t.clamp(0., 1.))
             },
         );
@@ -281,8 +280,8 @@ pub fn needs_badge(id: impl Into<ElementId>, count: usize, blocked: bool, label:
         .test_support()
         .aria_label(label)
         .flex_none()
-        .h(px(18.))
-        .min_w(px(18.))
+        .h(tokens::BADGE)
+        .min_w(tokens::BADGE)
         .flex()
         .items_center()
         .justify_center()
@@ -305,13 +304,6 @@ pub fn person_badge(initials: impl Into<SharedString>, hue: f32, size: f32) -> D
             gpui_kit::linear_color_stop(top, 0.),
             gpui_kit::linear_color_stop(bottom, 1.),
         ))
-        .shadow(vec![BoxShadow {
-            color: hsla(tokens::white(0.22)),
-            offset: point(px(0.), px(1.)),
-            blur_radius: px(0.),
-            spread_radius: px(0.),
-            inset: true,
-        }])
         .text_size(px((size * 0.45).round()))
         .line_height(px(size))
         .font_weight(FontWeight::SEMIBOLD)
@@ -335,38 +327,29 @@ pub fn card_moved<E: Styled>(card: E, t: f32) -> E {
     if t >= 1. {
         return card;
     }
-    let tinted = between(tokens::CHROME, tokens::ACCENT, 0.16);
-    let black = Rgba { r: 0., g: 0., b: 0., a: 1. };
-    card.bg(between(tinted, tokens::CHROME, t))
-        .border_color(between(alpha(tokens::ACCENT, 0.55), tokens::RULE, t))
-        .shadow(vec![glow(alpha(tokens::ACCENT, 0.12 * (1. - t)), 0., 3., 0.), glow(alpha(black, 0.3 * t), 2., 0., 1.)])
+    let tinted = between(tokens::PANE, tokens::ACCENT, 0.16);
+    card.bg(between(tinted, tokens::PANE, t))
+        .border_color(between(alpha(tokens::ACCENT, 0.55), tokens::LINE, t))
+        .shadow(vec![glow(alpha(tokens::ACCENT, 0.12 * (1. - t)), 0., 3., 0.)])
 }
 
-/// A card's own surface on the board: a step above its column, with a hairline edge; the one the keyboard is on has the
-/// signal-blue edge and a faint glow; a dimmed one comes from a source that can't be read now.
+/// A card's own surface on the board: a hair above the board's black, with a clear edge and no shadow; the one the
+/// keyboard is on has the keyboard's blue edge; a dimmed one comes from a source that can't be read now.
 pub fn card_surface(id: impl Into<ElementId>, selected: bool, dimmed: bool) -> Stateful<Div> {
-    let black = Rgba { r: 0., g: 0., b: 0., a: 1. };
     div()
         .id(id)
         .relative()
         .w_full()
         .flex_none()
-        .rounded(px(10.))
-        .bg(tokens::CHROME)
+        .rounded(tokens::RADIUS_CARD)
+        .bg(tokens::PANE)
         .border_1()
         .when(dimmed, |card| card.opacity(0.6))
         .map(|card| match selected {
-            true => {
-                card.border_color(tokens::ISLAND_EDGE_FOCUS).shadow(vec![glow(alpha(tokens::ACCENT, 0.08), 0., 3., 0.)])
-            }
-            false => card.border_color(tokens::RULE).shadow(vec![glow(alpha(black, 0.3), 2., 0., 1.)]).hover(|card| {
-                card.bg(tokens::CARD_HOVER).border_color(tokens::RULE_STRONG).shadow(vec![glow(
-                    alpha(black, 0.35),
-                    8.,
-                    0.,
-                    2.,
-                )])
-            }),
+            true => card.border_color(tokens::KEY_EDGE),
+            false => card
+                .border_color(tokens::LINE)
+                .hover(|card| card.bg(tokens::CARD_HOVER).border_color(tokens::LINE_STRONG)),
         })
 }
 

@@ -7,9 +7,10 @@
 use enkidu_model::work::card::{ItemKind, ItemRow, current_item, step_item};
 use enkidu_model::work::compose::Draft;
 use enkidu_ui::tips::Tipped as _;
-use enkidu_ui::tokens::{self as theme, alpha};
+use enkidu_ui::tokens as theme;
 use enkidu_ui::work::tinted;
 use gpui_kit::base::{ElementExt as _, TestSupportExt as _};
+use gpui_kit::component::Sizable as _;
 use gpui_kit::component::input::{InputEvent, Position, Textarea, TextareaState};
 use gpui_kit::prelude::*;
 use gpui_kit::{AnyElement, Bounds, Context, Focusable as _, Pixels, Role, SharedString, Window, div, px, svg};
@@ -46,21 +47,21 @@ fn square(
         .test_support()
         .role(Role::Button)
         .aria_label(label)
-        .h(px(26.))
-        .w(px(28.))
+        .size(theme::CONTROL)
         .flex()
         .flex_none()
         .items_center()
         .justify_center()
-        .rounded(px(7.))
+        .rounded(theme::RADIUS_CONTROL)
         .border_1()
-        .border_color(theme::RULE_STRONG)
-        .bg(theme::HOVER)
+        .border_color(theme::LINE_STRONG)
         .cursor_pointer()
         .group(id.clone())
-        .hover(|s| s.bg(theme::THUMB))
+        .hover(|s| s.bg(theme::HOVER))
         .tipped(label, Some(key))
-        .child(svg().path(icon).size(px(12.)).text_color(theme::INK_3).group_hover(id, |s| s.text_color(theme::INK)))
+        .child(
+            svg().path(icon).size(theme::ICON).text_color(theme::INK_3).group_hover(id, |s| s.text_color(theme::INK)),
+        )
 }
 
 impl Card {
@@ -215,17 +216,22 @@ impl Card {
         }
     }
 
-    /// The item the keyboard moved to is drawn at `bounds`: the left side scrolls just enough to show it whole.
+    /// The item the keyboard moved to is drawn at `bounds`: the left side scrolls just enough to show it whole, with
+    /// 8 px around it where there is the room. In a small window an item can be nearly as high as what is in view:
+    /// then the room around it is what is left, and an item higher than the view shows its head.
     fn bring_into_view(&mut self, bounds: Bounds<Pixels>, cx: &mut Context<Self>) {
         if !std::mem::take(&mut self.reveal) {
             return;
         }
         let view = self.story_scroll.bounds();
-        let (room, mut offset) = (px(8.), self.story_scroll.offset());
-        if bounds.top() < view.top() + room {
-            offset.y += view.top() + room - bounds.top();
-        } else if bounds.bottom() > view.bottom() - room {
-            offset.y -= bounds.bottom() - (view.bottom() - room);
+        let mut offset = self.story_scroll.offset();
+        let spare = view.size.height - bounds.size.height;
+        let room = px(8.).min((spare / 2.).max(px(0.)));
+        let (top, bottom) = (view.top() + room, view.bottom() - room);
+        if bounds.top() < top || spare < px(0.) {
+            offset.y += top - bounds.top();
+        } else if bounds.bottom() > bottom {
+            offset.y -= bounds.bottom() - bottom;
         } else {
             return;
         }
@@ -266,19 +272,17 @@ impl Card {
             .flex_none()
             .items_center()
             .justify_center()
-            .rounded(px(5.))
+            .rounded(theme::RADIUS_SMALL)
             .border_1()
             .cursor_pointer()
             .map(|mark| match include {
-                true => mark.border_color(theme::ACCENT).bg(theme::ACCENT_STRONG).child(tinted(
+                // ticked: blue with a white sign, as every box that is ticked
+                true => mark.border_color(theme::ACCENT_STRONG).bg(theme::ACCENT_STRONG).child(tinted(
                     "icons/check.svg",
                     theme::white(1.0),
-                    11.,
+                    12.,
                 )),
-                false => mark
-                    .border_color(theme::RULE_STRONG)
-                    .bg(theme::CANVAS)
-                    .hover(|s| s.border_color(alpha(theme::ACCENT, 0.7))),
+                false => mark.border_color(theme::LINE_STRONG).hover(|s| s.border_color(theme::INK_3)),
             })
             .tipped(box_tip, Some(Box::new(ToggleItem)))
             .on_click(cx.listener(move |card, _, _, cx| {
@@ -289,7 +293,7 @@ impl Card {
             .flex()
             .items_start()
             .gap(px(8.))
-            .child(tinted(kind_icon(item.kind), color, 14.).mt(px(2.)))
+            .child(tinted(kind_icon(item.kind), color, 16.).mt(px(1.)))
             .child(
                 div()
                     .min_w_0()
@@ -307,7 +311,7 @@ impl Card {
                         .rounded(px(4.))
                         .bg(theme::THUMB)
                         .px(px(4.))
-                        .text_size(px(10.5))
+                        .text_size(theme::CAPTION)
                         .line_height(px(18.))
                         .text_color(theme::INK_3)
                         .child("bot"),
@@ -316,17 +320,18 @@ impl Card {
             .child(
                 div()
                     .flex_none()
-                    .text_size(px(11.5))
+                    .text_size(theme::TEXT_SMALL)
                     .line_height(px(18.))
                     .text_color(theme::INK_3)
                     .child(item.when.clone()),
             );
         let quote = item.detail.clone().map(|detail| {
             div()
-                .mt(px(6.))
+                .mt(px(8.))
+                .ml(px(8.))
                 .border_l_2()
-                .border_color(theme::RULE_STRONG)
-                .pl(px(10.))
+                .border_color(theme::LINE_STRONG)
+                .pl(px(12.))
                 .text_size(px(12.5))
                 .line_height(px(18.))
                 .text_color(theme::INK_2)
@@ -339,28 +344,36 @@ impl Card {
                 .id(named("item-note"))
                 .test_support()
                 .mt(px(8.))
-                .rounded(px(8.))
+                .ml(px(8.))
+                .min_h(theme::DIALOG_CONTROL)
+                .flex()
+                .items_center()
+                .rounded(theme::RADIUS_CONTROL)
                 .border_1()
-                .border_color(if lit { alpha(theme::ACCENT, 0.6) } else { theme::RULE })
-                .bg(alpha(theme::CANVAS, 0.7))
+                .border_color(if lit { theme::KEY_EDGE } else { theme::LINE_STRONG })
+                // with the field's own 4 px, its words start 8 px in
                 .px(px(4.))
                 // a press in the field is the field's own: the card behind it doesn't take it
                 .on_click(|_, _, cx| cx.stop_propagation())
                 .child(
-                    Textarea::new(field)
-                        .appearance(false)
-                        .aria_label(NOTE_ASKS)
-                        .text_size(px(12.5))
-                        .line_height(px(18.)),
+                    div().min_w_0().flex_1().child(
+                        Textarea::new(field)
+                            .xsmall()
+                            .appearance(false)
+                            .aria_label(NOTE_ASKS)
+                            .text_size(theme::TEXT)
+                            .line_height(theme::TEXT_LINE),
+                    ),
                 )
         });
         let (open_id, snooze_id, done_id) = (id.clone(), id.clone(), id.clone());
         let url = item.url.clone();
         let acts = div()
             .mt(px(8.))
+            .ml(px(8.))
             .flex()
             .items_center()
-            .gap(px(6.))
+            .gap(px(8.))
             .children(url.map(|url| {
                 square(
                     named("detail-item-open"),
@@ -400,30 +413,28 @@ impl Card {
             .aria_description(SharedString::from(item.when.clone()))
             .aria_selected(selected)
             .relative()
-            .rounded(px(10.))
+            .rounded(theme::RADIUS_CARD)
             .border_1()
+            .bg(theme::PANE)
             .py(px(12.))
-            .pl(px(12.))
-            .pr(px(14.))
-            .map(|row| match selected {
-                // the keyboard is on it: the signal-blue edge on a faint blue
-                true => row.border_color(alpha(theme::ACCENT, 0.45)).bg(alpha(theme::ACCENT, 0.056)),
-                false => row.border_color(alpha(theme::HOVER, 0.)).bg(theme::HOVER),
-            })
+            .px(px(16.))
+            // the keyboard is on it: the blue edge
+            .border_color(if selected { theme::KEY_EDGE } else { theme::LINE })
             .when(!include, |row| row.opacity(0.55))
             .on_click(cx.listener(move |card, _, _, cx| card.select_item(&select, cx)))
             .child(
                 div()
                     .flex()
                     .items_start()
-                    .gap(px(10.))
+                    .gap(px(8.))
                     .child(include_box)
                     .child(div().min_w_0().flex_1().child(head).children(quote).children(note).child(acts)),
             )
             .when(selected, |row| {
-                // moved to with the keyboard, it comes into view
+                // moved to with the keyboard, it comes into view (what is measured is what the item holds: its edge
+                // stands 1 px around that)
                 row.on_prepaint(move |bounds, _, cx| {
-                    let _ = card.update(cx, |card, cx| card.bring_into_view(bounds, cx));
+                    let _ = card.update(cx, |card, cx| card.bring_into_view(bounds.dilate(px(1.)), cx));
                 })
             })
             .into_any_element()

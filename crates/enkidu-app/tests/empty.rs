@@ -90,7 +90,7 @@ fn with_no_workspace_the_window_offers_the_first(cx: &mut TestAppContext) {
     let (window, _) = open(cx, Frame::load(vec![shop()], vec![], Default::default(), &View::default()));
     look(cx, window, |w| {
         assert_eq!(label(w, "empty-workspaces").as_deref(), Some("Start a workspace in shop"));
-        assert_eq!(label(w, "status-claude"), None, "the status line says nothing");
+        assert_eq!(label(w, "status-claude"), None, "nothing says what a Claude does: there is none");
     });
     cx.update_window(window, |_, w, cx| w.click("first-workspace", cx)).unwrap();
     assert!(look(cx, window, |w| w.try_find("new-workspace-dialog").is_some()), "New workspace opens the dialog");

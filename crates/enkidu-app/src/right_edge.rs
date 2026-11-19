@@ -1,8 +1,7 @@
-//! The right edge of a workspace (items 3.9b and 3.9c; DESIGN.md, "The right edge is a tool bar (like an IDE's)"): a
-//! bar of two buttons, Changed files (with their number) and Files. Each opens its panel beside the bar, full height; a
-//! second click, or ⌥⌘1 / ⌥⌘2, closes it.
+//! The files' column at the right of the stage (items 3.9b and 3.9c; DESIGN.md, "Layout": "The files' column"): one
+//! column with two tabs, Changes (with their number) and Files. ⌥⌘1 and ⌥⌘2 show a tab, or fold the column away.
 //!
-//! Changed files is a tree of the folders the changed files are in (item 29.4; `changetree`): each folder says how many
+//! Changes is a tree of the folders the changed files are in (item 29.4; `changetree`): each folder says how many
 //! it holds and closes with a click, a file's row brings its diff into view. Under the tree stand the files that have
 //! remarks but no changes (a click opens the file at its first remark). The file being looked at is marked, and while
 //! its folder is closed that folder is. Files is the workspace as git sees it (`files_pane`).
@@ -13,23 +12,20 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use enkidu_core::git::Change;
-use enkidu_model::changes::ChangeLists;
+use enkidu_model::changes::{ChangeLists, Same};
 use enkidu_model::changetree;
-use enkidu_model::frame::{Changes, Frame};
+use enkidu_model::frame::Frame;
 use enkidu_model::review::{self, split_path};
 use enkidu_model::search::kind_words;
 use enkidu_model::ui::{Panel, Ui};
-use enkidu_ui::pieces::{
-    MenuTrigger, Observed, Pressed, file_icon, folder_icon, island, lit_edge, mono, on_screen_bar,
-};
-use enkidu_ui::press::pressable;
+use enkidu_ui::pieces::{MenuTrigger, Observed, changes_seen, file_icon, folder_icon, island, mono, tabular, ticking};
 use enkidu_ui::tips::Tipped as _;
-use enkidu_ui::tokens::{self as theme, alpha, bezier, hex, hsla, white};
+use enkidu_ui::tokens::{self as theme, bezier};
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::prelude::*;
 use gpui_kit::{
-    Action, Animation, AnimationExt as _, AnyElement, App, BoxShadow, Context, Entity, FontWeight, Render, Rgba, Role,
-    ScrollStrategy, SharedString, UniformListScrollHandle, WeakEntity, Window, div, point, px, svg, uniform_list,
+    Action, Animation, AnimationExt as _, AnyElement, App, Context, Entity, FontWeight, Render, Role, ScrollStrategy,
+    SharedString, UniformListScrollHandle, WeakEntity, Window, div, px, svg, uniform_list,
 };
 
 use crate::changes_island::{ChangesIsland, counts, glyph_named};
@@ -37,165 +33,7 @@ use crate::files_pane::{self, FilesPane};
 use crate::remarks::Remarks;
 use crate::search::kind_option;
 
-/// The bar at the right edge: the buttons that open the panels.
-pub struct ToolRail {
-    frame: Entity<Frame>,
-    lists: Entity<ChangeLists>,
-    ui: Entity<Ui>,
-}
-
-impl ToolRail {
-    pub fn new(frame: Entity<Frame>, lists: Entity<ChangeLists>, ui: Entity<Ui>, cx: &mut Context<Self>) -> ToolRail {
-        cx.observe(&frame, |_, _, cx| cx.notify()).detach();
-        cx.observe(&lists, |_, _, cx| cx.notify()).detach();
-        cx.observe(&ui, |_, _, cx| cx.notify()).detach();
-        ToolRail { frame, lists, ui }
-    }
-}
-
-fn ring(color: Rgba, y: f32, spread: f32, inset: bool) -> BoxShadow {
-    BoxShadow {
-        color: hsla(color),
-        offset: point(px(0.), px(y)),
-        blur_radius: px(0.),
-        spread_radius: px(spread),
-        inset,
-    }
-}
-
-/// One button of the bar: its icon, lifted while its panel is open, with how many (the changed files) on a badge.
-fn rail_button(
-    id: &'static str,
-    icon: &'static str,
-    label: &'static str,
-    key: Box<dyn Action>,
-    open: bool,
-    badge: Option<usize>,
-) -> Pressed {
-    let tip = if open { format!("Hide {}", label.to_lowercase()) } else { label.to_string() };
-    pressable(div().id(id))
-        .test_support()
-        .role(Role::Button)
-        .aria_label(label)
-        .aria_selected(open)
-        .tipped(tip, Some(key))
-        .relative()
-        .size(px(32.))
-        .flex()
-        .flex_none()
-        .items_center()
-        .justify_center()
-        .rounded(px(9.))
-        .cursor_pointer()
-        .group("rail-button")
-        .map(|button| match open {
-            true => button
-                .bg(theme::CANVAS)
-                .shadow(vec![ring(theme::RULE_STRONG, 0., 1., false), ring(white(0.07), 1., 0., true)]),
-            false => button.hover(|s| s.bg(theme::HOVER)),
-        })
-        .child(
-            svg()
-                .path(icon)
-                .size(px(16.))
-                .text_color(if open { theme::INK } else { theme::INK_3 })
-                .group_hover("rail-button", |s| s.text_color(theme::INK)),
-        )
-        .children(badge.filter(|count| *count > 0).map(|count| {
-            let words = if count > 99 { "99+".to_string() } else { count.to_string() };
-            // it pops in from half its size each time the number changes (DESIGN.md, "Motion": "Badges pop in with a
-            // small overshoot")
-            let pill = enkidu_ui::pieces::tabular(div())
-                .id("rail-count-pill")
-                .test_support()
-                .flex()
-                .items_center()
-                .justify_center()
-                .rounded_full()
-                .bg(hex(0xd9dce3))
-                // a ring in the frame's color parts it from the button under it
-                .shadow(vec![ring(theme::FRAME, 0., 2., false)])
-                .font_weight(FontWeight::BOLD)
-                .text_color(hex(0x0a0b0e))
-                .child(words.clone())
-                .with_animation(
-                    SharedString::from(format!("rail-count-pop-{count}")),
-                    Animation::new(theme::DUR_SLOW).with_easing(|t| bezier(theme::EASE_POP, t)),
-                    |pill, t| {
-                        let scale = 0.5 + 0.5 * t;
-                        pill.h(px(15. * scale))
-                            .min_w(px(15. * scale))
-                            .px(px(3. * scale))
-                            .text_size(px(9.5 * scale))
-                            .opacity(t.clamp(0., 1.))
-                    },
-                );
-            div()
-                .id("rail-count")
-                .test_support()
-                .aria_label(SharedString::from(words))
-                .absolute()
-                .top(px(-4.))
-                .right(px(-4.))
-                .h(px(15.))
-                .min_w(px(15.))
-                .flex()
-                .items_center()
-                .justify_center()
-                .child(pill)
-        }))
-}
-
-impl Render for ToolRail {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let open = self.ui.read(cx).right_panel;
-        let changed = (self.frame.read(cx).current_workspace())
-            .and_then(|ws| self.lists.read(cx).of(&ws.id))
-            .map_or(0, |list| list.len());
-        let toggle = |panel: Panel| {
-            cx.listener(move |this: &mut Self, _, _, cx| {
-                this.ui.update(cx, |ui, cx| {
-                    ui.toggle_panel(panel);
-                    cx.notify();
-                })
-            })
-        };
-        div()
-            .id("tool-rail")
-            .w(px(enkidu_model::ui::RAIL_WIDTH))
-            .h_full()
-            .flex_none()
-            .flex()
-            .flex_col()
-            .items_center()
-            .gap(px(6.))
-            .pt(px(2.))
-            .child(
-                rail_button(
-                    "rail-changes",
-                    "icons/file-diff.svg",
-                    "Changed files",
-                    Box::new(crate::ToggleChangedFiles),
-                    open == Some(Panel::Changes),
-                    Some(changed),
-                )
-                .on_click(toggle(Panel::Changes)),
-            )
-            .child(
-                rail_button(
-                    "rail-files",
-                    "icons/folder-tree.svg",
-                    "Files",
-                    Box::new(crate::ToggleFiles),
-                    open == Some(Panel::Files),
-                    None,
-                )
-                .on_click(toggle(Panel::Files)),
-            )
-    }
-}
-
-/// The panel the bar opened.
+/// The panel: its two tabs, and what the one that is shown holds.
 pub struct ToolPanel {
     frame: Entity<Frame>,
     lists: Entity<ChangeLists>,
@@ -222,8 +60,8 @@ pub struct ToolPanel {
 #[derive(PartialEq)]
 struct Made {
     workspace: String,
-    /// The list of changes, by where it is kept: the store hands out the very same one until it changes.
-    changes: usize,
+    /// The list of changes itself: the store hands out the very same one until it changes.
+    changes: Same,
     turn: u64,
 }
 
@@ -357,26 +195,27 @@ impl ToolPanel {
             let (tree, panel, workspace) = (tree.clone(), panel.clone(), workspace.to_string());
             MenuTrigger::new("changed-kind", SharedString::from(words.clone()))
                 .tip("The kind of file to list")
-                .h(px(24.))
+                .aria_description(if set { "picked" } else { "" })
+                .h(theme::CONTROL)
                 .flex_none()
                 .flex()
                 .items_center()
-                .gap(px(6.))
-                .pl(px(9.))
-                .pr(px(6.))
-                .rounded(px(7.))
+                .gap(px(4.))
+                .px(px(8.))
+                .rounded(theme::RADIUS_CONTROL)
                 .cursor_pointer()
                 .border_1()
+                .border_color(theme::LINE_STRONG)
                 .map(|button| match set {
-                    // a kind is picked: not every changed file is listed, and the button says so in signal blue
-                    true => button.border_color(alpha(theme::FOCUS, 0.5)).bg(alpha(theme::FOCUS, 0.10)),
-                    false => button.border_color(theme::RULE_STRONG).hover(|s| s.bg(theme::HOVER)),
+                    // a kind is picked: not every changed file is listed, and the button says so by being picked
+                    true => button.bg(theme::SELECTED),
+                    false => button.hover(|s| s.bg(theme::HOVER)),
                 })
                 .child(match set {
-                    true => mono(div()).text_size(px(12.)).text_color(theme::INK).child(words),
-                    false => div().text_size(px(12.)).text_color(theme::INK_3).child(words),
+                    true => mono(div()).text_size(theme::TEXT_SMALL).text_color(theme::INK).child(words),
+                    false => div().text_size(theme::TEXT_SMALL).text_color(theme::INK_2).child(words),
                 })
-                .child(svg().path("icons/chevron-down.svg").flex_none().size(px(12.)).text_color(theme::INK_3))
+                .child(svg().path("icons/chevron-down.svg").flex_none().size(theme::MARK).text_color(theme::INK_3))
                 .menu(gpui_kit::Anchor::TopLeft, move |menu, _, _| {
                     let pick = |kind: Option<String>| {
                         let (panel, workspace) = (panel.clone(), workspace.clone());
@@ -404,12 +243,12 @@ impl ToolPanel {
                 .aria_label(label)
                 .aria_description(if can { "" } else { "dimmed" })
                 .tipped(label, None)
-                .size(px(24.))
+                .size(theme::CONTROL)
                 .flex()
                 .flex_none()
                 .items_center()
                 .justify_center()
-                .rounded(px(7.))
+                .rounded(theme::RADIUS_CONTROL)
                 .group(id)
                 .map(|button| match can {
                     true => button.cursor_pointer().hover(|s| s.bg(theme::HOVER)),
@@ -419,7 +258,7 @@ impl ToolPanel {
                 .child(
                     svg()
                         .path(icon)
-                        .size(px(13.))
+                        .size(theme::ICON)
                         .text_color(theme::INK_3)
                         .when(can, |icon| icon.group_hover(id, |s| s.text_color(theme::INK))),
                 )
@@ -434,12 +273,11 @@ impl ToolPanel {
                 .id("changed-tools")
                 .test_support()
                 .flex_none()
-                .h(px(24.))
-                .mx(px(8.))
-                .mt(px(8.))
+                .h(theme::SUB_BAR)
+                .pl(px(8.))
+                .pr(px(12.))
                 .flex()
                 .items_center()
-                .gap(px(2.))
                 .children(filter)
                 .child(div().flex_1())
                 .children(
@@ -460,7 +298,6 @@ impl ToolPanel {
         let list = self.lists.read(cx).of(workspace).cloned().unwrap_or_default();
         let remarks = self.remarks.read(cx).of(workspace);
         let focused = self.island.read(cx).focused(cx);
-        let totals = Changes::of(&list);
         // a file that turns up while you watch flashes once; the ones there when the panel came on screen don't. What
         // was seen lives only while the panel shows this workspace, so opening it again starts still
         let now = cx.background_executor().now();
@@ -495,7 +332,7 @@ impl ToolPanel {
             *entry = (entry.0 + 1, entry.1.min(remark.start_line.max(1) as usize));
         }
         // the tree, made again only when the list changed, a folder was closed or opened, or a kind was picked
-        let made = Made { workspace: workspace.to_string(), changes: Arc::as_ptr(&list) as usize, turn: self.turn };
+        let made = Made { workspace: workspace.to_string(), changes: Same(list.clone()), turn: self.turn };
         let tree = match &self.tree {
             Some((from, tree)) if *from == made => tree.clone(),
             _ => {
@@ -548,93 +385,129 @@ impl ToolPanel {
         let shown = Rc::new(Shown { workspace: workspace.to_string(), list, tree, under, focused, fresh, remarked });
         let island = self.island.downgrade();
         let panel = cx.weak_entity();
-        let band = band("Changed files")
-            // how many, and their lines: with the panel open, here and not on the changes' own band
-            .when(totals.files > 0, |band| {
-                let files = review::files_words(totals.files);
-                band.child(
-                    enkidu_ui::pieces::tabular(div())
-                        .id("changes-count")
-                        .test_support()
-                        .aria_label(SharedString::from(files.clone()))
-                        .text_size(px(12.))
-                        .text_color(theme::INK_3)
-                        .child(files),
-                )
-                .child(counts(
-                    "changes",
-                    workspace,
-                    Some(totals.additions),
-                    Some(totals.deletions),
-                    window,
-                    cx,
-                ))
-            });
         let list = uniform_list("changed-rows", count, move |range, window, cx| {
             range.map(|ix| row(ix, &shown, island.clone(), panel.clone(), window, cx)).collect::<Vec<_>>()
         })
         .track_scroll(&self.scroll)
         .size_full()
-        .px(px(6.))
-        .pt(px(6.))
-        .pb(px(8.));
+        .px(px(8.))
+        .pt(px(4.))
+        .pb(px(12.));
         // a list that only makes the rows in view can't be found by a test: the space it fills can
         let list = div().id("changed-files").test_support().flex_1().min_h_0().child(list);
-        // with no changes the panel keeps its title and nothing under it (DESIGN.md)
-        island_frame().child(band).children(tools).child(list).child(lit_edge()).into_any_element()
+        // with no changes the panel keeps its tabs and nothing under them (DESIGN.md)
+        div().flex_1().min_h_0().flex().flex_col().children(tools).child(list).into_any_element()
     }
 
-    /// Files: the workspace as git sees it (`files_pane`).
-    fn files_panel(&self) -> AnyElement {
-        island_frame().child(self.files.clone()).child(lit_edge()).into_any_element()
+    /// The column's bar: its two tabs, as pills. Changes says how many there are.
+    fn bar(&self, shown: Panel, changed: usize, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
+        let ticks = changes_seen("panel-count", changed as u64, window, cx);
+        // the number ticks into place when it changes while you watch (DESIGN.md, "Motion")
+        let count = (changed > 0).then(|| {
+            let number = div()
+                .id("panel-count")
+                .test_support()
+                .aria_label(SharedString::from(changed.to_string()))
+                .flex_none()
+                .font_weight(FontWeight::MEDIUM)
+                .text_color(theme::INK_3)
+                .child(changed.to_string());
+            ticking("panel-count-tick", number, ticks)
+        });
+        let tab =
+            |id: &'static str, words: &'static str, panel: Panel, key: Box<dyn Action>, count: Option<AnyElement>| {
+                let on = shown == panel;
+                div()
+                    .id(id)
+                    .test_support()
+                    .role(Role::Tab)
+                    .aria_label(words)
+                    .aria_selected(on)
+                    .h(theme::CONTROL)
+                    .flex()
+                    .flex_none()
+                    .items_center()
+                    .gap(px(8.))
+                    .px(px(12.))
+                    .rounded_full()
+                    .text_size(theme::TEXT)
+                    .cursor_pointer()
+                    .map(|tab| match on {
+                        // the tab that is shown: the chosen fill, its name in ink, semibold
+                        true => tab.bg(theme::SELECTED).font_weight(theme::WEIGHT_TITLE).text_color(theme::INK),
+                        false => tab
+                            .font_weight(FontWeight::MEDIUM)
+                            .text_color(theme::INK_2)
+                            .hover(|s| s.bg(theme::HOVER).text_color(theme::INK)),
+                    })
+                    .tipped(words, Some(key))
+                    .child(words)
+                    .children(count)
+                    .on_click(cx.listener(move |this, _, _, cx| {
+                        this.ui.update(cx, |ui, cx| {
+                            if ui.show_panel(panel) {
+                                cx.notify();
+                            }
+                        })
+                    }))
+            };
+        let changes = tab("panel-tab-changes", "Changes", Panel::Changes, Box::new(crate::ToggleChangedFiles), count);
+        let files = tab("panel-tab-files", "Files", Panel::Files, Box::new(crate::ToggleFiles), None);
+        div()
+            .id("panel-band")
+            .test_support()
+            .role(Role::TabList)
+            .aria_label(match shown {
+                Panel::Changes => "Changes",
+                Panel::Files => "Files",
+            })
+            .h(theme::BAR)
+            .flex_none()
+            .flex()
+            .items_center()
+            .gap(px(4.))
+            // (a fill starts 8 px from the column's edge)
+            .pl(px(8.))
+            .pr(px(12.))
+            .child(changes)
+            .child(files)
+            .into_any_element()
     }
 }
 
-/// A panel's band: its title, then what the panel adds.
-pub(crate) fn band(title: &'static str) -> Observed {
-    div()
-        .id("panel-band")
-        .test_support()
-        .aria_label(title)
-        .h(theme::BAND)
-        .flex_none()
-        .flex()
-        .items_center()
-        .gap(px(8.))
-        .pl(px(12.))
-        .pr(px(5.))
-        .bg(theme::CHROME)
-        .border_b_1()
-        .border_color(theme::RULE)
-        .child(div().text_size(theme::TEXT).font_weight(FontWeight::SEMIBOLD).text_color(theme::INK).child(title))
-}
-
-/// The panel is an island of its own, at full height.
+/// The files' column stands on the frame, at full height, with no ground of its own.
 fn island_frame() -> Observed {
-    island("island-panel", false).size_full()
+    island("island-panel").size_full()
 }
+
+/// A step of the tree: how far a folder's rows stand in from its own.
+const STEP: f32 = 16.;
 
 /// How many remarks a file has, in their blue.
 fn remark_count(count: usize) -> impl IntoElement {
     let words = count.to_string();
-    enkidu_ui::pieces::tabular(div())
+    tabular(div())
         .id("row-remarks")
         .test_support()
         .aria_label(SharedString::from(words.clone()))
         .flex_none()
-        .px(px(6.))
+        .h(theme::BADGE)
+        .min_w(theme::BADGE)
+        .flex()
+        .items_center()
+        .justify_center()
+        .px(px(4.))
         .rounded_full()
         .bg(theme::REMARK_BAND)
-        .text_size(px(11.))
+        .text_size(theme::CAPTION)
         .font_weight(FontWeight::SEMIBOLD)
         .text_color(theme::ACCENT)
         .child(words)
 }
 
-/// A row's own look: 26 px as in the Files panel, rounded, lit under the pointer. `marked` is the row of the file
-/// being looked at: filled, with the bar at its left (gray while the window is behind another app: `in_front` says
-/// whether it is the front one).
-fn row_frame(id: (&'static str, usize), label: &str, marked: bool, in_front: bool) -> Observed {
+/// A row's own look: 28 px as in the Files tab, rounded, lit under the pointer. `marked` is the row of the file being
+/// looked at: it has the chosen fill (its name is semibold).
+fn row_frame(id: (&'static str, usize), label: &str, marked: bool) -> Observed {
     div()
         .id(id)
         .test_support()
@@ -642,19 +515,19 @@ fn row_frame(id: (&'static str, usize), label: &str, marked: bool, in_front: boo
         .aria_label(SharedString::from(label.to_string()))
         .aria_selected(marked)
         .relative()
-        .h(theme::TREE_ROW)
+        .h(theme::LIST_ROW)
         .w_full()
         .flex()
         .items_center()
-        .rounded(px(6.))
+        .rounded(theme::RADIUS_CONTROL)
         .cursor_pointer()
         .map(|row| if marked { row.bg(theme::SELECTED) } else { row.hover(|s| s.bg(theme::HOVER)) })
-        .when(marked, |row| row.child(on_screen_bar(6., in_front)))
 }
 
-/// What just turned up lights up in signal blue and settles (DESIGN.md, "Motion"): the light over a row.
+/// What just turned up flashes white and settles (DESIGN.md, "Motion"): the light over a row.
 fn flash(of: &str) -> impl IntoElement {
-    div().id("row-flash").test_support().absolute().inset_0().rounded(px(6.)).bg(theme::ACCENT_SOFT).with_animation(
+    let light = div().id("row-flash").test_support().absolute().inset_0().rounded(theme::RADIUS_CONTROL);
+    light.bg(theme::SELECTED_HOVER).with_animation(
         SharedString::from(format!("row-flash:{of}")),
         Animation::new(theme::FLASH).with_easing(|t| bezier(theme::EASE_OUT, t)),
         |light, t| light.opacity(1. - t),
@@ -669,7 +542,6 @@ fn row(
     window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
-    let in_front = window.is_window_active();
     let focused = shown.focused.as_deref();
     match shown.tree.rows.get(ix) {
         Some(changetree::Row::Folder { label, path, depth, open, files }) => {
@@ -678,32 +550,33 @@ fn row(
             let fresh = !*open && shown.fresh.iter().any(|file| changetree::holds(path, file));
             let count = review::files_words(*files);
             let (asked, workspace) = (path.clone(), shown.workspace.clone());
-            row_frame(("change-folder", ix), path, marked, in_front)
+            row_frame(("change-folder", ix), path, marked)
                 .aria_description(SharedString::from(format!("{}, {count}", if *open { "open" } else { "closed" })))
                 .tipped(path.clone(), None)
-                .gap(px(4.))
-                .pl(px(4. + *depth as f32 * 12.))
+                // a step is 16 px; the arrow stands in a 16 px slot, 4 px before the folder's icon
+                .gap(px(8.))
+                .pl(px(8. + *depth as f32 * STEP))
                 .pr(px(8.))
                 .text_size(theme::TEXT)
                 .text_color(theme::INK_2)
                 .when(fresh, |row| row.child(flash(path)))
                 .child(
-                    svg()
-                        .path(if *open { "icons/chevron-down.svg" } else { "icons/chevron-right.svg" })
-                        .flex_none()
-                        .size(px(13.))
-                        .text_color(theme::INK_3),
+                    div().flex_none().w(theme::ICON).mr(px(-4.)).flex().justify_center().child(
+                        svg()
+                            .path(if *open { "icons/chevron-down.svg" } else { "icons/chevron-right.svg" })
+                            .size(theme::MARK)
+                            .text_color(theme::INK_3),
+                    ),
                 )
-                .child(folder_icon(*open, 14.))
-                .child(div().ml(px(2.)).min_w_0().truncate().child(label.clone()))
+                .child(folder_icon(*open, 16.))
+                .child(div().min_w_0().truncate().child(label.clone()))
                 .child(
-                    enkidu_ui::pieces::tabular(div())
+                    tabular(div())
                         .id("folder-files")
                         .test_support()
                         .aria_label(SharedString::from(count.clone()))
                         .flex_none()
-                        .ml(px(2.))
-                        .text_size(px(11.5))
+                        .text_size(theme::TEXT_SMALL)
                         .text_color(theme::INK_3)
                         .child(count),
                 )
@@ -714,7 +587,7 @@ fn row(
         }
         Some(changetree::Row::File { change, depth }) => {
             let Some(file) = shown.list.get(*change) else {
-                return div().h(theme::TREE_ROW).into_any_element();
+                return div().h(theme::LIST_ROW).into_any_element();
             };
             let path = file.path.as_str();
             let (_, name) = split_path(path);
@@ -725,22 +598,26 @@ fn row(
             };
             let remarks = shown.remarked.get(path).map_or(0, |(count, _)| *count);
             let asked = path.to_string();
-            row_frame(("change-row", *change), path, focused == Some(path), in_front)
+            let on_screen = focused == Some(path);
+            row_frame(("change-row", *change), path, on_screen)
                 .tipped(full, None)
-                .gap(px(6.))
-                // a file's icon lines up with the folder icons beside it, past their chevrons
-                .pl(px(21. + *depth as f32 * 12.))
-                .pr(px(6.))
+                .gap(px(8.))
+                // a file's icon stands under its folder's, past the arrow's slot
+                .pl(px(8. + *depth as f32 * STEP + 20.))
+                .pr(px(8.))
                 .when(shown.fresh.contains(path), |row| row.child(flash(path)))
-                .child(file_icon(path, 14.))
+                .child(file_icon(path, 16.))
                 .child(
                     div()
-                        .ml(px(2.))
                         .flex_1()
                         .min_w_0()
                         .truncate()
                         .text_size(theme::TEXT)
-                        .text_color(theme::INK)
+                        // its name is bright only while it is the file on screen (DESIGN.md, "States")
+                        .map(|name| match on_screen {
+                            true => name.font_weight(theme::WEIGHT_TITLE).text_color(theme::INK),
+                            false => name.text_color(theme::INK_2),
+                        })
                         .child(name.to_string()),
                 )
                 .when(remarks > 0, |row| row.child(remark_count(remarks)))
@@ -761,13 +638,13 @@ fn row(
         }
         None => match shown.under.get(ix - shown.tree.rows.len()) {
             Some(Under::Heading) => div()
-                .h(theme::TREE_ROW)
+                .h(theme::LIST_ROW)
                 .w_full()
                 .flex()
                 .items_end()
                 .px(px(8.))
-                .pb(px(5.))
-                .text_size(px(11.5))
+                .pb(px(4.))
+                .text_size(theme::TEXT_STATUS)
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(theme::INK_3)
                 .child("Remarks on files without changes")
@@ -775,21 +652,19 @@ fn row(
             Some(Under::Remarked { path, remarks, line, id }) => {
                 let (dir, name) = split_path(path);
                 let (asked, line) = (path.clone(), *line);
-                row_frame(("remark-file-row", *id), path, focused == Some(path.as_str()), in_front)
+                row_frame(("remark-file-row", *id), path, focused == Some(path.as_str()))
                     .tipped(path.clone(), None)
-                    .gap(px(6.))
-                    .pl(px(8.))
-                    .pr(px(6.))
-                    .child(file_icon(path, 14.))
+                    .gap(px(8.))
+                    .px(px(8.))
+                    .child(file_icon(path, 16.))
                     .child(
                         div()
-                            .ml(px(2.))
                             .min_w_0()
                             .flex_shrink_0()
                             .max_w_full()
                             .truncate()
                             .text_size(theme::TEXT)
-                            .text_color(theme::INK)
+                            .text_color(theme::INK_2)
                             .child(name.to_string()),
                     )
                     // its folder after its name: these files stand outside the tree
@@ -798,7 +673,7 @@ fn row(
                             .flex_1()
                             .min_w_0()
                             .truncate()
-                            .text_size(px(11.5))
+                            .text_size(theme::TEXT_SMALL)
                             .text_color(theme::INK_3)
                             .child(dir.to_string()),
                     )
@@ -809,7 +684,7 @@ fn row(
                     })
                     .into_any_element()
             }
-            Some(Under::Space) | None => div().h(theme::TREE_ROW).into_any_element(),
+            Some(Under::Space) | None => div().h(theme::LIST_ROW).into_any_element(),
         },
     }
 }
@@ -817,10 +692,17 @@ fn row(
 impl Render for ToolPanel {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let workspace = self.frame.read(cx).current_workspace().map(|ws| ws.id.clone());
-        match (self.ui.read(cx).right_panel, workspace) {
-            (Some(Panel::Changes), Some(workspace)) => self.changed_files(&workspace, window, cx),
-            (Some(Panel::Files), Some(_)) => self.files_panel(),
-            _ => div().into_any_element(),
-        }
+        let (Some(shown), Some(workspace)) = (self.ui.read(cx).panel_shown(), workspace) else {
+            return div().into_any_element();
+        };
+        // with the lists hidden it stands over the work: what floats is true black
+        let over = self.ui.read(cx).lists_hidden;
+        let changed = self.lists.read(cx).of(&workspace).map_or(0, |list| list.len());
+        let bar = self.bar(shown, changed, window, cx);
+        let body = match shown {
+            Panel::Changes => self.changed_files(&workspace, window, cx),
+            Panel::Files => div().flex_1().min_h_0().child(self.files.clone()).into_any_element(),
+        };
+        island_frame().when(over, |panel| panel.bg(theme::SHEET)).child(bar).child(body).into_any_element()
     }
 }

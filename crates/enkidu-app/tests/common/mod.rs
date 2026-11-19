@@ -24,6 +24,10 @@ use gpui_kit::{
 
 pub mod pointing;
 
+/// The size of these tests' window. It is wide enough that Claude's terminal has about 130 columns beside the
+/// rail and the files' column, so what a Claude prints as it starts stays on its screen.
+pub const WINDOW: (f32, f32) = (1616., 860.);
+
 pub struct App {
     /// Where the core's news goes (what Claude's hooks would make it send goes here too).
     pub sink: Events,
@@ -200,7 +204,7 @@ fn launch(
                 WindowOptions {
                     window_bounds: Some(WindowBounds::Windowed(Bounds {
                         origin: Default::default(),
-                        size: size(px(1360.), px(860.)),
+                        size: size(px(WINDOW.0), px(WINDOW.1)),
                     })),
                     ..Default::default()
                 },
@@ -242,6 +246,15 @@ pub fn until(cx: &mut TestAppContext, window: AnyWindowHandle, seen: impl Fn(&Wi
         std::thread::sleep(Duration::from_millis(10));
     }
     false
+}
+
+/// Whether a terminal's text holds `words`, whatever rows the terminal broke them over: a line longer than the
+/// terminal is wide goes on in the next row, and the blanks at a row's end are not kept. Words that name a line's
+/// start themselves (they hold a line break) are looked for as they are.
+#[allow(dead_code)]
+pub fn holds(text: &str, words: &str) -> bool {
+    let squashed = |text: &str| text.split_whitespace().collect::<String>();
+    text.contains(words) || (!words.contains('\n') && squashed(text).contains(&squashed(words)))
 }
 
 pub fn said(window: &Window, id: impl Into<ElementId>) -> Option<String> {
@@ -309,10 +322,10 @@ impl App {
             .unwrap_or_default()
     }
 
-    /// Waits until the terminal on screen shows `words`.
+    /// Waits until the terminal on screen shows `words` (see [`holds`]).
     pub fn until_terminal(&self, cx: &mut TestAppContext, words: &str) -> bool {
         for _ in 0..800 {
-            if self.terminal_text(cx).contains(words) {
+            if holds(&self.terminal_text(cx), words) {
                 return true;
             }
             std::thread::sleep(Duration::from_millis(10));

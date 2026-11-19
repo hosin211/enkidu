@@ -16,9 +16,9 @@ use enkidu_model::work::flows_page::{Bar, DELETE_SAYS, Detail, FlowsModel, Step,
 use enkidu_model::work::markdown::blocks_of;
 use enkidu_model::work::rich::{Block, jira_doc};
 use enkidu_ui::lamp::LAMP_FPS;
-use enkidu_ui::pieces::{ButtonKind, ButtonSize, MenuTrigger, Observed, button, button_with, island, lit_edge, mono};
+use enkidu_ui::pieces::{ButtonKind, ButtonSize, MenuTrigger, Observed, button, button_with, island, mono};
 use enkidu_ui::tips::Tipped as _;
-use enkidu_ui::tokens::{self as theme, alpha, hex, white};
+use enkidu_ui::tokens::{self as theme, alpha, white};
 use enkidu_ui::work::{tinted, type_icon};
 use gpui_kit::base::{ElementExt as _, TestSupportExt as _};
 use gpui_kit::component::menu::PopupMenuItem;
@@ -49,8 +49,6 @@ const SIDE: (f32, f32) = (348., 290.);
 /// A long message or description shows this much of its start; one only a little longer shows whole.
 const FOLD: f32 = 170.;
 const FOLD_SLACK: f32 = 48.;
-/// The boxes of the task's page stand on the island a step darker (black at 12 %): what a fold fades into.
-const BOX: Rgba = hex(0x0f1014);
 
 /// A text that shows its start until you ask for the rest: whether you did, and how tall all of it is (known once it
 /// was drawn).
@@ -193,8 +191,8 @@ fn listed(item: Listed) -> PopupMenuItem {
     PopupMenuItem::element(move |_, _| {
         let item = item.clone();
         let mark = match item.icon {
-            Some(icon) => tinted(icon, item.color, 13.).into_any_element(),
-            None => div().size(px(7.)).rounded_full().bg(item.color).into_any_element(),
+            Some(icon) => tinted(icon, item.color, 16.).into_any_element(),
+            None => div().size(px(8.)).rounded_full().bg(item.color).into_any_element(),
         };
         div()
             .id(item.id)
@@ -207,13 +205,13 @@ fn listed(item: Listed) -> PopupMenuItem {
             .flex()
             .items_start()
             .gap(px(8.))
-            .py(px(2.))
-            .child(svg().path("icons/check.svg").flex_none().mt(px(3.)).size(px(13.)).text_color(if item.current {
+            .py(px(4.))
+            .child(svg().path("icons/check.svg").flex_none().mt(px(3.)).size(theme::MARK).text_color(if item.current {
                 theme::INK
             } else {
                 alpha(theme::INK, 0.)
             }))
-            .child(div().flex_none().w(px(14.)).h(theme::TEXT_LINE).flex().items_center().justify_center().child(mark))
+            .child(div().flex_none().w(px(16.)).h(theme::TEXT_LINE).flex().items_center().justify_center().child(mark))
             .child(
                 div()
                     .min_w_0()
@@ -241,9 +239,14 @@ fn listed(item: Listed) -> PopupMenuItem {
     })
 }
 
-/// A pane: an island, its content scrolling inside it.
+/// A pane of the page, its content scrolling inside it.
 fn pane(id: &'static str, label: impl Into<SharedString>) -> Observed {
-    island(id, false).aria_label(label.into()).h_full().min_h_0()
+    island(id).aria_label(label.into()).h_full().min_h_0()
+}
+
+/// The pane at the left stands on the stage like the task beside it, with a line at its right.
+fn at_the_left(pane: Observed) -> Observed {
+    pane.border_r_1().border_color(theme::LINE)
 }
 
 /// A box of the task's page: a title line, then what it holds.
@@ -254,13 +257,12 @@ fn boxed(id: &'static str, label: impl Into<SharedString>) -> Observed {
         .aria_label(label.into())
         .min_w_0()
         .flex_1()
-        .rounded(px(12.))
+        .rounded(theme::RADIUS_CARD)
         .border_1()
-        .border_color(theme::RULE)
-        .bg(BOX)
+        .border_color(theme::LINE)
+        .bg(theme::PANE)
         .px(px(16.))
-        .pt(px(12.))
-        .pb(px(14.))
+        .py(px(12.))
 }
 
 impl FlowsPage {
@@ -429,10 +431,10 @@ impl FlowsPage {
             .tip("Your workflows, and every run of them")
             .aria_description("Your workflows, and every run of them")
             .min_w_0()
-            .h(px(30.))
+            .h(theme::DIALOG_CONTROL)
             .flex()
             .items_center()
-            .gap(px(6.))
+            .gap(px(4.))
             .rounded(theme::RADIUS_CONTROL)
             .px(px(8.))
             .text_size(px(16.))
@@ -442,7 +444,7 @@ impl FlowsPage {
             .cursor_pointer()
             .hover(|s| s.bg(theme::HOVER))
             .child(div().min_w_0().truncate().child(detail.name.clone()))
-            .child(svg().path("icons/chevron-down.svg").flex_none().size(px(13.)).text_color(theme::INK_3))
+            .child(svg().path("icons/chevron-down.svg").flex_none().size(theme::MARK).text_color(theme::INK_3))
             .menu(gpui_kit::Anchor::TopLeft, move |menu, _, _| {
                 let pick = |key: &str| {
                     let (page, key) = (page.clone(), key.to_string());
@@ -451,7 +453,12 @@ impl FlowsPage {
                     }
                 };
                 let model = &made.model;
-                let mut menu = menu.min_w(px(340.)).max_w(px(440.)).max_h(px(480.)).scrollable(true).label("Workflows");
+                let mut menu = menu
+                    .min_w(px(340.))
+                    .max_w(px(440.))
+                    .max_h(px(480.))
+                    .scrollable(true)
+                    .item(enkidu_ui::pieces::menu_label("Workflows"));
                 for (at, flow) in model.coming.iter().enumerate() {
                     // the one that runs is on air; the ones due have their time; the ones kept wait
                     let (icon, color) = match flow.state.as_str() {
@@ -505,10 +512,10 @@ impl FlowsPage {
             .id("flow-bar")
             .test_support()
             .aria_label(SharedString::from(bar.label.clone()))
-            .mt(px(12.))
-            .h(px(5.))
+            .mt(px(8.))
+            .h(px(4.))
             .flex()
-            .gap(px(3.))
+            .gap(px(4.))
             .children(bar.segments.iter().map(|tone| {
                 div().h_full().flex_1().rounded_full().bg(match tone {
                     Some(tone) => tone_color(*tone),
@@ -520,7 +527,7 @@ impl FlowsPage {
 
     /// An end of the chain: when it started, or when and how it ended. Nothing is behind it to show.
     fn end_of_chain(id: &'static str, words: &str, above: bool, below: bool) -> AnyElement {
-        let dot = div().size(px(7.)).rounded_full().border_1().border_color(theme::INK_3).into_any_element();
+        let dot = div().size(px(8.)).rounded_full().border_1().border_color(theme::INK_3).into_any_element();
         chain_step(id, dot, false, above, below)
             .aria_label(SharedString::from(words.to_string()))
             .child(
@@ -592,7 +599,6 @@ impl FlowsPage {
                     )
                     .child(
                         div()
-                            .mt(px(2.))
                             .line_clamp(2)
                             .text_size(theme::TEXT)
                             .line_height(theme::TEXT_LINE)
@@ -601,7 +607,7 @@ impl FlowsPage {
                     )
                     .child(
                         div()
-                            .mt(px(2.))
+                            .line_height(theme::TEXT_SMALL_LINE)
                             .truncate()
                             .text_size(theme::TEXT_STATUS)
                             .text_color(theme::INK_3)
@@ -617,7 +623,7 @@ impl FlowsPage {
     /// its two ends.
     fn detail(&self, made: &Rc<Made>, window: &Window, cx: &mut Context<Self>) -> AnyElement {
         let Some(detail) = &made.model.detail else {
-            return pane("flow-detail", "No workflow")
+            return at_the_left(pane("flow-detail", "No workflow"))
                 .w(px(SIDE.0))
                 .min_w(px(SIDE.1))
                 .flex_shrink(1.)
@@ -633,9 +639,9 @@ impl FlowsPage {
         let buttons = self.buttons(detail, cx);
         let head = div()
             .flex_none()
-            .px(px(18.))
-            .pt(px(12.))
-            .pb(px(14.))
+            .px(px(16.))
+            .pt(px(16.))
+            .pb(px(16.))
             // the name hangs a little to the left, so its letters stand over the lines under it
             .child(div().ml(px(-8.)).flex().min_w_0().child(self.switcher(made, detail, cx)))
             .child(
@@ -643,7 +649,7 @@ impl FlowsPage {
                     .id("flow-when")
                     .test_support()
                     .aria_label(SharedString::from(detail.when.clone()))
-                    .mt(px(2.))
+                    .mt(px(4.))
                     .text_size(theme::TEXT_SMALL)
                     .text_color(theme::INK_3)
                     .child(detail.when.clone()),
@@ -674,12 +680,12 @@ impl FlowsPage {
                     .mt(px(8.))
                     .line_clamp(3)
                     .text_size(theme::TEXT_SMALL)
-                    .line_height(px(17.))
+                    .line_height(theme::TEXT_SMALL_LINE)
                     .text_color(theme::INK_3)
                     .child(every)
             }))
             .when(!buttons.is_empty(), |head| {
-                head.child(div().mt(px(12.)).flex().flex_wrap().items_center().gap(px(6.)).children(buttons))
+                head.child(div().mt(px(12.)).flex().flex_wrap().items_center().gap(px(8.)).children(buttons))
             });
         let (started, ended) = match &made.ends {
             Some((started, ended)) => (Some(started.as_str()), Some(ended.as_str())),
@@ -702,13 +708,13 @@ impl FlowsPage {
             self.detail_scroll.scroll_to_item(at + 1 + usize::from(started.is_some()));
         }
         let tasks = !detail.lines.is_empty();
-        pane("flow-detail", SharedString::from(detail.name.clone()))
+        at_the_left(pane("flow-detail", SharedString::from(detail.name.clone())))
             .aria_value(SharedString::from(detail.key.clone()))
             .w(px(SIDE.0))
             .min_w(px(SIDE.1))
             .flex_shrink(1.)
             .child(head)
-            .child(div().flex_none().h(px(1.)).bg(theme::RULE))
+            .child(div().flex_none().h(px(1.)).bg(theme::LINE))
             .child(
                 div()
                     .id("flow-detail-list")
@@ -726,9 +732,8 @@ impl FlowsPage {
                             .test_support()
                             .aria_label(SharedString::from(detail.count.clone()))
                             .flex_none()
-                            .px(px(10.))
-                            .pt(px(6.))
-                            .pb(px(2.))
+                            .px(px(8.))
+                            .pb(px(8.))
                             .text_size(theme::TEXT_SMALL)
                             .font_weight(FontWeight::MEDIUM)
                             .text_color(theme::INK_3)
@@ -738,7 +743,6 @@ impl FlowsPage {
                     .children(lines)
                     .children(ended.map(|words| Self::end_of_chain("flow-ended", words, tasks, false))),
             )
-            .child(lit_edge())
             .into_any_element()
     }
 
@@ -789,7 +793,7 @@ impl FlowsPage {
                     .role(Role::Button)
                     .aria_label("Delete")
                     .flex_none()
-                    .size(theme::SMALL_CONTROL_HEIGHT)
+                    .size(theme::CONTROL)
                     .flex()
                     .items_center()
                     .justify_center()
@@ -844,19 +848,20 @@ impl FlowsPage {
         let fade = (folded && long).then(|| {
             div().absolute().left_0().right_0().bottom_0().h(px(56.)).bg(linear_gradient(
                 180.,
-                linear_color_stop(alpha(BOX, 0.), 0.),
-                linear_color_stop(BOX, 1.),
+                linear_color_stop(alpha(theme::PANE, 0.), 0.),
+                linear_color_stop(theme::PANE, 1.),
             ))
         });
         let words = if now.open { "Show less" } else { more };
         let toggle = long.then(|| {
-            div().mt(px(6.)).flex().child(
+            div().mt(px(4.)).flex().child(
                 div()
                     .id(id)
                     .test_support()
                     .role(Role::Button)
                     .aria_label(words)
                     .text_size(theme::TEXT_SMALL)
+                    .line_height(theme::TEXT_SMALL_LINE)
                     .font_weight(FontWeight::MEDIUM)
                     .text_color(theme::INK_3)
                     .cursor_pointer()
@@ -924,12 +929,12 @@ impl FlowsPage {
                     .aria_description(SharedString::from(clock.clone()))
                     .aria_value(SharedString::from(step.kind().to_string()))
                     .flex()
-                    .gap(px(12.))
+                    .gap(px(8.))
                     .child(
                         enkidu_ui::pieces::tabular(div())
                             .flex_none()
                             .w(px(44.))
-                            .pt(px(2.))
+                            .line_height(theme::TEXT_LINE)
                             .text_size(theme::TEXT_STATUS)
                             .text_color(theme::INK_3)
                             .flex()
@@ -940,26 +945,26 @@ impl FlowsPage {
                         div()
                             .relative()
                             .flex_none()
-                            .w(px(12.))
+                            .w(px(16.))
                             .flex()
                             .justify_center()
                             // the line down to the next step, under the dot
                             .when(at < last, |column| {
-                                column.child(div().absolute().top(px(10.)).bottom_0().w(px(1.)).bg(theme::RULE_STRONG))
+                                column.child(div().absolute().top(px(8.)).bottom_0().w(px(1.)).bg(theme::LINE_STRONG))
                             })
                             .child(
                                 div()
                                     .relative()
                                     .flex_none()
-                                    .mt(px(3.))
-                                    .size(px(15.))
+                                    .mt(px(1.))
+                                    .size(px(16.))
                                     .rounded_full()
-                                    .border_3()
-                                    .border_color(theme::CANVAS)
+                                    .border_4()
+                                    .border_color(theme::WELL)
                                     .bg(tone_color(step.tone())),
                             ),
                     )
-                    .child(div().min_w_0().flex_1().pb(px(20.)).child(what))
+                    .child(div().min_w_0().flex_1().pb(px(16.)).child(what))
                     .into_any_element()
             })
             .collect();
@@ -1025,7 +1030,7 @@ impl FlowsPage {
             .gap_y(px(4.))
             .text_size(theme::TEXT_SMALL)
             .text_color(theme::INK_3)
-            .children(task.ticket.as_ref().map(|ticket| type_icon(ticket.kind.name(), 13.)))
+            .children(task.ticket.as_ref().map(|ticket| type_icon(ticket.kind.name(), 16.)))
             .child(mono(div()).flex_none().whitespace_nowrap().text_color(theme::INK_2).child(detail.name.clone()))
             .children(task.ticket.as_ref().map(|ticket| status_pill(&ticket.status, ticket.hue, false)))
             .child(
@@ -1044,9 +1049,9 @@ impl FlowsPage {
             .id("run-task-title")
             .test_support()
             .aria_label(SharedString::from(detail.title.clone()))
-            .mt(px(6.))
+            .mt(px(8.))
             .text_size(px(20.))
-            .line_height(px(26.))
+            .line_height(px(28.))
             .font_weight(FontWeight::SEMIBOLD)
             .text_color(theme::INK)
             .child(detail.title.clone());
@@ -1067,19 +1072,19 @@ impl FlowsPage {
             .mt(px(16.))
             .flex()
             .items_start()
-            .gap(px(12.))
-            .rounded(px(12.))
+            .gap(px(8.))
+            .rounded(theme::RADIUS_CARD)
             .px(px(16.))
             .py(px(12.))
             .bg(match detail.tone {
-                TaskTone::Quiet => white(0.035),
+                TaskTone::Quiet => theme::PANE,
                 _ => alpha(color, 0.10),
             })
-            .child(div().flex_none().mt(px(1.)).child(state_mark(
+            .child(div().flex_none().mt(px(2.)).child(state_mark(
                 "run-task-turn".into(),
                 &detail.state,
                 detail.tone,
-                18.,
+                16.,
             )))
             .child(
                 div()
@@ -1093,12 +1098,7 @@ impl FlowsPage {
                             .child(detail.outcome.clone()),
                     )
                     .children(detail.outcome_line.clone().map(|line| {
-                        div()
-                            .mt(px(2.))
-                            .text_size(px(12.5))
-                            .line_height(theme::TEXT_LINE)
-                            .text_color(theme::INK_2)
-                            .child(line)
+                        div().text_size(px(12.5)).line_height(theme::TEXT_LINE).text_color(theme::INK_2).child(line)
                     }))
                     .children(detail.said.clone().map(|said| {
                         div()
@@ -1125,7 +1125,7 @@ impl FlowsPage {
         let sent = mono(div())
             .mt(px(8.))
             .text_size(px(11.5))
-            .line_height(px(17.))
+            .line_height(theme::TEXT_SMALL_LINE)
             .text_color(theme::INK_2)
             .child(detail.message.clone())
             .into_any_element();
@@ -1179,7 +1179,7 @@ impl FlowsPage {
                     .test_support()
                     .flex_1()
                     .min_h_0()
-                    .px(px(28.))
+                    .px(px(32.))
                     .py(px(24.))
                     .overflow_y_scroll()
                     .track_scroll(&self.task_scroll)
@@ -1198,7 +1198,6 @@ impl FlowsPage {
                             .children(happened),
                     ),
             )
-            .child(lit_edge())
             .into_any_element()
     }
 }
@@ -1222,9 +1221,7 @@ impl Render for FlowsPage {
             .on_action(cx.listener(|this, _: &PrevTask, _, cx| this.step(-1, cx)))
             .on_action(cx.listener(|this, _: &LeaveFlows, window, cx| this.leave(window, cx)))
             .size_full()
-            .flex()
-            .gap(px(8.))
-            .pb(px(8.));
+            .flex();
         let Some(made) = self.made.clone() else { return root };
         let detail = self.detail(&made, window, cx);
         let task = self.task(&made, window, cx);

@@ -1,6 +1,6 @@
-//! Items 3.9b and 3.9c: the right edge of a workspace, in a real window on real git. A bar of two buttons (Changed
-//! files with their number, Files); each opens its panel beside the bar at full height, and a second click, ⌥⌘1 or
-//! ⌥⌘2 closes it. The panel's width drags, is remembered, and resets on a double click. Changed files is a tree of the
+//! Items 3.9b and 3.9c: the files' column at the right of the stage, in a real window on real git. One column with
+//! two tabs (Changes with their number, Files); ⌥⌘1 or ⌥⌘2 shows a tab, or folds the column away. The column's
+//! width drags, is remembered, and resets on a double click. Changes is a tree of the
 //! folders the changed files are in (items 29.4 and 29.10: a click brings a file's diff into view, a folder closes and
 //! opens, all of them at once, and a filter keeps one kind of file), then the files that have remarks only.
 
@@ -59,7 +59,7 @@ fn bounds(window: &Window, id: &'static str) -> Option<Bounds<Pixels>> {
     window.try_find(id).map(|found| found.bounds())
 }
 
-/// The panel that is open, by its title.
+/// The tab the panel shows, by its name.
 fn panel(window: &Window) -> Option<String> {
     said(window, "panel-band")
 }
@@ -130,58 +130,64 @@ fn paths(window: &Window, id: &'static str) -> Vec<String> {
 
 /// Item 3.9b.
 #[gpui_kit::test]
-fn the_bar_opens_one_panel_at_a_time_beside_it_and_a_second_click_or_its_key_closes_it(cx: &mut TestAppContext) {
+fn the_column_shows_one_of_its_two_tabs_and_a_key_folds_it_away(cx: &mut TestAppContext) {
     let (app, _, _) = start(cx);
-    // as the app starts: Changed files is open, beside the bar at the window's right edge, at the workspace's height
+    // as the app starts: the column is open on Changes, at the window's right edge, beside the stage and as high
     look(cx, &app, |w| {
-        assert_eq!(panel(w).as_deref(), Some("Changed files"));
-        assert_eq!(w.find("rail-changes").selected(), Some(true));
-        assert_eq!(w.find("rail-files").selected(), Some(false));
-        assert_eq!(said(w, "rail-count").as_deref(), Some("1"), "the changed files' number is on the button");
-        let (row, panel, body) =
-            (w.find("workspace-row").bounds(), w.find("island-panel").bounds(), w.find("workspace-body").bounds());
-        assert_eq!(panel.size.width, px(280.));
+        assert_eq!(panel(w).as_deref(), Some("Changes"));
+        assert_eq!(w.find("panel-tab-changes").selected(), Some(true));
+        assert_eq!(w.find("panel-tab-files").selected(), Some(false));
+        assert_eq!(said(w, "panel-count").as_deref(), Some("1"), "the changed files' number is on their tab");
+        let (row, panel, stage) =
+            (w.find("workspace-row").bounds(), w.find("island-panel").bounds(), w.find("stage").bounds());
+        assert_eq!(panel.size.width, px(304.));
         assert_eq!((panel.top(), panel.bottom()), (row.top(), row.bottom()), "full height");
-        assert_eq!(row.right() - panel.right(), px(40.), "the bar is 40 px wide, at the edge");
-        assert_eq!(panel.left() - body.right(), px(8.), "8 px between the workspace and the panel");
+        assert_eq!((row.right(), panel.right()), (w.viewport_size().width, row.right()), "at the window's edge");
+        assert_eq!(panel.left(), stage.right(), "the stage's own edge is the line between them");
         assert_eq!(said(w, "panel-divider").as_deref(), Some("Resize panel"));
-        // the panel says how many files changed, so the changes' own band doesn't
+        // its bar is as high as the panes' bars; its tabs are pills as high as a control, the first 8 px from the
+        // column's edge, 4 px apart
+        assert_eq!(w.find("panel-band").bounds().size.height, px(40.));
+        let (first, second) = (w.find("panel-tab-changes").bounds(), w.find("panel-tab-files").bounds());
+        assert_eq!((first.left() - panel.left(), first.size.height), (px(8.), px(28.)));
+        assert_eq!(second.left() - first.right(), px(4.));
+        // nothing in the top row folds it: its keys do
+        assert!(w.try_find("panel-toggle").is_none());
+        // how many files changed, and their lines, stand in the bar of the changes
         let count = w.find("changes-count").bounds();
-        assert!(count.left() > panel.left(), "the count is on the changes' band");
+        assert!(count.right() < panel.left(), "the count isn't in the changes' bar");
     });
 
-    // the other button: its panel takes the place
-    app.click(cx, "rail-files");
-    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Files")), "Files never opened");
+    // the other tab: it shows in the panel's place, and the changes' bar keeps its count
+    app.click(cx, "panel-tab-files");
+    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Files")), "Files never showed");
     look(cx, &app, |w| {
-        assert_eq!(w.find("rail-files").selected(), Some(true));
-        assert_eq!(w.find("rail-changes").selected(), Some(false));
-        // the count went back to the changes' band
-        let (count, panel) = (w.find("changes-count").bounds(), w.find("island-panel").bounds());
-        assert!(count.right() < panel.left(), "the count isn't on the changes' band");
+        assert_eq!(w.find("panel-tab-files").selected(), Some(true));
+        assert_eq!(w.find("panel-tab-changes").selected(), Some(false));
+        assert_eq!(said(w, "changes-count").as_deref(), Some("1 file"));
+        assert_eq!(said(w, "panel-count").as_deref(), Some("1"), "the other tab still says how many");
     });
     assert!(kept_layout(cx, &app, r#""rightPanel":"files""#).contains(r#""rightPanel":"files""#), "not kept");
 
-    // the same button again: no panel, and the workspace has the room up to the bar
-    app.click(cx, "rail-files");
-    assert!(app.until(cx, |w| w.try_find("island-panel").is_none()), "the panel stayed");
+    // the key of the tab that is shown: no column, and the stage has the room up to 8 px before the window's edge
+    app.press(cx, "alt-cmd-2");
+    assert!(app.until(cx, |w| w.try_find("island-panel").is_none()), "the column stayed");
     look(cx, &app, |w| {
-        let (row, body) = (w.find("workspace-row").bounds(), w.find("workspace-body").bounds());
-        assert_eq!(row.right() - body.right(), px(40.));
-        assert!(w.try_find("panel-divider").is_none());
-        assert_eq!((w.find("rail-files").selected(), w.find("rail-changes").selected()), (Some(false), Some(false)));
+        let (row, stage) = (w.find("workspace-row").bounds(), w.find("stage").bounds());
+        assert_eq!(row.right() - stage.right(), px(8.));
+        assert!(w.try_find("panel-divider").is_none() && w.try_find("panel-tab-files").is_none());
     });
     assert!(kept_layout(cx, &app, r#""rightPanel":null"#).contains(r#""rightPanel":null"#), "not kept");
 
-    // ⌥⌘1 and ⌥⌘2 open and close them
+    // ⌥⌘1 and ⌥⌘2 open it on their tab and close it
     app.press(cx, "alt-cmd-1");
-    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Changed files")), "⌥⌘1");
+    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Changes")), "⌥⌘1");
     app.press(cx, "alt-cmd-2");
     assert!(app.until(cx, |w| panel(w).as_deref() == Some("Files")), "⌥⌘2");
     app.press(cx, "alt-cmd-2");
     assert!(app.until(cx, |w| w.try_find("island-panel").is_none()), "⌥⌘2 again");
     app.press(cx, "alt-cmd-1");
-    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Changed files")), "⌥⌘1 again");
+    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Changes")), "⌥⌘1 again");
     app.press(cx, "alt-cmd-1");
     assert!(app.until(cx, |w| w.try_find("island-panel").is_none()), "⌥⌘1 a third time");
 
@@ -195,7 +201,7 @@ fn the_bar_opens_one_panel_at_a_time_beside_it_and_a_second_click_or_its_key_clo
         assert!(app.until(cx, |w| w.try_find("command-palette").is_none()), "the palette stayed");
     };
     pick(cx, "changed files", "Show the changed files");
-    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Changed files")));
+    assert!(app.until(cx, |w| panel(w).as_deref() == Some("Changes")));
     pick(cx, "changed files", "Hide the changed files");
     assert!(app.until(cx, |w| w.try_find("island-panel").is_none()));
     pick(cx, "project's files", "Show the project's files");
@@ -207,13 +213,14 @@ fn the_bar_opens_one_panel_at_a_time_beside_it_and_a_second_click_or_its_key_clo
 #[gpui_kit::test]
 fn the_panels_width_drags_is_remembered_and_resets_on_a_double_click(cx: &mut TestAppContext) {
     let (app, _, _) = start(cx);
-    let gap = look(cx, &app, |w| w.find("panel-divider").bounds());
-    assert_eq!(gap.size.width, px(8.));
+    let (gap, stage) = look(cx, &app, |w| (w.find("panel-divider").bounds(), w.find("stage").bounds()));
+    // the stage's edge is the line; the pointer takes it within 4 px on either side of where the two meet
+    assert_eq!((gap.size.width, gap.center().x), (px(8.), stage.right()));
     let at = gap.center();
     // 60 px to the left: the panel is 60 px wider, and the workspace gives the room
     drag(cx, &app, at, &[point(at.x - px(20.), at.y), point(at.x - px(60.), at.y)]);
-    assert_eq!(ui(cx, &app).right_panel_width, 340);
-    assert_eq!(look(cx, &app, |w| bounds(w, "island-panel").map(|panel| panel.size.width)), Some(px(340.)));
+    assert_eq!(ui(cx, &app).right_panel_width, 364);
+    assert_eq!(look(cx, &app, |w| bounds(w, "island-panel").map(|panel| panel.size.width)), Some(px(364.)));
     // far to the left: 520 px at most; far to the right: 200 at least
     let gap = look(cx, &app, |w| w.find("panel-divider").bounds().center());
     drag(cx, &app, gap, &[point(gap.x - px(40.), gap.y), point(px(100.), gap.y)]);
@@ -225,7 +232,7 @@ fn the_panels_width_drags_is_remembered_and_resets_on_a_double_click(cx: &mut Te
 
     // 300 px, and a restart: the panel opens as wide as it was left
     let (gap, edge) = look(cx, &app, |w| (w.find("panel-divider").bounds().center(), w.find("workspace-row").bounds()));
-    let want = edge.right() - px(40. + 300. + 4.);
+    let want = edge.right() - px(300.5);
     drag(cx, &app, gap, &[point(gap.x - px(30.), gap.y), point(want, gap.y)]);
     assert_eq!(ui(cx, &app).right_panel_width, 300);
     let kept = kept_layout(cx, &app, r#""rightPanelWidth":300"#);
@@ -233,10 +240,10 @@ fn the_panels_width_drags_is_remembered_and_resets_on_a_double_click(cx: &mut Te
     let app = common::restart(cx, app);
     assert!(app.until(cx, |w| line_number(w, "Line 5, after").is_some()), "the diff never showed again");
     assert_eq!(look(cx, &app, |w| bounds(w, "island-panel").map(|panel| panel.size.width)), Some(px(300.)));
-    // a double click: 280 again
+    // a double click: 304 again
     let gap = look(cx, &app, |w| w.find("panel-divider").bounds().center());
     double_click(cx, &app, gap);
-    assert_eq!(ui(cx, &app).right_panel_width, 280);
+    assert_eq!(ui(cx, &app).right_panel_width, 304);
 }
 
 /// Item 3.9c.
@@ -251,7 +258,7 @@ fn changed_files_lists_every_changed_file_and_a_click_brings_its_diff_into_view(
     assert!(app.until(cx, |w| paths(w, "change-row") == ["src/app.py", "notes.md", "zebra.txt"]), "not listed");
     look(cx, &app, |w| {
         assert_eq!(said(w, "changes-count").as_deref(), Some("3 files"));
-        assert_eq!(said(w, "rail-count").as_deref(), Some("3"));
+        assert_eq!(said(w, "panel-count").as_deref(), Some("3"));
         let all = |id: &'static str| -> Vec<String> {
             w.find_all(id).iter().map(|found| found.label().unwrap_or_default().to_string()).collect()
         };
@@ -407,7 +414,7 @@ fn changed_files_is_a_tree_of_folders_that_close_and_open_and_a_filter_keeps_one
         let counts: Vec<String> =
             w.find_all("folder-files").iter().map(|found| found.label().unwrap_or_default().to_string()).collect();
         assert_eq!(counts, ["1 file", "3 files", "2 files", "1 file"]);
-        // a row is 26 px, and what a folder holds stands further in than the folder
+        // a row is 28 px, and what a folder holds stands further in than the folder
         let row = |path: &str| {
             (0..60usize)
                 .filter_map(|ix| w.try_find(("change-row", ix)))
@@ -415,8 +422,8 @@ fn changed_files_is_a_tree_of_folders_that_close_and_open_and_a_filter_keeps_one
                 .map(|row| row.bounds())
                 .expect("the file's row")
         };
-        assert_eq!(row("src/app.py").size.height, px(26.));
-        assert_eq!(row("notes.md").top() - row("src/app.py").top(), px(26.));
+        assert_eq!(row("src/app.py").size.height, px(28.));
+        assert_eq!(row("notes.md").top() - row("src/app.py").top(), px(28.));
     });
 
     // a folder closes with a click: its row stays with its count, what it holds goes
@@ -569,7 +576,114 @@ fn files_that_have_remarks_only_are_listed_after_the_changed_ones_and_open_at_th
     assert!(until_kept(cx, &app, &ws, 0).is_empty());
     assert!(app.until(cx, |w| paths(w, "change-row").is_empty() && paths(w, "remark-file-row").is_empty()));
     look(cx, &app, |w| {
-        assert_eq!(panel(w).as_deref(), Some("Changed files"));
-        assert!(w.try_find("changes-count").is_none() && w.try_find("rail-count").is_none(), "a count of nothing");
+        assert_eq!(panel(w).as_deref(), Some("Changes"));
+        assert!(w.try_find("changes-count").is_none() && w.try_find("panel-count").is_none(), "a count of nothing");
     });
+}
+
+/// The hidden mode (DESIGN.md, "Layout"): ⌘S puts the rail and the files' column away. The top row keeps the
+/// project's tabs and gets the button that brings the lists back; the stage has the window's width; ⌥⌘1 and ⌥⌘2 show
+/// the files over the stage, until Esc or a pick. It is remembered.
+#[gpui_kit::test]
+fn the_hidden_mode_puts_the_lists_away_keeps_the_tabs_and_shows_the_files_over_the_stage(cx: &mut TestAppContext) {
+    let (app, _, _) = start(cx);
+    // as the app starts: the rail at the left, the files' column at the right, and nothing of the hidden mode (no
+    // button for it either: its key, the View menu and the palette have it)
+    look(cx, &app, |w| {
+        assert!(bounds(w, "rail").is_some() && bounds(w, "island-panel").is_some());
+        assert!(w.try_find("lamp-dots").is_none() && w.try_find("show-lists").is_none());
+        assert!(w.try_find("hide-lists").is_none());
+        assert_eq!(w.find("stage").bounds().left(), px(56.));
+    });
+    // ⌘S: both lists go, and the stage has the window's width, 8 px from either edge
+    app.press(cx, "cmd-s");
+    assert!(ui(cx, &app).lists_hidden);
+    look(cx, &app, |w| {
+        assert!(w.try_find("rail").is_none() && w.try_find("island-panel").is_none());
+        let (row, stage) = (w.find("tabs-row").bounds(), w.find("stage").bounds());
+        assert_eq!((stage.left(), stage.right(), stage.top()), (px(8.), row.right() - px(8.), row.bottom()));
+        // the button that brings them back stands first, after the window's traffic lights
+        let show = w.find("show-lists");
+        assert_eq!((show.label(), show.bounds().left()), (Some("Show the lists"), px(76.)));
+        assert!(show.bounds().right() <= w.find("project-menu").bounds().left());
+        // the project's tabs stay as they are: the workspace on screen is still said by name
+        let tab = w.find(("tab", 0usize));
+        assert_eq!((tab.label(), tab.selected()), (Some("stock-fix"), Some(true)));
+        // no other project, so no dots; and the files are away
+        assert!(w.try_find("lamp-dots").is_none() && w.try_find("files-over").is_none());
+    });
+    // ⌥⌘1: the files over the stage, 320 px wide at its right, 8 px inside it; the stage keeps its width
+    app.press(cx, "alt-cmd-1");
+    look(cx, &app, |w| {
+        let (over, stage) = (w.find("files-over").bounds(), w.find("stage").bounds());
+        assert_eq!((over.size.width, over.right()), (px(320.), stage.right() - px(8.)));
+        assert_eq!((over.top(), over.bottom()), (stage.top() + px(8.), stage.bottom() - px(8.)));
+        assert_eq!(panel(w).as_deref(), Some("Changes"));
+        assert_eq!(stage.left(), px(8.));
+    });
+    // Esc takes them away, and so does their key
+    app.press(cx, "escape");
+    look(cx, &app, |w| assert!(w.try_find("files-over").is_none()));
+    app.press(cx, "alt-cmd-1");
+    look(cx, &app, |w| assert!(w.try_find("files-over").is_some()));
+    app.press(cx, "alt-cmd-1");
+    look(cx, &app, |w| assert!(w.try_find("files-over").is_none()));
+    // ⌥⌘2 shows them on Files, ⌥⌘1 then on Changes; a file picked there closes them
+    app.press(cx, "alt-cmd-2");
+    look(cx, &app, |w| assert_eq!(panel(w).as_deref(), Some("Files")));
+    app.press(cx, "alt-cmd-1");
+    look(cx, &app, |w| assert_eq!(panel(w).as_deref(), Some("Changes")));
+    assert!(app.until(cx, |w| paths(w, "change-row") == ["src/app.py"]), "not listed");
+    let row = look(cx, &app, |w| (0..10usize).find(|ix| w.try_find(("change-row", *ix)).is_some())).expect("its row");
+    app.click(cx, ("change-row", row));
+    look(cx, &app, |w| assert!(w.try_find("files-over").is_none(), "a pick closes the files"));
+    // the mode is kept, the files over the stage are not
+    let kept = kept_layout(cx, &app, "\"listsHidden\":true");
+    assert!(kept.contains("\"listsHidden\":true") && !kept.contains("filesOver"), "{kept}");
+    // the button in the top row brings both lists back, as they were
+    app.click(cx, "show-lists");
+    assert!(!ui(cx, &app).lists_hidden);
+    look(cx, &app, |w| {
+        assert!(bounds(w, "rail").is_some() && bounds(w, "island-panel").is_some());
+        assert!(w.try_find("lamp-dots").is_none() && w.try_find("show-lists").is_none());
+        assert_eq!(panel(w).as_deref(), Some("Changes"));
+    });
+    // and the palette hides them again
+    app.press(cx, "cmd-k");
+    assert!(app.until(cx, |w| w.try_find("command-palette").is_some()), "the palette never opened");
+    app.typed(cx, "hide the lists");
+    assert!(app.until(cx, |w| said(w, ("palette-row", 0usize)).as_deref() == Some("Hide the lists")));
+    app.press(cx, "enter");
+    assert!(app.until(cx, |w| w.try_find("command-palette").is_none()), "the palette stayed");
+    assert!(ui(cx, &app).lists_hidden);
+}
+
+/// The tree follows its list, however often a list goes and another comes. The tree used to know its list by where
+/// the list was kept. With nothing known of a workspace the column drew an empty list made for that one frame; when
+/// git's answer came, the new list could be given the very place the empty one had stood in, and the tree took it
+/// for the same list: it stayed empty, with changed files in the workspace. It keeps the list itself now
+/// (`changes::Same`). A workspace's first list was at times not drawn (a test that waits for it failed three times
+/// in a night), and this was the one way found for that.
+#[gpui_kit::test]
+fn the_tree_follows_a_list_that_comes_to_stand_where_the_last_one_stood(cx: &mut TestAppContext) {
+    let (app, _, id) = start(cx);
+    assert!(app.until(cx, |w| paths(w, "change-row") == ["src/app.py"]), "not listed");
+    let lists = cx.update(|cx| cx.global::<enkidu_app::stores::Stores>().changes.clone());
+    let known: Vec<enkidu_core::git::Change> = lists.read_with(cx, |lists, _| lists.of(&id).unwrap().to_vec());
+    for round in 0..400 {
+        // nothing is known of the workspace (as for one that was just made): the column is there, and empty
+        lists.update(cx, |lists, cx| {
+            assert!(lists.forget(&id));
+            cx.notify();
+        });
+        look(cx, &app, |w| assert!(paths(w, "change-row").is_empty(), "round {round}: {:?}", paths(w, "change-row")));
+        // git's answer comes
+        lists.update(cx, |lists, cx| {
+            assert!(lists.set(&id, known.clone()));
+            cx.notify();
+        });
+        look(cx, &app, |w| {
+            assert_eq!(paths(w, "change-row"), ["src/app.py"], "round {round}: the tree kept the empty list")
+        });
+    }
 }

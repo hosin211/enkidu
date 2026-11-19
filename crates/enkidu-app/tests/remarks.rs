@@ -66,9 +66,11 @@ fn a_remark_is_kept_by_the_database_counted_on_its_tab_and_there_after_a_restart
     remarks.update(cx, |remarks, cx| remarks.save(remark(&ws, "r1", 2, "Why not a generator?"), cx));
     assert_eq!(until_count(cx, &app, &ws, 1), [("r1".to_string(), "Why not a generator?".to_string())]);
     assert_eq!(app.shared.db.remarks(&ws).unwrap().len(), 1);
-    assert!(app.until(cx, |w| said(w, ("tab-words", 0usize)).as_deref() == Some("1 remark not sent yet")));
-    cx.update_window(app.window, |_, w, _| assert_eq!(said(w, "status-remarks").as_deref(), Some("1 remark not sent")))
-        .unwrap();
+    assert!(app.until(cx, |w| said(w, ("tab-remarks", 0usize)).as_deref() == Some("1 remark not sent yet")));
+    cx.update_window(app.window, |_, w, _| {
+        assert_eq!(said(w, "review-bar").as_deref(), Some("1 remark not sent yet"), "at the foot of the changes")
+    })
+    .unwrap();
     assert_eq!(*events.borrow(), [RemarksEvent::Saved("r1".into())]);
 
     // edited: the same remark with new words; a second one; the other workspace has none of them
@@ -78,11 +80,8 @@ fn a_remark_is_kept_by_the_database_counted_on_its_tab_and_there_after_a_restart
     });
     let have = until_count(cx, &app, &ws, 2);
     assert!(have.contains(&("r1".to_string(), "Use a generator here".to_string())), "{have:?}");
-    assert!(app.until(cx, |w| said(w, ("tab-words", 0usize)).as_deref() == Some("2 remarks not sent yet")));
-    cx.update_window(app.window, |_, w, _| {
-        assert_ne!(said(w, ("tab-words", 1usize)).as_deref(), Some("2 remarks not sent yet"))
-    })
-    .unwrap();
+    assert!(app.until(cx, |w| said(w, ("tab-remarks", 0usize)).as_deref() == Some("2 remarks not sent yet")));
+    cx.update_window(app.window, |_, w, _| assert_eq!(said(w, ("tab-remarks", 1usize)), None)).unwrap();
     assert_eq!(app.frame.read_with(cx, |f, _| f.remarks(&other)), 0);
 
     // a remark the database refuses is not in the store, and the store says why
@@ -120,13 +119,13 @@ fn a_remark_is_kept_by_the_database_counted_on_its_tab_and_there_after_a_restart
     let app = common::restart(cx, app);
     app.click(cx, ("tab", 0usize));
     assert_eq!(until_count(cx, &app, &ws, 1), [("r1".to_string(), "Use a generator here".to_string())]);
-    assert!(app.until(cx, |w| said(w, ("tab-words", 0usize)).as_deref() == Some("1 remark not sent yet")));
+    assert!(app.until(cx, |w| said(w, ("tab-remarks", 0usize)).as_deref() == Some("1 remark not sent yet")));
 
     // cleared (sent, or discarded): none left anywhere, and nothing says "0 remarks"
     let remarks = store(cx);
     remarks.update(cx, |remarks, cx| remarks.clear(&ws, cx));
     assert!(until_count(cx, &app, &ws, 0).is_empty());
-    assert!(app.until(cx, |w| w.try_find("status-remarks").is_none()));
+    assert!(app.until(cx, |w| w.try_find("review-bar").is_none() && w.try_find(("tab-remarks", 0usize)).is_none()));
     for _ in 0..400 {
         if app.shared.db.remarks(&ws).unwrap().is_empty() {
             break;

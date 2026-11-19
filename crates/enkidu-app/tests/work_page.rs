@@ -118,12 +118,12 @@ impl Page {
     }
 }
 
-/// Item 5.1c: the tab counts what waits on you while the page is closed.
+/// Item 5.1c: Work's button counts what waits on you while the page is closed.
 #[gpui_kit::test]
-fn work_is_the_first_tab_of_the_projects_row_and_cmd_i_opens_the_page_and_goes_back(cx: &mut TestAppContext) {
+fn work_is_the_first_button_of_the_rail_and_cmd_i_opens_the_page_and_goes_back(cx: &mut TestAppContext) {
     let workspaces = vec![ws("w1", "stock-fix", "fix/stock-double-count")];
     let page = setup(cx, sample(), workspaces, false);
-    // closed: the first tab of the row, before the projects, with the red count of what waits on you
+    // closed: the first button of the rail, above the projects, with the red count of what waits on you
     assert!(!page.open(cx));
     assert_eq!(page.said(cx, "work-tab").as_deref(), Some("Work: 9 waiting on you on 2 PRs"));
     assert_eq!(page.said(cx, "work-tab-count").as_deref(), Some("9"));
@@ -131,37 +131,49 @@ fn work_is_the_first_tab_of_the_projects_row_and_cmd_i_opens_the_page_and_goes_b
         let tab = w.find("work-tab");
         (tab.bounds(), w.find(("project", 0usize)).bounds(), tab.checked())
     });
-    assert!(tab.right() <= first.left(), "Work comes before the first project: {tab:?} {first:?}");
+    assert!(tab.bottom() <= first.top(), "Work stands above the first project: {tab:?} {first:?}");
     assert_eq!(pressed, Some(false));
-    assert!(page.look(cx, |w| w.try_find(("tab", 0usize)).is_some()), "the workspace's tabs are there");
-    assert!(page.there(cx, "status-line") && !page.there(cx, "work-page"));
+    assert_eq!(page.look(cx, |w| w.find(("tab", 0usize)).selected()), Some(true), "the workspace's tab is on screen");
+    assert!(page.there(cx, "tabs-row") && !page.there(cx, "work-page"));
+    assert_eq!(page.look(cx, |w| w.find(("project", 0usize)).selected()), Some(true));
 
-    // ⌘I: the page takes the place of the tabs and the islands; the projects row and the status line stay
+    // ⌘I: the page takes the top row and the stage; the rail stays, and no project is the one on screen
     page.press(cx, "cmd-i");
     assert!(page.open(cx));
-    assert!(page.there(cx, "work-page") && page.there(cx, "projects-row"));
-    assert!(page.look(cx, |w| w.try_find(("tab", 0usize)).is_none()), "no workspace tabs behind the page");
-    assert!(!page.there(cx, "status-line"));
+    assert!(page.there(cx, "work-page") && page.there(cx, "rail"));
+    assert!(!page.there(cx, "tabs-row"), "the page's own header is the top row now");
+    assert_eq!(page.said(cx, "work-title").as_deref(), Some("Work"));
+    assert_eq!(page.look(cx, |w| w.find(("project", 0usize)).selected()), Some(false), "its button stays, unmarked");
+    // how each source stands is said by its lamp in the header: its state, and when pointed at, when it was read
+    assert_eq!(value(&page, cx, "health-github").as_deref(), Some("ok"));
+    assert_eq!(described(&page, cx, "health-github").as_deref(), Some("shop: read 2 min ago as sam-lee"));
+    assert_eq!(described(&page, cx, "health-jira").as_deref(), Some("shop: read 2 min ago as Sam Lee"));
+    // and in words by the status line, with the keys that work on the board
     assert_eq!(
         page.said(cx, "work-status-line").as_deref(),
         Some("GitHub read 2 min ago as sam-lee | Jira read 2 min ago as Sam Lee")
     );
     assert_eq!(page.said(cx, "work-status-github").as_deref(), Some("GitHub read 2 min ago as sam-lee"));
-    // the tab is pressed in, and its count rests while you are on the page
+    assert_eq!(page.said(cx, "work-keys").as_deref(), Some("←→↑↓ move, ↩ open, X pick, / filter, ⌘I back"));
+    // Work's button is the one on screen, and its count rests while you are on the page
     assert_eq!(page.look(cx, |w| w.find("work-tab").checked()), Some(true));
     assert!(!page.there(cx, "work-tab-count"));
-    // the page is as wide as the window, between the two rows
-    let (row, body, line, window) = page.look(cx, |w| {
-        let bounds = |id: &'static str| w.find(id).bounds();
-        (bounds("projects-row"), bounds("work-page"), bounds("work-status-line"), w.viewport_size())
+    // the page has the window's width from its top down to the status line; its header is the top row, and its
+    // board stands on the stage: from the rail to 8 px before the window's edge
+    let (body, header, stage, window) = page.look(cx, |w| {
+        (w.find("work-page").bounds(), w.find("work-header").bounds(), w.find("work-stage").bounds(), w.viewport_size())
     });
     assert_eq!((body.left(), body.right()), (px(0.), window.width));
-    assert_eq!((body.top(), body.bottom()), (row.bottom(), line.top()));
+    assert_eq!((body.top(), body.bottom()), (px(0.), window.height - px(28.)));
+    assert_eq!((header.top(), header.size.height), (px(0.), px(44.)));
+    assert_eq!((stage.left(), stage.right()), (px(56.), window.width - px(8.)));
+    assert_eq!((stage.top(), stage.bottom()), (px(44.), window.height - px(28.)));
+    assert_eq!(page.look(cx, |w| w.find("work-title").bounds().left()), px(84.), "after the window's three lights");
 
-    // Esc, with the keyboard on the page, goes back; so does ⌘I, and the tab itself
+    // Esc, with the keyboard on the page, goes back; so does ⌘I, and the button itself
     page.press(cx, "escape");
     assert!(!page.open(cx), "Esc goes back");
-    assert!(page.there(cx, "status-line") && !page.there(cx, "work-page"));
+    assert!(page.there(cx, "tabs-row") && !page.there(cx, "work-page"));
     assert_eq!(page.said(cx, "work-tab-count").as_deref(), Some("9"));
     // the keyboard went back to the workspace: its keys work at once
     page.press(cx, "cmd-i");
@@ -169,24 +181,20 @@ fn work_is_the_first_tab_of_the_projects_row_and_cmd_i_opens_the_page_and_goes_b
     page.press(cx, "cmd-i");
     assert!(!page.open(cx), "and goes back");
     page.click(cx, "work-tab");
-    assert!(page.open(cx), "a click on the tab opens it");
+    assert!(page.open(cx), "a click on the button opens it");
     page.press(cx, "escape");
     assert!(!page.open(cx), "and Esc goes back from there too");
     page.click(cx, "work-tab");
     page.click(cx, "work-tab");
-    assert!(!page.open(cx), "a click on the pressed tab goes back");
+    assert!(!page.open(cx), "a click on the button that is on screen goes back");
 
-    // behind the page no project is the one on screen: each is a plain tab, and a click on one brings it back (the
-    // one you were in too); so does a workspace's number
-    let first_project = |page: &Page, cx: &mut TestAppContext| {
-        page.look(cx, |w| w.find(("project", 0usize)).label().map(String::from)).unwrap_or_default()
-    };
-    assert_eq!(first_project(&page, cx), "shop: project menu", "on screen, it opens its menu");
+    // behind the page a click on a project on the rail brings it back on screen, on the workspace you were in; so
+    // does a tab's number
     page.press(cx, "cmd-i");
-    assert_eq!(first_project(&page, cx), "shop", "behind the page it is a tab like the others");
+    assert!(page.open(cx));
     cx.update_window(page.window, |_, w, cx| w.click(("project", 0usize), cx)).unwrap();
     assert!(!page.open(cx), "a click on the project you were in goes back to it");
-    assert!(page.look(cx, |w| w.try_find(("tab", 0usize)).is_some()));
+    assert_eq!(page.look(cx, |w| w.find(("tab", 0usize)).selected()), Some(true));
     page.press(cx, "cmd-i");
     page.press(cx, "cmd-1");
     assert!(!page.open(cx), "⌘1 brings the first workspace on screen");
@@ -199,10 +207,11 @@ fn before_the_first_read_offers_to_check_with_nothing_to_filter(cx: &mut TestApp
     assert_eq!(page.said(cx, "work-first-run").as_deref(), Some("Your tickets and PRs, as a board"));
     assert_eq!(page.said(cx, "work-check-now").as_deref(), Some("Check now"));
     assert!(!page.there(cx, "work-needs-you") && !page.there(cx, "work-board") && !page.there(cx, "work-query"));
-    // nothing was read: the tab has only its name, and the status line says nothing of the sources
+    // nothing was read: the row has only its name, and the sources' lamps say they aren't read for any project
     assert_eq!(page.said(cx, "work-tab").as_deref(), Some("Work"));
     assert!(!page.there(cx, "work-tab-count") && !page.there(cx, "work-tab-broken"));
-    assert_eq!(page.said(cx, "work-status-line").as_deref(), Some(""));
+    assert_eq!(described(&page, cx, "health-github").as_deref(), Some("GitHub isn't read for any project"));
+    assert_eq!(described(&page, cx, "health-jira").as_deref(), Some("Jira isn't read for any project"));
     // once something was read, the first run's words are gone
     let read = sample();
     page.work.update(cx, |work, cx| {
@@ -228,16 +237,18 @@ fn says_first_what_cant_be_read_and_what_to_do_and_marks_the_tab(cx: &mut TestAp
     let under = page.look(cx, |w| w.find("broken-jira").description().map(String::from)).unwrap_or_default();
     assert!(under.contains("from its last good read, 42 min ago"), "{under}");
     assert!(!page.there(cx, "broken-github"));
-    // it stands above the board's place, under the header row
-    let (line, body) = page.look(cx, |w| (w.find("broken-jira").bounds(), w.find("work-page").bounds()));
-    assert!(line.top() >= body.top() + px(40.) && line.left() == px(8.), "{line:?}");
-    // the tab's red mark comes before any count, and the status line says it in red words
+    // it stands above the board's place, on the stage, under the header
+    let (line, stage) = page.look(cx, |w| (w.find("broken-jira").bounds(), w.find("work-stage").bounds()));
+    assert!(line.top() >= stage.top() + px(12.) && line.left() == stage.left() + px(1.) + px(16.), "{line:?}");
+    // the row's red mark comes before any count, and the source's lamp in the header is red
     assert_eq!(page.said(cx, "work-tab").as_deref(), Some("Work: a source can't be read"));
     assert_eq!(page.said(cx, "work-tab-broken").as_deref(), Some("A source can't be read"));
     assert!(!page.there(cx, "work-tab-count"));
-    assert_eq!(page.said(cx, "work-status-jira").as_deref(), Some("Jira can't be read"));
-    assert_eq!(page.said(cx, "work-status-github").as_deref(), Some("GitHub read 2 min ago as sam-lee"));
-    // closed, the mark stays on the tab
+    assert_eq!(value(&page, cx, "health-jira").as_deref(), Some("error"));
+    assert_eq!(described(&page, cx, "health-jira").as_deref(), Some("shop: Jira: twg isn't signed in"));
+    assert_eq!(value(&page, cx, "health-github").as_deref(), Some("ok"));
+    assert_eq!(described(&page, cx, "health-github").as_deref(), Some("shop: read 2 min ago as sam-lee"));
+    // closed, the mark stays on the row
     page.press(cx, "escape");
     assert!(!page.open(cx));
     assert_eq!(page.said(cx, "work-tab-broken").as_deref(), Some("A source can't be read"));
@@ -306,27 +317,27 @@ fn shows_everything_read_a_column_per_jira_status_a_card_per_ticket_no_project_c
     // a PR that names no ticket is a card of its own, in the column its state matches
     let lone = card_says(&page, cx, "pr:demo-org/shop#2415").expect("the PR's card");
     assert_eq!(lone, "Open pull request shop#2415 | Bump Django to 5.2.8 | Waiting for review");
-    // the projects are the tabs above: the page has no chips for them; no column folds; nothing hidden, no Hidden
+    // the projects are on the rail: the page has no chips for them; no column folds; nothing hidden, no Hidden
     assert!(!page.there(cx, "work-project") && !page.there(cx, "work-column-fold"));
     assert!(!page.there(cx, "work-show-hidden"));
-    assert!(page.said(cx, "work-status-line").unwrap_or_default().contains("GitHub read"));
+    assert_eq!(value(&page, cx, "health-github").as_deref(), Some("ok"));
 
-    // each column is an island at least 244 px wide, side by side with 8 px between, from 8 px inside the window,
-    // under the 40 px header row, down to 8 px above the status line
-    let (first, second, body, line) = page.look(cx, |w| {
+    // each column is at least 244 px wide; they stand side by side with a line between and no space, from 4 px
+    // inside the stage's edge, and 8 px inside it above and below
+    let (first, second, stage) = page.look(cx, |w| {
         let bounds = |ix: usize| w.find(("work-column", ix)).bounds();
-        (bounds(0), bounds(1), w.find("work-page").bounds(), w.find("work-status-line").bounds())
+        (bounds(0), bounds(1), w.find("work-stage").bounds())
     });
-    assert_eq!((first.left(), first.size.width), (px(8.), px(244.)), "{first:?}");
-    assert_eq!(second.left(), first.right() + px(8.));
-    assert_eq!((first.top(), first.bottom()), (body.top() + px(40.), line.top() - px(8.)));
-    // its cards are stacked in it, 8 px from its edges and from each other, under its 40 px head
+    assert_eq!((first.left(), first.size.width), (stage.left() + px(1.) + px(4.), px(244.)), "{first:?}");
+    assert_eq!(second.left(), first.right());
+    assert_eq!((first.top(), first.bottom()), (stage.top() + px(9.), stage.bottom() - px(9.)));
+    // its cards are stacked in it, 8 px from its edges and from each other, under its 32 px head
     let (supplier, import, tablet, ready) = page.look(cx, |w| {
         let card = |key: &str| w.find(card(key)).bounds();
         (card("SH-20728"), card("SH-20781"), card("SH-20947"), w.find(("work-column", 3usize)).bounds())
     });
-    assert_eq!((supplier.left(), supplier.right()), (ready.left() + px(9.), ready.right() - px(9.)), "{supplier:?}");
-    assert_eq!(supplier.top(), ready.top() + px(41.));
+    assert_eq!((supplier.left(), supplier.right()), (ready.left() + px(8.), ready.right() - px(8.)), "{supplier:?}");
+    assert_eq!(supplier.top(), ready.top() + px(32.));
     assert_eq!((import.top(), tablet.top()), (supplier.bottom() + px(8.), import.bottom() + px(8.)));
     // a title of two lines makes its card taller
     assert!(import.size.height > supplier.size.height, "{import:?} {supplier:?}");
@@ -347,14 +358,14 @@ fn shows_everything_read_a_column_per_jira_status_a_card_per_ticket_no_project_c
     };
     scroll(&page, cx, -300.);
     assert_eq!(more(&page, cx), "More to the left and to the right");
-    assert_eq!(page.look(cx, |w| w.find(("work-column", 0usize)).bounds()).left(), px(8. - 300.));
+    assert_eq!(page.look(cx, |w| w.find(("work-column", 0usize)).bounds()).left(), px(56. + 1. + 4. - 300.));
     scroll(&page, cx, -5000.);
     assert_eq!(more(&page, cx), "More to the left");
     let last = page.look(cx, |w| w.find(("work-column", 8usize)).bounds());
-    assert_eq!(last.right(), px(1360. - 8.), "scrolled to its end, Done ends 8 px inside the window");
+    assert_eq!(last.right(), px(1360. - 8. - 1. - 4.), "scrolled to its end, Done ends 4 px inside the stage's edge");
 
     // in a window wide enough for all nine they share its width evenly, and no edge fades
-    cx.simulate_window_resize(page.window, size(px(2400.), px(900.)));
+    cx.simulate_window_resize(page.window, size(px(2600.), px(900.)));
     let widths: Vec<f32> =
         page.look(cx, |w| (0..9usize).map(|ix| f32::from(w.find(("work-column", ix)).bounds().size.width)).collect());
     // to within the half pixel the layout rounds to
@@ -412,13 +423,13 @@ fn a_column_with_many_cards_scrolls_on_its_own_and_draws_only_the_cards_in_view(
     assert_eq!(other_after, other, "the other columns stayed");
     // the column's head stays where it is
     let head = page.look(cx, |w| w.find(("work-column", 3usize)).bounds());
-    assert_eq!(head.top(), px(38. + 40.), "{head:?}");
+    assert_eq!(head.top(), px(44. + 1. + 8.), "{head:?}");
     // scrolled to its end: the last card is drawn, 8 px above the column's foot, and the first ones no longer
     wheel(&page, cx, -20000.);
     let last = drawn(&page, cx);
     assert!(last.contains(&42) && !last.contains(&0), "{last:?}");
     let (end, column) = page.look(cx, |w| (w.find(card(&keys[42])).bounds(), w.find(("work-column", 3usize)).bounds()));
-    assert_eq!(end.bottom(), column.bottom() - px(9.), "{end:?} {column:?}");
+    assert_eq!(end.bottom(), column.bottom() - px(8.), "{end:?} {column:?}");
     // the index is read again with the same cards: the column stays where it was scrolled to
     page.work.update(cx, |work, cx| {
         work.regroup();
@@ -561,7 +572,7 @@ fn chosen(page: &Page, cx: &mut TestAppContext, id: impl Into<gpui_kit::ElementI
 #[gpui_kit::test]
 fn the_header_filters_by_text_shows_only_what_needs_you_and_says_how_each_source_stands(cx: &mut TestAppContext) {
     let page = setup(cx, sample(), Vec::new(), true);
-    // the row, where the workspace's tabs were: 40 px, from the board menu to Refresh
+    // the row is the top bar while the page is on screen: 40 px, from the board menu to Refresh
     let (row, pick, filter, github, jira, check, refresh) = page.look(cx, |w| {
         let at = |id: &'static str| w.find(id).bounds();
         (
@@ -574,11 +585,16 @@ fn the_header_filters_by_text_shows_only_what_needs_you_and_says_how_each_source
             at("work-refresh"),
         )
     });
-    assert_eq!((row.top(), row.size.height, row.size.width), (px(38.), px(40.), px(1360.)));
-    assert_eq!(pick.left(), px(8.));
-    assert_eq!(filter.size.width, px(200.));
+    // the header is the window's top row: 44 px high, as wide as the window; "Work" stands after the window's
+    // three lights, and the first control 20 px after the word
+    assert_eq!((row.top(), row.size.height, row.size.width), (px(0.), px(44.), px(1360.)));
+    let title = page.look(cx, |w| w.find("work-title").bounds());
+    assert_eq!((title.left(), pick.left() - title.right()), (px(84.), px(20.)));
+    assert_eq!(filter.size.width, px(208.));
     assert!(filter.right() <= github.left() && github.right() <= jira.left() && jira.right() <= check.left());
-    assert_eq!((check.right() + px(4.), refresh.right()), (refresh.left(), px(1360. - 8.)));
+    assert_eq!((check.right() + px(8.), refresh.right()), (refresh.left(), px(1360. - 12.)));
+    // a control is 28 px high
+    assert_eq!((pick.size.height, filter.size.height, check.size.height), (px(28.), px(28.), px(28.)));
     // nothing is hidden: no Tasks and Hidden; four cards need you; every source read
     assert_eq!(page.said(cx, "work-board-pick").as_deref(), Some("All tasks"));
     assert!(!page.there(cx, "work-show-tasks") && !page.there(cx, "work-show-hidden"));
@@ -622,7 +638,7 @@ fn the_header_filters_by_text_shows_only_what_needs_you_and_says_how_each_source
     page.click(cx, "work-needs-you");
     assert_eq!(shown(&page, cx).len(), 15);
 
-    // while a read runs: both lamps say reading, and the hairline under the row runs
+    // while a read runs: both lamps say reading, and the stage's upper edge runs, between its corners
     page.work.update(cx, |work, cx| {
         let mut index = (**work.snapshot.as_ref().unwrap()).clone();
         index.checking = true;
@@ -632,8 +648,12 @@ fn the_header_filters_by_text_shows_only_what_needs_you_and_says_how_each_source
     assert_eq!(value(&page, cx, "health-github").as_deref(), Some("reading"));
     assert_eq!(value(&page, cx, "health-jira").as_deref(), Some("reading"));
     assert_eq!(page.said(cx, "work-reading").as_deref(), Some("Reading GitHub and Jira"));
-    let (line, row) = page.look(cx, |w| (w.find("work-reading").bounds(), w.find("work-header").bounds()));
-    assert_eq!((line.left(), line.right(), line.size.height), (row.left(), row.right(), px(1.)));
+    let (line, stage) = page.look(cx, |w| (w.find("work-reading").bounds(), w.find("work-stage").bounds()));
+    assert_eq!(
+        (line.left(), line.right(), line.size.height),
+        (stage.left() + px(12.), stage.right() - px(12.), px(1.))
+    );
+    assert_eq!(line.top(), stage.top(), "on the stage's edge itself");
 }
 
 /// Item 5.5: "picks cards and hides them; Hidden shows only those, where they are picked and unhidden", "picks a run of
@@ -745,8 +765,6 @@ fn moves_across_the_board_with_the_arrows_opens_with_enter_picks_with_x_and_esc_
     index.hidden = vec!["ticket:SH-21522".into()];
     let page = setup(cx, index, Vec::new(), true);
     let on = |page: &Page, cx: &mut TestAppContext| state(page, cx).0.unwrap_or_default();
-    // the status line says the keys that work on the board
-    assert_eq!(page.said(cx, "work-keys").as_deref(), Some("←→↑↓ move, ↩ open, X pick, / filter, ⌘I back"));
     page.press(cx, "down");
     assert_eq!(on(&page, cx), "ticket:SH-21475", "the first card of the first column (On Hold)");
     assert_eq!(page.look(cx, |w| w.find(card("SH-21475")).selected()), Some(true));
@@ -771,13 +789,9 @@ fn moves_across_the_board_with_the_arrows_opens_with_enter_picks_with_x_and_esc_
     assert_eq!(on(&page, cx), "ticket:SH-20728");
     page.press(cx, "l");
     assert_eq!(on(&page, cx), "ticket:SH-21309");
-    // ↩ opens it in front of the board; the status line says the keys that work there; Esc closes it, the page stays
+    // ↩ opens it in front of the board; Esc closes it, the page stays
     page.press(cx, "enter");
     assert_eq!(state(&page, cx).2.as_deref(), Some("ticket:SH-21309"));
-    assert_eq!(
-        page.said(cx, "work-keys").as_deref(),
-        Some("JK move, S tell Claude, X leave out, E done, Z snooze, ⌘↩ send, Esc close")
-    );
     page.press(cx, "escape");
     assert_eq!(state(&page, cx).2, None);
     assert!(page.open(cx));
@@ -837,7 +851,7 @@ fn the_keyboard_moving_down_a_long_column_brings_its_cards_into_view(cx: &mut Te
     let selected = state(&page, cx).0.expect("a card has the keyboard");
     let id = SharedString::from(format!("work-card:{selected}"));
     let (at, column) = page.look(cx, |w| (w.find(id).bounds(), w.find(("work-column", 3usize)).bounds()));
-    assert!(at.top() >= column.top() + px(40.) && at.bottom() <= column.bottom(), "{at:?} in {column:?}");
+    assert!(at.top() >= column.top() + px(32.) && at.bottom() <= column.bottom(), "{at:?} in {column:?}");
     // and back up to the first
     for _ in 0..40 {
         page.press(cx, "up");
@@ -845,7 +859,7 @@ fn the_keyboard_moving_down_a_long_column_brings_its_cards_into_view(cx: &mut Te
     let first = state(&page, cx).0.expect("a card has the keyboard");
     let id = SharedString::from(format!("work-card:{first}"));
     let (at, column) = page.look(cx, |w| (w.find(id).bounds(), w.find(("work-column", 3usize)).bounds()));
-    assert_eq!(at.top(), column.top() + px(41.), "the column's first card, at its top");
+    assert_eq!(at.top(), column.top() + px(32.), "the column's first card, at its top");
 }
 
 /// What an element says (its label), by any id.
@@ -937,8 +951,8 @@ fn opens_a_card_in_front_of_the_board_its_header_its_tabs_jiras_status_the_pr_an
     assert!(!page.there(cx, "task-no-pr"));
     let (facts, jira, pr) = page
         .look(cx, |w| (w.find("task-facts").bounds(), w.find("task-jira").bounds(), w.find("task-pr:2414").bounds()));
-    assert_eq!((facts.size.width, facts.right()), (px(316.), dialog.right()), "{facts:?}");
-    assert!(jira.bottom() <= pr.top() && jira.left() == pr.left() && jira.size.width == px(283.), "{jira:?} {pr:?}");
+    assert_eq!((facts.size.width, facts.right()), (px(348.), dialog.right()), "{facts:?}");
+    assert!(jira.bottom() <= pr.top() && jira.left() == pr.left() && jira.size.width == px(315.), "{jira:?} {pr:?}");
     // a link opens in the browser, never in the app
     assert_eq!(cx.opened_url(), None);
     page.click(cx, "detail-open");
@@ -956,7 +970,7 @@ fn opens_a_card_in_front_of_the_board_its_header_its_tabs_jiras_status_the_pr_an
         [
             line("14 min ago: Question from jonas-qa"),
             line("2 h ago: Checks failed: tests (3.12)"),
-            line("2 h ago: Pushed 4973abc"),
+            line("2 h ago: Pushed 2414abc"),
             None
         ]
     );
@@ -1429,7 +1443,7 @@ fn in_front_of_a_card_the_keys_move_through_what_needs_you_mark_it_done_snooze_i
     }
     assert_eq!(state(&page, cx).2.as_deref(), Some("ticket:SH-21309"));
     // what needs you, in the card's order, each as a sentence a person would say with the words quoted
-    let ids = ["question:c9", "thread:t1", "checks:demo-org/shop#2414:4973abc0def1", "thread:t2"];
+    let ids = ["question:c9", "thread:t1", "checks:demo-org/shop#2414:2414abc0def1", "thread:t2"];
     let item = |id: &str| SharedString::from(format!("detail-item:{id}"));
     let shown = |page: &Page, cx: &mut TestAppContext| -> Vec<&'static str> {
         ids.into_iter().filter(|id| says(page, cx, item(id)).is_some()).collect()
@@ -1513,9 +1527,9 @@ fn in_front_of_a_card_the_keys_move_through_what_needs_you_mark_it_done_snooze_i
     assert_eq!(cx.opened_url().as_deref(), Some("https://ci.example.com/run/88123"));
     assert!(page.there(cx, "task-dialog"));
     // the same by hand: the box, a click on an item, its Open, Snooze and Done
-    page.click(cx, "item-include:checks:demo-org/shop#2414:4973abc0def1");
-    assert_eq!(pressed_in(&page, cx, "item-include:checks:demo-org/shop#2414:4973abc0def1"), Some(false));
-    page.click(cx, "item-include:checks:demo-org/shop#2414:4973abc0def1");
+    page.click(cx, "item-include:checks:demo-org/shop#2414:2414abc0def1");
+    assert_eq!(pressed_in(&page, cx, "item-include:checks:demo-org/shop#2414:2414abc0def1"), Some(false));
+    page.click(cx, "item-include:checks:demo-org/shop#2414:2414abc0def1");
     // (a click on the item itself, above its instruction field: the field's presses are its own)
     let at = page.look(cx, |w| w.find(item("thread:t2")).bounds());
     click_at(&page, cx, f32::from(at.center().x), f32::from(at.top()) + 20.);
@@ -1526,12 +1540,12 @@ fn in_front_of_a_card_the_keys_move_through_what_needs_you_mark_it_done_snooze_i
     page.press(cx, "j");
     assert_eq!(picked(&page, cx), ["thread:t2"]);
     assert!(!page.there(cx, "detail-item-open:thread:t2"), "nowhere to open: no such button");
-    page.click(cx, "detail-item-open:checks:demo-org/shop#2414:4973abc0def1");
+    page.click(cx, "detail-item-open:checks:demo-org/shop#2414:2414abc0def1");
     assert_eq!(picked(&page, cx), [ids[2]], "its buttons are its own");
     page.click(cx, "detail-snooze:thread:t2");
     assert_eq!(item_state(&page, cx, "thread:t2").0, "snoozed");
     assert_eq!(shown(&page, cx), [ids[2]]);
-    page.click(cx, "detail-done:checks:demo-org/shop#2414:4973abc0def1");
+    page.click(cx, "detail-done:checks:demo-org/shop#2414:2414abc0def1");
     assert_eq!(item_state(&page, cx, ids[2]).0, "done");
     // nothing needs you there any more: no such part, and the card's badge is gone from the board
     assert!(!page.there(cx, "task-needs") && page.there(cx, "task-description"));
@@ -1559,12 +1573,12 @@ fn an_item_the_keyboard_moves_to_comes_into_view_and_its_instruction_is_kept(cx:
     // as it opens the card shows what the task is: nothing moved to what needs you
     assert!(!inside(&page, cx, "thread:t2"));
     let top = page.look(cx, |w| w.find("task-description").bounds().top());
-    for (key, on) in [("j", "thread:t1"), ("j", "checks:demo-org/shop#2414:4973abc0def1"), ("j", "thread:t2")] {
+    for (key, on) in [("j", "thread:t1"), ("j", "checks:demo-org/shop#2414:2414abc0def1"), ("j", "thread:t2")] {
         page.press(cx, key);
         assert!(inside(&page, cx, on), "{on} is in view after {key}");
     }
     assert!(page.look(cx, |w| w.find("task-description").bounds().top()) < top, "the left side scrolled");
-    for on in ["checks:demo-org/shop#2414:4973abc0def1", "thread:t1", "question:c9"] {
+    for on in ["checks:demo-org/shop#2414:2414abc0def1", "thread:t1", "question:c9"] {
         page.press(cx, "k");
         assert!(inside(&page, cx, on), "{on} is in view after k");
     }
@@ -1989,8 +2003,8 @@ fn two_prs() -> Snapshot {
     .expect("an index")
 }
 
-/// Item 5.11b: "shows a workspace's PR on its tab, with its checks, and blue when something waits on you"; and the
-/// status line's "PR #2414: checks failing".
+/// Item 5.11b: a workspace's PR shows on its tab, as a dot in the color of its state; and the status line says in
+/// words what waits on the PR of the workspace on screen ("PR #2414: checks failing").
 #[gpui_kit::test]
 fn shows_a_workspaces_pr_on_its_tab_with_its_checks_and_in_the_status_line_what_waits_on_it(cx: &mut TestAppContext) {
     let workspaces = vec![ws("w1", "stock-fix", "feature/2395"), ws("w2", "export", "feature/2414")];
@@ -2004,10 +2018,10 @@ fn shows_a_workspaces_pr_on_its_tab_with_its_checks_and_in_the_status_line_what_
     // stock-fix's PR: its checks passed and nothing waits; export's: failing, and that waits on you
     assert_eq!(chip(&page, cx, 0), said("PR #2395: PR 2395", "green", "nothing waits"));
     assert_eq!(chip(&page, cx, 1), said("PR #2414: checks failing", "red", "waits on you"));
-    // it stands at the end of its tab, after the name: a dot and the number
+    // it stands at the end of its tab, after the name: a dot of 6 px, 12 px inside the tab's end
     let (tab, pr) = page.look(cx, |w| (w.find(("tab", 0usize)).bounds(), w.find(("tab-pr", 0usize)).bounds()));
-    assert!(pr.left() > tab.left() + px(60.) && pr.right() <= tab.right() - px(9.), "{tab:?} {pr:?}");
-    assert!(pr.size.width > px(30.) && pr.size.height <= px(16.), "the dot and #2395: {pr:?}");
+    assert!(pr.left() > tab.left() + px(60.) && pr.right() == tab.right() - px(12.), "{tab:?} {pr:?}");
+    assert_eq!((pr.size.width, pr.center().y), (px(6.), tab.center().y), "{pr:?}");
     // pointed at, it says what waits
     cx.update_window(page.window, |_, w, cx| {
         w.render_frame(cx);
@@ -2025,21 +2039,19 @@ fn shows_a_workspaces_pr_on_its_tab_with_its_checks_and_in_the_status_line_what_
     .unwrap();
     assert_eq!(page.said(cx, "status-work").as_deref(), Some("PR #2414: checks failing, and 1 more PR"));
     assert_eq!(described(&page, cx, "status-work").as_deref(), Some("blocks"));
-    let (branch, claude, work) = page.look(cx, |w| {
+    // it stands in the status line, after the branch and what Claude does
+    let (line, branch, claude, work) = page.look(cx, |w| {
         let at = |id: &'static str| w.find(id).bounds();
-        (at("status-branch"), at("status-claude"), at("status-work"))
+        (at("status-line"), at("status-branch"), at("status-claude"), at("status-work"))
     });
+    assert!(work.top() >= line.top() && work.bottom() <= line.bottom(), "{work:?} in {line:?}");
     assert!(branch.right() < claude.left() && claude.right() < work.left(), "{branch:?} {claude:?} {work:?}");
-    // with little room the tabs are compact: the dot alone
+    // a workspace without a PR has no such mark
     let many: Vec<Workspace> = (0..9)
         .map(|n| ws(&format!("w{}", n + 1), &format!("task-{n}"), &format!("feature/{}", 2395 + n * 11)))
         .collect();
     let page = setup(cx, two_prs(), many, false);
-    cx.simulate_window_resize(page.window, size(px(1000.), px(700.)));
-    let pr = page.look(cx, |w| w.find(("tab-pr", 0usize)).bounds());
-    assert_eq!(pr.size.width, px(6.), "{pr:?}");
-    assert_eq!(chip(&page, cx, 0).0.as_deref(), Some("PR #2395: PR 2395"), "it still says what it is");
-    // a workspace without a PR has no such mark
+    assert_eq!(chip(&page, cx, 0).0.as_deref(), Some("PR #2395: PR 2395"));
     assert!(page.look(cx, |w| w.try_find(("tab-pr", 3usize)).is_none()));
 }
 
@@ -2132,8 +2144,8 @@ fn shows_how_claude_says_a_task_ended_on_the_card_then_its_report_and_screenshot
     assert!(near(second.left(), first.right() + px(8.)), "{first:?} {second:?}");
     let shape = f32::from(first.size.width) / f32::from(first.size.height);
     assert!((shape - 1.6).abs() < 0.02, "16 to 10: {first:?}");
-    // three to a row in a window this wide, inside the report's box
-    let room = f32::from(inside.size.width) - 30.;
+    // three to a row in a window this wide, inside the report's box (16 px and its edge on each side)
+    let room = f32::from(inside.size.width) - 34.;
     assert!((f32::from(first.size.width) - (room - 16.) / 3.).abs() < 1., "{first:?} in {inside:?}");
 
     // a screenshot opens as large as the window; → goes on around the end; Esc closes it, not the task
@@ -2383,7 +2395,8 @@ fn checks_the_connections_each_source_compared_a_broken_one_says_why_differences
     });
     assert_eq!(dialog.size.width, px(598.), "600 px less the dialog's edge: {dialog:?}");
     assert!(first.bottom() < second.top() && second.bottom() < third.top() && third.bottom() < again.top());
-    assert_eq!(first.size.width, px(558.), "{first:?}");
+    // (a dialog's 24 px on each side)
+    assert_eq!(first.size.width, px(550.), "{first:?}");
     // checking again asks again
     page.click(cx, "check-again");
     assert!(page.look(cx, |w| w.try_find(("check-result", 2usize)).is_some()), "the cards are there again");
@@ -2543,7 +2556,7 @@ fn a_card_that_moved_to_another_column_glows_once_and_a_prs_dot_pops_when_its_ch
     cx.executor().advance_clock(std::time::Duration::from_millis(600));
     let (stands, still) = dot(&page, cx);
     assert_eq!(stands.as_deref(), Some("failing"));
-    assert_eq!(still.size, size(px(7.), px(7.)), "a card that opens shows its dot still");
+    assert_eq!(still.size, size(px(8.), px(8.)), "a card that opens shows its dot still");
     let row = page.look(cx, |w| w.find("task-checks:2414").bounds());
     // the checks pass now
     change(&page, cx, &|index| {
@@ -2559,7 +2572,7 @@ fn a_card_that_moved_to_another_column_glows_once_and_a_prs_dot_pops_when_its_ch
     assert_eq!(page.look(cx, |w| w.find("task-checks:2414").bounds()), row, "the row keeps its place");
     cx.executor().advance_clock(std::time::Duration::from_millis(400));
     let (_, settled) = dot(&page, cx);
-    assert_eq!(settled.size, size(px(7.), px(7.)));
+    assert_eq!(settled.size, size(px(8.), px(8.)));
 }
 
 /// A click on an element by any id (a row's own pieces are numbered), in its middle.
@@ -3163,9 +3176,16 @@ fn shows_a_workflow_as_one_list_and_the_task_its_tasks_at_a_glance_and_the_one_p
         (at("flow-detail"), at("flow-task-pane"), at("flows-page"))
     });
     assert_eq!(detail.size.width, px(348.));
-    assert_eq!((detail.left(), task.left()), (px(8.), px(364.)));
-    assert_eq!(task.right(), body.right());
-    assert_eq!((detail.top(), detail.bottom()), (body.top(), body.bottom() - px(8.)));
+    // the page fills the stage: the list starts 1 px inside its edge, beside the rail, and the task follows it with
+    // no space
+    let stage = page.look(cx, |w| w.find("work-stage").bounds());
+    assert!(page.there(cx, "rail"));
+    assert_eq!((detail.left(), task.left()), (stage.left() + px(1.), stage.left() + px(1.) + px(348.)));
+    assert_eq!((task.right(), body.right()), (body.right(), stage.right() - px(1.)));
+    assert_eq!((detail.top(), detail.bottom()), (body.top(), body.bottom()));
+    assert_eq!((body.top(), body.bottom()), (stage.top() + px(1.), stage.bottom() - px(1.)));
+    // the status line says the page's one key
+    assert_eq!(page.said(cx, "work-keys").as_deref(), Some("Esc back to the board"));
     // your workflows are the menu of its name: closed until asked for; the one that runs, checked as the one shown
     assert_eq!(page.said(cx, "flows-switch").as_deref(), Some("Night run"));
     assert!(!page.look(cx, |w| w.try_find(("flow-item", 0usize)).is_some()), "the menu is closed");
@@ -3510,14 +3530,11 @@ fn workflows_in_the_header_opens_its_page_and_a_board_filter_brings_the_board_ba
         (at("work-needs-you"), at("work-flows"), at("work-filter"))
     });
     assert!(needs.right() <= chip.left() && chip.right() < filter.left(), "{needs:?} {chip:?} {filter:?}");
-    assert_eq!(chip.size.height, px(26.));
+    assert_eq!(chip.size.height, px(28.));
     // pointed at, it says what it is for
     cx.update_window(page.window, |_, w, cx| w.hover("work-flows", cx)).unwrap();
     cx.executor().advance_clock(std::time::Duration::from_millis(900));
     assert_eq!(page.said(cx, "tip").as_deref(), Some("Your workflows: what is due, and how each task ended"));
-    // the status line's keys are the board's
-    let keys = page.said(cx, "work-keys").unwrap_or_default();
-    assert!(keys.starts_with("←→↑↓ move"), "{keys}");
 
     // picked cards wait while its page is open: the bar comes back with the board
     pick_cards(&page, cx, &["SH-21580"]);
@@ -3525,7 +3542,8 @@ fn workflows_in_the_header_opens_its_page_and_a_board_filter_brings_the_board_ba
     page.click(cx, "work-flows");
     assert!(page.there(cx, "flows-page") && !page.there(cx, "work-board") && !page.there(cx, "pick-bar"));
     assert_eq!(pressed_in(&page, cx, "work-flows"), Some(true));
-    assert_eq!(page.said(cx, "work-keys").as_deref(), Some("Esc back to the board"));
+    // the page stands on the stage, in the board's place; the rail stays beside it
+    assert!(page.there(cx, "rail") && page.there(cx, "work-stage"));
     // the board's keys rest while it is away: nothing is picked, opened or moved behind the page
     let before = state(&page, cx);
     for key in ["right", "x", "enter", "l", "h", "/"] {

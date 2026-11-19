@@ -1017,7 +1017,8 @@ fn row_paint(
         }
         let len = text.len() - start;
         let under_block = block.is_some_and(|(at, wide)| at == col || (wide && at + 1 == col));
-        let fg = if under_block { Rgb(0x11, 0x12, 0x17) } else { cell.fg };
+        // (the letter under the blue block is drawn in the ground's own black)
+        let fg = if under_block { Rgb(0, 0, 0) } else { cell.fg };
         let style = (fg, cell.bold, cell.italic, cell.underline, cell.strike);
         if last == Some(style) {
             if let Some(run) = runs.last_mut() {

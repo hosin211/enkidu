@@ -181,10 +181,20 @@ impl Frame {
         self.current_project.as_deref().map(|project| self.tabs_of(project)).unwrap_or_default()
     }
 
+    /// A project's workspaces that you put away, in your order.
+    pub fn hidden_of(&self, project_id: &str) -> Vec<&Workspace> {
+        self.ordered(project_id).into_iter().filter(|w| self.is_hidden(&w.id)).collect()
+    }
+
     /// The workspaces of the project on screen that you put away, in your order.
     pub fn hidden_tabs(&self) -> Vec<&Workspace> {
-        let Some(project) = self.current_project.as_deref() else { return Vec::new() };
-        self.ordered(project).into_iter().filter(|w| self.is_hidden(&w.id)).collect()
+        self.current_project.as_deref().map(|project| self.hidden_of(project)).unwrap_or_default()
+    }
+
+    /// Every workspace that has a tab: the projects in the rail's order, each with its workspaces in yours, the
+    /// ones you put away left out.
+    pub fn rows(&self) -> Vec<&Workspace> {
+        self.projects.iter().flat_map(|p| self.tabs_of(&p.id)).collect()
     }
 
     /// A tab is dragged to the place of the tab at `to` (its place among the project's tabs): it stands there, and
@@ -287,7 +297,7 @@ impl Frame {
         true
     }
 
-    /// The next (`step` 1) or previous (-1) tab of the project on screen, wrapping around.
+    /// The next (`step` 1) or previous (-1) tab of the project on screen, around the ends of its row.
     pub fn cycle_workspace(&mut self, step: i32) -> bool {
         let tabs: Vec<String> = self.tabs().iter().map(|w| w.id.clone()).collect();
         if tabs.is_empty() {
@@ -751,21 +761,42 @@ mod tests {
     }
 
     #[test]
-    fn goes_to_the_next_and_previous_tab_of_the_project_on_screen_wrapping_around() {
-        // a workspace of another project is not one of the tabs, so cycling never lands on it
+    fn goes_to_the_next_and_previous_tab_of_the_project_on_screen_and_around_the_ends() {
+        // every workspace that has a tab, in the rail's order: the first project's, then the second's
         let mut frame =
             loaded(vec![ws("w1", "one"), ws("w2", "two"), of("p2", ws("w4", "elsewhere")), ws("w3", "three")]);
+        frame.projects.push(project("p2", "second"));
+        assert_eq!(
+            frame.rows().iter().map(|w| w.name.as_str()).collect::<Vec<_>>(),
+            ["one", "two", "three", "elsewhere"]
+        );
         assert_eq!(name(&frame), Some("one"));
         frame.cycle_workspace(1);
         assert_eq!(name(&frame), Some("two"));
         frame.cycle_workspace(1);
+        assert_eq!(name(&frame), Some("three"));
         frame.cycle_workspace(1);
-        assert_eq!(name(&frame), Some("one"));
+        assert_eq!(
+            (name(&frame), frame.current_project.as_deref()),
+            (Some("one"), Some("p1")),
+            "around the end, in the same project"
+        );
         frame.cycle_workspace(-1);
         assert_eq!(name(&frame), Some("three"));
+        // ⌘1 to ⌘9 are the same row
         assert!(frame.select_tab(1));
         assert_eq!(name(&frame), Some("two"));
         assert!(!frame.select_tab(8), "no ninth tab");
+        // a workspace you put away has no tab: the keys pass it by
+        assert!(frame.hide_workspace("w3", 1));
+        frame.cycle_workspace(1);
+        assert_eq!(name(&frame), Some("one"));
+        assert_eq!(frame.hidden_of("p1").iter().map(|w| w.name.as_str()).collect::<Vec<_>>(), ["three"]);
+        assert!(frame.hidden_of("p2").is_empty());
+        // the other project's row is its own
+        assert!(frame.select_project("p2"));
+        frame.cycle_workspace(1);
+        assert_eq!((name(&frame), frame.current_project.as_deref()), (Some("elsewhere"), Some("p2")), "one tab");
     }
 
     #[test]

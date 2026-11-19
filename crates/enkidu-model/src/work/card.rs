@@ -475,7 +475,7 @@ mod tests {
         let export = groups.iter().find(|g| g.id == "ticket:SH-21309").expect("the sample's card");
         let rows = item_rows(export, &work, NOW);
         let ids: Vec<&str> = rows.iter().map(|row| row.id.as_str()).collect();
-        assert_eq!(ids, ["question:c9", "thread:t1", "checks:demo-org/shop#2414:4973abc0def1", "thread:t2"]);
+        assert_eq!(ids, ["question:c9", "thread:t1", "checks:demo-org/shop#2414:2414abc0def1", "thread:t2"]);
         assert_eq!(rows[1].sentence, "mira-k left a remark on export.py, line 48");
         assert_eq!((rows[0].sentence.as_str(), rows[0].when.as_str()), ("jonas-qa asked a question", "14 min ago"));
         assert_eq!(

@@ -14,8 +14,9 @@ use enkidu_model::work::flows::new_flow;
 use enkidu_model::work::page::{BoardView, Choices, Quiet, board_view, moved_cards};
 use enkidu_model::work::{self, Broken};
 use enkidu_ui::pieces::{
-    ButtonKind, ButtonSize, Part, button, button_with, island, lit_edge, raised, rise_in_place, sentence, with_code,
+    ButtonKind, ButtonSize, Part, button, button_with, island, raised, rise_in_place, sentence, stage, with_code,
 };
+use enkidu_ui::running_line::running_line;
 use enkidu_ui::tips::Tipped as _;
 use enkidu_ui::tokens::{self as theme, alpha};
 use enkidu_ui::work::SourceLook;
@@ -36,8 +37,8 @@ use crate::work::flow_editor::{self, FlowEditor};
 use crate::work::flows_page::FlowsPage;
 use crate::work::store::Work;
 
-/// The space between the window's edge and the page's body, on each side.
-const GUTTER: f32 = 8.;
+/// The space the board keeps free at its left and its right edge (each column keeps 8 px more around its cards).
+const GUTTER: f32 = 4.;
 
 /// The page's own keys work while the keyboard is on it.
 pub const KEYS: &str = "WorkPage";
@@ -64,7 +65,7 @@ pub struct WorkPage {
     frame: Entity<Frame>,
     pub(crate) work: Entity<Work>,
     /// What the window keeps of your choices here (Needs you).
-    ui: Entity<Ui>,
+    pub(super) ui: Entity<Ui>,
     /// What you wrote about each card, kept until it goes.
     drafts: Entity<Drafts>,
     /// The window's terminals: a card's message is typed into a Claude's prompt there.
@@ -580,7 +581,7 @@ fn first_run() -> AnyElement {
                  every few minutes, and never writes to either. Jira is read for a project once its Jira project keys \
                  are set in its settings.";
     let title = "Your tickets and PRs, as a board";
-    island("work-first-run", false)
+    island("work-first-run")
         .aria_label(title)
         .size_full()
         .items_center()
@@ -624,7 +625,6 @@ fn first_run() -> AnyElement {
                     ),
                 ),
         )
-        .child(lit_edge())
         .into_any_element()
 }
 
@@ -643,8 +643,8 @@ fn broken_line(line: &Broken) -> AnyElement {
         .aria_description(SharedString::from(line.under.clone()))
         .flex()
         .items_start()
-        .gap(px(10.))
-        .rounded(px(10.))
+        .gap(px(8.))
+        .rounded(theme::RADIUS_CARD)
         .border_1()
         .border_color(alpha(theme::LAMP_RED, 0.25))
         .bg(alpha(theme::LAMP_RED, 0.07))
@@ -652,7 +652,9 @@ fn broken_line(line: &Broken) -> AnyElement {
         .py(px(8.))
         .text_size(px(12.5))
         .line_height(px(18.))
-        .child(svg().path("icons/triangle-alert.svg").flex_none().mt(px(2.)).size(px(14.)).text_color(theme::LAMP_RED))
+        .child(
+            svg().path("icons/triangle-alert.svg").flex_none().mt(px(1.)).size(theme::ICON).text_color(theme::LAMP_RED),
+        )
         .child(
             div()
                 .min_w_0()
@@ -705,8 +707,12 @@ impl WorkPage {
             })
             .collect();
         // more board to the left or right: that edge fades, so a cut card reads as "scroll", not as broken
-        let room = f32::from(window.viewport_size().width) - 2. * GUTTER;
-        let (left, right) = board::more(self.board.columns.len(), room, f32::from(self.scroll.offset().x));
+        // (the board's room is what its last drawing had: the stage's own width)
+        let room = f32::from(self.scroll.bounds().size.width) - 2. * GUTTER;
+        let (left, right) = match room > 0. {
+            true => board::more(self.board.columns.len(), room, f32::from(self.scroll.offset().x)),
+            false => (false, false),
+        };
         let said = match (left, right) {
             (true, true) => "More to the left and to the right",
             (true, false) => "More to the left",
@@ -714,12 +720,12 @@ impl WorkPage {
             (false, false) => "",
         };
         let fade = |from_left: bool| {
-            let (near, far) = (theme::FRAME, alpha(theme::FRAME, 0.));
+            let (near, far) = (theme::WELL, alpha(theme::WELL, 0.));
             let (first, second) = if from_left { (near, far) } else { (far, near) };
             div()
                 .absolute()
                 .top_0()
-                .bottom(px(8.))
+                .bottom_0()
                 .w(px(board::FADE))
                 .map(|edge| if from_left { edge.left_0() } else { edge.right_0() })
                 .bg(linear_gradient(90., linear_color_stop(first, 0.), linear_color_stop(second, 1.)))
@@ -731,8 +737,10 @@ impl WorkPage {
             .aria_description(said)
             .size_full()
             .flex()
-            .gap(px(board::GAP))
-            .pb(px(8.))
+            // 8 px inside the stage, above and below; a column keeps 8 px on each side of its cards, so its head's
+            // words start at 16
+            .py(px(8.))
+            .px(px(GUTTER))
             .overflow_x_scroll()
             .track_scroll(&self.scroll)
             .children(columns);
@@ -768,12 +776,12 @@ impl WorkPage {
             .flex()
             .items_center()
             .gap(px(4.))
-            .py(px(6.))
-            .pl(px(14.))
-            .pr(px(6.))
+            .py(px(8.))
+            .pl(px(16.))
+            .pr(px(8.))
             .child(
                 enkidu_ui::pieces::tabular(div())
-                    .mr(px(6.))
+                    .mr(px(8.))
                     .whitespace_nowrap()
                     .text_size(theme::TEXT)
                     .text_color(theme::INK)
@@ -786,7 +794,7 @@ impl WorkPage {
                     "Workflow…",
                     None,
                     ButtonKind::Ghost,
-                    ButtonSize::Medium,
+                    ButtonSize::Small,
                 )
                 .tipped("Claude works on them one after another, from a time you set", None)
                 .on_click(cx.listener(|page, _, window, cx| page.workflow_for_picked(window, cx))),
@@ -799,7 +807,7 @@ impl WorkPage {
                         numbered("Hide", to_hide),
                         None,
                         ButtonKind::Primary,
-                        ButtonSize::Medium,
+                        ButtonSize::Small,
                     )
                     .on_click(cx.listener(|page, _, window, cx| page.hide_picked(true, window, cx))),
                 )
@@ -814,13 +822,13 @@ impl WorkPage {
                         numbered("Unhide", to_show),
                         None,
                         kind,
-                        ButtonSize::Medium,
+                        ButtonSize::Small,
                     )
                     .on_click(cx.listener(|page, _, window, cx| page.hide_picked(false, window, cx))),
                 )
             })
             .child(
-                button("pick-clear", "Clear", ButtonKind::Ghost, ButtonSize::Medium)
+                button("pick-clear", "Clear", ButtonKind::Ghost, ButtonSize::Small)
                     .tipped("Let go of them", Some(Box::new(Back)))
                     .on_click(cx.listener(|page, _, _, cx| page.clear_picks(cx))),
             );
@@ -873,6 +881,8 @@ impl Render for WorkPage {
             self.board.quiet.as_ref().map_or_else(|| div().into_any_element(), quiet_line)
         };
         let header = self.header(window, cx);
+        let reading = snapshot.as_deref().is_some_and(|work| work.checking);
+        let lists_hidden = self.ui.read(cx).lists_hidden;
         // while the Workflows page is on screen there is no board to pick on
         let bar = self.pick_bar(cx).filter(|_| !self.flows_open);
         div()
@@ -912,27 +922,59 @@ impl Render for WorkPage {
             .w_full()
             .flex()
             .flex_col()
-            // the header row, where the workspace's tabs were
+            // the header: the window's top row while the page is on screen
             .child(header)
+            // the board has the whole stage: the rail stands over the room left for it, and no column at the right
             .child(
                 div()
                     .flex_1()
                     .min_h_0()
                     .flex()
-                    .flex_col()
-                    .px(px(GUTTER))
-                    .when(!broken.is_empty(), |page| {
-                        page.child(
-                            div()
-                                .id("work-broken")
-                                .mb(px(8.))
-                                .flex()
-                                .flex_col()
-                                .gap(px(6.))
-                                .children(broken.iter().map(broken_line)),
-                        )
-                    })
-                    .child(div().relative().flex_1().min_h_0().child(body).children(bar)),
+                    .pl(if lists_hidden { theme::STAGE_MARGIN } else { theme::RAIL })
+                    .pr(theme::STAGE_MARGIN)
+                    .child(
+                        div()
+                            .relative()
+                            .flex_1()
+                            .min_w_0()
+                            .flex()
+                            .child(
+                                stage(
+                                    "work-stage",
+                                    div()
+                                        .size_full()
+                                        .flex()
+                                        .flex_col()
+                                        .when(!broken.is_empty(), |page| {
+                                            page.child(
+                                                div()
+                                                    .id("work-broken")
+                                                    .mt(px(12.))
+                                                    .mx(px(16.))
+                                                    .flex()
+                                                    .flex_col()
+                                                    .gap(px(8.))
+                                                    .children(broken.iter().map(broken_line)),
+                                            )
+                                        })
+                                        .child(div().relative().flex_1().min_h_0().child(body).children(bar)),
+                                )
+                                .flex_1()
+                                .min_w_0(),
+                            )
+                            // while a read runs, the stage's upper edge runs amber, like Claude's working line
+                            .when(reading, |holder| {
+                                holder.child(
+                                    div()
+                                        .absolute()
+                                        .top(px(-1.))
+                                        .left(px(12.))
+                                        .right(px(12.))
+                                        .h(px(1.))
+                                        .child(running_line("work-reading").aria_label("Reading GitHub and Jira")),
+                                )
+                            }),
+                    ),
             )
     }
 }

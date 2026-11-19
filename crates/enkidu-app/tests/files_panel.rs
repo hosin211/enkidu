@@ -50,7 +50,7 @@ fn start(cx: &mut TestAppContext) -> (App, PathBuf) {
     write(&folder, "src/app.py", "def total(items):\n    return sum(item.price for item in items)\n");
     write(&folder, "notes.md", "# Notes\n");
     assert!(app.until(cx, |w| said(w, "changes-count").as_deref() == Some("2 files")), "the changes never came");
-    app.click(cx, "rail-files");
+    app.click(cx, "panel-tab-files");
     assert!(app.until(cx, |w| said(w, "panel-band").as_deref() == Some("Files")), "Files never opened");
     assert!(app.until(cx, |w| !rows(w).is_empty()), "no files were listed");
     (app, folder)
@@ -350,14 +350,14 @@ fn fifty_thousand_files_in_one_folder_draw_like_fifty(cx: &mut TestAppContext) {
     assert!(seen.is_some_and(|row| row.label().is_some_and(|path| path.starts_with("big/module_"))));
 }
 
-/// Opens the right-edge panels, files read-only, and a changed file's diff.
+/// Opens the panel's tabs, files read-only, and a changed file's diff.
 #[gpui_kit::test]
-fn opens_the_right_edge_panels_files_read_only_and_a_changed_files_diff(cx: &mut TestAppContext) {
+fn opens_the_panels_tabs_files_read_only_and_a_changed_files_diff(cx: &mut TestAppContext) {
     let (app, _) = start(cx);
-    // the changes are put away; Files is open, and its own button closes it
+    // the changes are put away; Files is shown, and its key folds the column away
     app.press(cx, "alt-cmd-b");
     assert!(app.until(cx, |w| w.try_find("island-changes").is_none()), "⌥⌘B");
-    app.click(cx, "rail-files");
+    app.press(cx, "alt-cmd-2");
     assert!(app.until(cx, |w| w.try_find("island-panel").is_none()), "the panel stayed");
     // a closed panel stays closed after a restart: that is what is kept
     let kept = app.home.path().join("data").join("ui.json");
@@ -372,7 +372,7 @@ fn opens_the_right_edge_panels_files_read_only_and_a_changed_files_diff(cx: &mut
     assert!(std::fs::read_to_string(&kept).unwrap_or_default().contains(r#""rightPanel":null"#), "not kept");
 
     // opening a file shows the changes area, where the file appears, read only
-    app.click(cx, "rail-files");
+    app.press(cx, "alt-cmd-2");
     assert!(app.until(cx, |w| !rows(w).is_empty()), "Files never opened again");
     click_row(cx, &app, "src");
     click_row(cx, &app, "src/app.py");

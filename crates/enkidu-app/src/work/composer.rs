@@ -12,9 +12,10 @@ use enkidu_model::work::compose::{
 };
 use enkidu_ui::pieces::{ButtonKind, ButtonSize, button, button_with, mono};
 use enkidu_ui::tips::Tipped as _;
-use enkidu_ui::tokens::{self as theme, alpha};
+use enkidu_ui::tokens as theme;
 use enkidu_ui::work::tinted;
 use gpui_kit::base::TestSupportExt as _;
+use gpui_kit::component::Sizable as _;
 use gpui_kit::component::input::{InputEvent, InputState, Position, Textarea, TextareaState};
 use gpui_kit::prelude::*;
 use gpui_kit::{
@@ -291,15 +292,16 @@ impl Card {
             .id("branch-taken")
             .test_support()
             .aria_label(SharedString::from(format!("{} is checked out in {}", taken.branch, short_path(&taken.path))))
-            .mt(px(10.))
+            .mt(px(12.))
             .flex()
             .flex_col()
-            .gap(px(10.))
-            .p(px(14.))
-            .rounded(px(10.))
-            .bg(alpha(theme::CHROME, 0.7))
+            .gap(px(12.))
+            .px(px(16.))
+            .py(px(12.))
+            .rounded(theme::RADIUS_CARD)
+            .bg(theme::PANE)
             .border_1()
-            .border_color(theme::RULE)
+            .border_color(theme::LINE)
             .child(
                 div()
                     .flex()
@@ -314,7 +316,7 @@ impl Card {
                     .child(". Git checks a branch out in one folder only."),
             )
             .child(div().flex().child(
-                dim(button("taken-open", open_words, ButtonKind::Secondary, ButtonSize::Medium)).on_click(cx.listener(
+                dim(button("taken-open", open_words, ButtonKind::Secondary, ButtonSize::Large)).on_click(cx.listener(
                     move |card, _, window, cx| {
                         if card.way.is_none() {
                             card.send(Some(Way::Open(path.clone())), window, cx);
@@ -346,7 +348,7 @@ impl Card {
                             "taken-new-branch",
                             if matches!(busy, Some(Way::Branch(_))) { "Creating…" } else { "Create" },
                             ButtonKind::Secondary,
-                            ButtonSize::Medium,
+                            ButtonSize::Large,
                         ))
                         .on_click(cx.listener(move |card, _, window, cx| {
                             let branch = field.read(cx).value().trim().to_string();
@@ -407,7 +409,7 @@ impl Card {
             .aria_description(target_kind(&target))
             .min_w_0()
             .rounded(px(4.))
-            .line_height(px(17.))
+            .line_height(theme::TEXT_SMALL_LINE)
             .child(StyledText::new(line).with_runs(runs))
             .when(has_claudes, |line| {
                 // a click shows the Claude box, to pick another
@@ -422,7 +424,8 @@ impl Card {
                 .role(Role::Button)
                 .aria_label(words)
                 .flex_none()
-                .text_size(px(12.))
+                .text_size(theme::TEXT_SMALL)
+                .line_height(theme::TEXT_SMALL_LINE)
                 .text_color(theme::INK_3)
                 .cursor_pointer()
                 .hover(|s| s.text_color(theme::ACCENT))
@@ -443,13 +446,15 @@ impl Card {
                 }))
             }
         };
+        // (as tall as its words: in a narrow card where the message goes takes three or four lines)
         let first = div()
+            .min_h(theme::CONTROL)
             .min_w_0()
             .flex()
             .items_center()
             .gap(px(8.))
             .text_size(px(12.))
-            .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 12.))
+            .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 16.))
             .child(div().flex_none().font_weight(FontWeight::SEMIBOLD).text_color(theme::INK_2).child("Tell Claude"))
             .child(where_to)
             .child(div().flex_1())
@@ -461,19 +466,20 @@ impl Card {
                 .id("task-note")
                 .test_support()
                 .mt(px(8.))
-                .min_h(px(44.))
-                .rounded(px(10.))
+                .min_h(px(64.))
+                .rounded(theme::RADIUS_CARD)
                 .border_1()
-                .border_color(if lit { alpha(theme::ACCENT, 0.6) } else { theme::RULE_STRONG })
-                .bg(theme::CANVAS)
-                .px(px(4.))
-                .py(px(2.))
+                .border_color(if lit { theme::KEY_EDGE } else { theme::LINE_STRONG })
+                .bg(theme::PANE)
+                .px(px(12.))
+                .py(px(12.))
                 .child(
                     Textarea::new(field)
+                        .xsmall()
                         .appearance(false)
                         .aria_label("What Claude should do about the task")
-                        .text_size(px(13.))
-                        .line_height(px(19.)),
+                        .text_size(theme::TEXT)
+                        .line_height(theme::TEXT_LINE),
                 )
         });
         // the whole message, word for word as it goes to Claude; edit it here and your text is what goes
@@ -484,17 +490,17 @@ impl Card {
                 .test_support()
                 .aria_description(if edited { "edited" } else { "as made for you" })
                 .mt(px(8.))
-                .rounded(px(10.))
+                .rounded(theme::RADIUS_CARD)
                 .border_1()
-                .border_color(if lit { alpha(theme::ACCENT, 0.6) } else { theme::RULE })
-                .bg(alpha(theme::FRAME, 0.6))
-                .px(px(4.))
-                .py(px(2.))
+                .border_color(if lit { theme::KEY_EDGE } else { theme::LINE })
+                .bg(theme::PANE)
+                .px(px(12.))
+                .py(px(12.))
                 .text_color(if lit { theme::INK } else { theme::INK_2 })
                 .child(
-                    mono(Textarea::new(field).appearance(false).aria_label("The message to Claude"))
+                    mono(Textarea::new(field).xsmall().appearance(false).aria_label("The message to Claude"))
                         .text_size(px(11.5))
-                        .line_height(px(17.)),
+                        .line_height(px(16.)),
                 )
         });
         let taken = self.taken.as_ref().map(|offer| self.taken_panel(offer, cx));
@@ -510,9 +516,9 @@ impl Card {
                     .flex()
                     .flex_none()
                     .items_center()
-                    .rounded(px(6.))
-                    .bg(theme::HOVER)
-                    .px(px(6.))
+                    .rounded(theme::RADIUS_TAG)
+                    .bg(theme::SOFT)
+                    .px(px(8.))
                     .text_size(px(11.5))
                     .text_color(if *bright { theme::INK } else { theme::INK_2 })
                     .child(words.clone())
@@ -534,17 +540,17 @@ impl Card {
         let busy = self.sending || self.taken.is_some();
         let icon = if the.plus { "icons/plus.svg" } else { "icons/sparkle-filled.svg" };
         let label = if self.sending { the.busy } else { the.label };
-        let send = button_with("task-send", Some(icon), label, Some("⌘↩"), ButtonKind::Accent, ButtonSize::Medium)
+        let send = button_with("task-send", Some(icon), label, Some("⌘↩"), ButtonKind::Accent, ButtonSize::Large)
             .aria_description(target_kind(&target))
             .when(busy, |button| button.opacity(0.6))
             .on_click(cx.listener(|card, _, window, cx| card.send(None, window, cx)));
         let said = chips.iter().map(|(words, _)| words.as_str()).collect::<Vec<_>>().join(", ");
         let foot = div()
-            .mt(px(10.))
+            .mt(px(12.))
             .min_w_0()
             .flex()
             .items_center()
-            .gap(px(6.))
+            .gap(px(8.))
             .child(div().flex_none().text_size(px(12.)).text_color(theme::INK_3).child("With it:"))
             .child(
                 div()
@@ -556,7 +562,7 @@ impl Card {
                     .flex()
                     .flex_wrap()
                     .items_center()
-                    .gap(px(6.))
+                    .gap(px(8.))
                     .children(kept),
             )
             .children(step)
@@ -567,8 +573,7 @@ impl Card {
             .aria_label("Tell Claude")
             .flex_none()
             .border_t_1()
-            .border_color(theme::RULE)
-            .bg(alpha(gpui_kit::rgb(0x000000), 0.12))
+            .border_color(theme::LINE)
             .px(px(24.))
             .pb(px(16.))
             .pt(px(12.))

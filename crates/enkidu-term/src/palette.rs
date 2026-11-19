@@ -1,5 +1,5 @@
-//! The terminal's colors: the sixteen of the app's own theme (tuned to the window's lamps), xterm's 256, and true
-//! color.
+//! The terminal's colors: the sixteen of the app's own theme (the window's lamps and its neutral grays, on the
+//! stage's true black), xterm's 256, and true color.
 
 use alacritty_terminal::term::color::Colors;
 use alacritty_terminal::vte::ansi::{Color, NamedColor};
@@ -36,28 +36,31 @@ pub struct Palette {
 }
 
 impl Palette {
-    /// The app's terminal theme: Claude's output reads like the rest of the window.
+    /// The app's terminal theme: Claude's output reads like the rest of the window. Its ground is the stage's own
+    /// true black (a program that asks for the background is told that), its text a neutral gray a step under the
+    /// window's ink, its grays without a tint, and its colors the window's: the lamps' red, green and amber, the
+    /// blue of what is yours.
     pub fn enkidu() -> Palette {
         Palette {
-            foreground: Rgb::hex(0xe4e6eb),
-            background: Rgb::hex(0x111217),
-            cursor: Rgb::hex(0x7aa2ff),
+            foreground: Rgb::hex(0xd6d6d6),
+            background: Rgb::hex(0x000000),
+            cursor: Rgb::hex(0x7daafd),
             ansi: [
-                Rgb::hex(0x1e2027),
-                Rgb::hex(0xff6369),
-                Rgb::hex(0x3dd68c),
-                Rgb::hex(0xffb547),
-                Rgb::hex(0x6f9dff),
-                Rgb::hex(0xc59bff),
-                Rgb::hex(0x5cd6e8),
-                Rgb::hex(0xd5d8de),
-                Rgb::hex(0x6c717d),
-                Rgb::hex(0xff8d92),
-                Rgb::hex(0x6fe3a8),
-                Rgb::hex(0xffcb7a),
-                Rgb::hex(0x9cbcff),
-                Rgb::hex(0xdcbdfb),
-                Rgb::hex(0x8de8f4),
+                Rgb::hex(0x1f1f1f),
+                Rgb::hex(0xfc5858),
+                Rgb::hex(0x3cd788),
+                Rgb::hex(0xf9b73f),
+                Rgb::hex(0x7daafd),
+                Rgb::hex(0xb28fef),
+                Rgb::hex(0x47c7c7),
+                Rgb::hex(0xd6d6d6),
+                Rgb::hex(0x7a7a7a),
+                Rgb::hex(0xfe8a88),
+                Rgb::hex(0x7de4a7),
+                Rgb::hex(0xfbcf7c),
+                Rgb::hex(0xa5c4fe),
+                Rgb::hex(0xceb8f5),
+                Rgb::hex(0x86dede),
                 Rgb::hex(0xffffff),
             ],
         }
@@ -126,11 +129,36 @@ mod tests {
     #[test]
     fn the_256_colors_follow_xterm() {
         let p = Palette::enkidu();
-        assert_eq!(p.indexed(1), Rgb::hex(0xff6369));
+        assert_eq!(p.indexed(1), Rgb::hex(0xfc5858));
         assert_eq!(p.indexed(16), Rgb(0, 0, 0));
         assert_eq!(p.indexed(196), Rgb(255, 0, 0));
         assert_eq!(p.indexed(231), Rgb(255, 255, 255));
         assert_eq!(p.indexed(232), Rgb(8, 8, 8));
         assert_eq!(p.indexed(255), Rgb(238, 238, 238));
+    }
+
+    /// The terminal stands on the stage's true black, and what has no color has no tint: text, black, white and
+    /// their bright forms are neutral grays. Text and the dimmest gray can be read on that black.
+    #[test]
+    fn the_ground_is_true_black_and_the_grays_have_no_tint() {
+        let p = Palette::enkidu();
+        assert_eq!(p.background, Rgb(0, 0, 0));
+        for gray in [p.foreground, p.ansi[0], p.ansi[7], p.ansi[8], p.ansi[15]] {
+            assert!(gray.0 == gray.1 && gray.1 == gray.2, "{gray:?} has a tint");
+        }
+        // WCAG's contrast against black: (L + 0.05) / 0.05
+        let light = |c: Rgb| {
+            let lin = |v: u8| {
+                let v = f32::from(v) / 255.;
+                if v <= 0.04045 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) }
+            };
+            0.2126 * lin(c.0) + 0.7152 * lin(c.1) + 0.0722 * lin(c.2)
+        };
+        let on_black = |c: Rgb| (light(c) + 0.05) / 0.05;
+        assert!(on_black(p.foreground) >= 12., "text: {}", on_black(p.foreground));
+        assert!(on_black(p.ansi[8]) >= 4.5, "the dimmest gray a program writes in: {}", on_black(p.ansi[8]));
+        for color in &p.ansi[1..7] {
+            assert!(on_black(*color) >= 4.5, "{color:?}: {}", on_black(*color));
+        }
     }
 }

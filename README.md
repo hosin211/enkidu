@@ -103,7 +103,7 @@ Measured on the Mac it is built on, while other work ran beside it:
 | A diff of 700 files, a scrolled frame | 2.3 ms |
 | The file list of a project with 40,000 files | open in under 0.1 s |
 | At rest | no frame is drawn, 0.0 % of a core |
-| Memory of the app's own process, two workspaces open | about 45 MB, and under 100 MB with 420 changed files in each |
+| Memory of the app's own process, two workspaces open | about 50 MB, and about 100 MB with 420 changed files in each |
 
 `sh scripts/load.sh` repeats the heavy ones on your Mac.
 

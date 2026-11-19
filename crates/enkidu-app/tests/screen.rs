@@ -57,16 +57,28 @@ fn the_frame_has_the_designs_sizes(cx: &mut TestAppContext) {
     let (window, _) = open(cx);
     cx.update_window(window, |_, window, cx| {
         window.render_frame(cx);
-        assert_eq!(window.find("projects-row").bounds().size.height, px(38.));
-        assert_eq!(window.find("tabs-row").bounds().size.height, px(40.));
-        assert_eq!(window.find("status-line").bounds().size.height, px(26.));
-        assert_eq!(window.find(("tab", 0usize)).bounds().size.height, px(30.));
-        let island = window.find("island-claude").bounds();
-        // 8 px from the window's sides, between the tabs row and the status line
-        assert_eq!(island.origin.x, px(8.));
-        assert_eq!(island.size.width, px(1360. - 16.));
-        assert_eq!(island.origin.y, px(78.));
-        assert_eq!(island.size.height, px(860. - 78. - 26.));
+        // the top row: 44 px high, as wide as the window; the status line: 28 px, at the window's foot
+        let (row, line) = (window.find("tabs-row").bounds(), window.find("status-line").bounds());
+        assert_eq!((row.origin.x, row.origin.y, row.size.width, row.size.height), (px(0.), px(0.), px(1360.), px(44.)));
+        assert_eq!((line.origin.y, line.size.width, line.size.height), (px(860. - 28.), px(1360.), px(28.)));
+        // the rail: 56 px wide, between the two
+        let rail = window.find("rail").bounds();
+        assert_eq!(
+            (rail.origin.x, rail.origin.y, rail.size.width, rail.size.height),
+            (px(0.), px(44.), px(56.), px(860. - 44. - 28.))
+        );
+        // a pane's bar is 40 px, a tab 28
+        assert_eq!(window.find("terminal-tabs").bounds().size.height, px(40.));
+        assert_eq!(window.find(("tab", 0usize)).bounds().size.height, px(28.));
+        // the stage fills the room beside the rail, between the top row and the status line, up to 8 px before the
+        // window's right edge (no files' column stands beside it here)
+        let stage = window.find("stage").bounds();
+        assert_eq!((stage.origin.x, stage.origin.y), (px(56.), px(44.)));
+        assert_eq!((stage.size.width, stage.size.height), (px(1360. - 56. - 8.), px(860. - 44. - 28.)));
+        // Claude's pane fills the stage, 1 px inside its edge
+        let pane = window.find("island-claude").bounds();
+        assert_eq!((pane.origin.x, pane.origin.y), (px(57.), px(45.)));
+        assert_eq!((pane.size.width, pane.size.height), (stage.size.width - px(2.), stage.size.height - px(2.)));
     })
     .unwrap();
 }
@@ -191,33 +203,6 @@ fn the_terminal_follows_the_window_size(cx: &mut TestAppContext) {
     assert!(narrow.cols < wide.cols && narrow.rows < wide.rows, "{wide:?} then {narrow:?}");
     let screen = terminal.screen();
     assert_eq!((screen.cols, screen.rows), (usize::from(narrow.cols), usize::from(narrow.rows)));
-}
-
-#[gpui_kit::test]
-fn the_tab_pill_glides_to_the_chosen_tab(cx: &mut TestAppContext) {
-    let (window, _) = open(cx);
-    // the tabs report their places as they are drawn; the pill goes there from the next frame on
-    let frame = |cx: &mut TestAppContext| {
-        cx.update_window(window, |_, window, cx| {
-            window.render_frame(cx);
-            let tab = |ix: usize| window.find(("tab", ix)).bounds();
-            (window.find("workspace-tabs-pill").bounds(), tab(0), tab(1))
-        })
-        .unwrap()
-    };
-    cx.update_window(window, |_, window, cx| window.render_frame(cx)).unwrap();
-    let (pill, first, second) = frame(cx);
-    assert_eq!(pill, first, "on the tab on screen");
-    cx.update_window(window, |_, window, cx| window.click(("tab", 1usize), cx)).unwrap();
-    frame(cx);
-    // halfway through its 220 ms it is between the two tabs, past the middle (a strong ease-out)
-    cx.executor().advance_clock(std::time::Duration::from_millis(110));
-    let (pill, ..) = frame(cx);
-    let middle = (first.origin.x + second.origin.x) / 2.;
-    assert!(pill.origin.x > middle && pill.origin.x < second.origin.x, "{pill:?} between {first:?} and {second:?}");
-    cx.executor().advance_clock(std::time::Duration::from_millis(300));
-    let (pill, _, second) = frame(cx);
-    assert_eq!(pill, second, "it settles on the chosen tab");
 }
 
 #[gpui_kit::test]
@@ -715,7 +700,7 @@ fn a_selection_dragged_past_the_top_edge_scrolls_the_history_and_keeps_selecting
 /// Item 4.6: every button that had no tooltip has one (`Tip`). The keys beside them are the library's own drawing of
 /// the action's key (looked at in the pictures).
 #[gpui_kit::test]
-fn the_top_rows_buttons_and_the_terminals_plus_say_what_they_do_when_pointed_at(cx: &mut TestAppContext) {
+fn the_buttons_of_the_rail_and_the_bars_say_what_they_do_when_pointed_at(cx: &mut TestAppContext) {
     let (window, _) = open(cx);
     let tip = |cx: &mut TestAppContext, id: &'static str| {
         cx.update_window(window, |_, w, cx| {
@@ -733,12 +718,31 @@ fn the_top_rows_buttons_and_the_terminals_plus_say_what_they_do_when_pointed_at(
         })
         .unwrap()
     };
-    assert_eq!(tip(cx, "add-project").as_deref(), Some("Add project"));
     assert_eq!(tip(cx, "palette").as_deref(), Some("Commands"));
     assert_eq!(tip(cx, "settings").as_deref(), Some("Settings"));
     assert_eq!(tip(cx, "new-workspace").as_deref(), Some("New workspace in shop"));
     assert_eq!(tip(cx, "ws-menu").as_deref(), Some("Workspace actions"));
+    assert_eq!(tip(cx, "layout-terminal").as_deref(), Some("Terminal only"));
+    // a button of the rail is a sign alone: it says what it is
+    assert_eq!(tip(cx, "add-project").as_deref(), Some("Add project"));
+    // and says it at its right, 6 px away, level with it: under it the tooltip would cover the next button
+    for id in ["add-project", "palette", "settings"] {
+        assert!(tip(cx, id).is_some());
+        cx.update_window(window, |_, w, _| {
+            let (button, said, rail) = (w.find(id).bounds(), w.find("tip").bounds(), w.find("rail").bounds());
+            assert_eq!(said.left(), button.right() + px(6.), "{id}: {said:?} beside {button:?}");
+            assert!((said.center().y - button.center().y).abs() <= px(1.), "{id}: {said:?} beside {button:?}");
+            assert!(said.left() >= rail.right() - px(8.), "{id}: off the rail's buttons");
+        })
+        .unwrap();
+    }
     assert_eq!(tip(cx, "term-add").as_deref(), Some("New terminal"));
+    // (any other button's tooltip hangs under it)
+    cx.update_window(window, |_, w, _| {
+        let (button, said) = (w.find("term-add").bounds(), w.find("tip").bounds());
+        assert_eq!(said.top(), button.bottom() + px(6.));
+    })
+    .unwrap();
     // a menu's trigger says nothing while its menu is open
     cx.update_window(window, |_, w, cx| {
         w.hover("terminal", cx);

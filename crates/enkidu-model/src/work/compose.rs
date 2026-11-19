@@ -479,7 +479,7 @@ mod tests {
         assert!(text.contains(&items), "{text}");
         assert!(!text.contains("this one is ignored") && !text.contains("Rows with a zero total"), "{text}");
         let kept: Vec<&str> = picked(export, &work, &draft).iter().map(|item| item.id.as_str()).collect();
-        assert_eq!(kept, ["question:c9", "thread:t1", "checks:demo-org/shop#2414:4973abc0def1"]);
+        assert_eq!(kept, ["question:c9", "thread:t1", "checks:demo-org/shop#2414:2414abc0def1"]);
         // the message as you edited it is what goes
         let edited = Draft { text: Some("Just this.".into()), ..draft.clone() };
         assert_eq!(message_of(export, &work, &edited), "Just this.");

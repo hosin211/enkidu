@@ -1,6 +1,6 @@
-//! Live's marks (DESIGN.md, "Live"): three playing bars; on a tab and in the palette, the small green pill with the
-//! bars and the word "Live"; a compact tab keeps only the bars. The bars step on the lamps' clock, 30 times a second.
-//! And the play button at the right of the tabs row, at one width in each of its five states.
+//! Live's marks (DESIGN.md, "Live"): three playing bars; on a workspace's tab and in the palette, the small green
+//! pill with the bars and the word "Live". The bars step on the lamps' clock. And the play button in the top row, at
+//! one width in each of its five states.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -8,14 +8,17 @@ use std::time::Duration;
 use gpui_kit::base::{TestSupportExt as _, Transition, transition};
 use gpui_kit::prelude::*;
 use gpui_kit::{
-    Animation, AnimationExt as _, App, BoxShadow, ElementId, FontWeight, IntoElement, Role, SharedString,
-    Transformation, Window, div, percentage, point, px, svg,
+    Animation, AnimationExt as _, App, ElementId, FontWeight, IntoElement, Role, SharedString, Transformation, Window,
+    div, percentage, px, svg,
 };
 
 use crate::lamp::LAMP_FPS;
 use crate::pieces::{Observed, Pressed};
 use crate::press::pressable;
-use crate::tokens::{DUR_QUICK, HOVER, INK, INK_2, INK_3, LAMP_GREEN, RULE_STRONG, SOFT, TEXT_SMALL, alpha, bezier};
+use crate::tokens::{
+    CHIP, CONTROL, DUR_QUICK, HOVER, INK, INK_2, INK_3, LAMP_GREEN, LINE_STRONG, MARK, SOFT, TEXT_SMALL, TEXT_STATUS,
+    alpha, bezier,
+};
 
 /// CSS's `ease-in-out`, the old bars' curve.
 const CSS_EASE_IN_OUT: [f32; 4] = [0.42, 0.0, 0.58, 1.0];
@@ -46,7 +49,7 @@ pub fn live_bars(id: impl Into<ElementId>, height: f32) -> impl IntoElement {
     div().flex_none().h(px(height)).flex().items_end().gap(px(2.)).children(bars)
 }
 
-/// Live on a tab: the green pill with the bars and the word, or with `compact` the bars alone. It is labelled
+/// Live on a row: the green pill with the bars and the word, or with `compact` the bars alone. It is labelled
 /// "Live" either way, never color alone.
 pub fn live_badge(id: impl Into<ElementId>, compact: bool) -> Observed {
     let id: ElementId = id.into();
@@ -56,15 +59,14 @@ pub fn live_badge(id: impl Into<ElementId>, compact: bool) -> Observed {
         .test_support()
         .aria_label("Live")
         .flex_none()
-        .h(px(18.))
+        .h(CHIP)
         .flex()
         .items_center()
-        .gap(px(6.))
+        .gap(px(4.))
         .rounded_full()
         .bg(alpha(LAMP_GREEN, 0.14))
-        .pl(px(6.))
-        .pr(px(if compact { 6. } else { 8. }))
-        .text_size(px(11.))
+        .px(px(8.))
+        .text_size(TEXT_STATUS)
         .font_weight(FontWeight::SEMIBOLD)
         .text_color(LAMP_GREEN)
         .child(live_bars(bars, 9.))
@@ -88,7 +90,7 @@ pub enum LiveLook {
 
 /// The Live button's one width: "Go live", "Starting…", "Live" and "Stop" all fit, and nothing beside it moves when
 /// Live changes.
-pub const LIVE_BUTTON_WIDTH: f32 = 100.;
+pub const LIVE_BUTTON_WIDTH: f32 = 92.;
 
 /// The Live button. `words` are what it says and `state` its state in a word (both for tests and the accessibility
 /// tree too); `pointed`: the pointer is on it, which turns Live into Stop and grows Go live's triangle. Give it its
@@ -114,26 +116,19 @@ pub fn live_button(
         // pressed while it is Live
         .aria_toggled(if look == LiveLook::Live { gpui_kit::Toggled::True } else { gpui_kit::Toggled::False })
         .flex_none()
-        .h(px(28.))
+        .h(CONTROL)
         .w(px(LIVE_BUTTON_WIDTH))
         .flex()
         .items_center()
         .justify_center()
-        .gap(px(6.))
+        .gap(px(8.))
         .rounded_full()
         .border_1()
         .text_size(TEXT_SMALL)
         .font_weight(FontWeight::SEMIBOLD);
-    // a hairline for the calm states; a green one with a soft glow while it is Live or going Live
-    let glow = BoxShadow {
-        color: gpui_kit::Hsla::from(alpha(green, 0.35)),
-        offset: point(px(0.), px(0.)),
-        blur_radius: px(14.),
-        spread_radius: px(-2.),
-        inset: false,
-    };
+    // a clear edge for the calm states; a green one while it is Live or going Live
     let spinner = |color: gpui_kit::Rgba| {
-        svg().flex_none().size(px(12.)).path("icons/loader-circle.svg").text_color(color).with_animation(
+        svg().flex_none().size(MARK).path("icons/loader-circle.svg").text_color(color).with_animation(
             part("spinner"),
             Animation::new(Duration::from_secs(1)).repeat_synced().with_max_fps(LAMP_FPS),
             |sign, t| sign.with_transformation(Transformation::rotate(percentage(t))),
@@ -142,10 +137,10 @@ pub fn live_button(
     // the triangle turns green and grows a quarter when pointed at (DESIGN.md, "Live"); at rest it is gray: green
     // is for what is Live
     let play = |grown: bool, color: gpui_kit::Rgba, window: &mut Window, cx: &mut App| {
-        let size = transition(part("play"), if grown { 12.5 } else { 10. }, Transition::new(DUR_QUICK), window, cx);
+        let size = transition(part("play"), if grown { 12. } else { 10. }, Transition::new(DUR_QUICK), window, cx);
         div()
             .flex_none()
-            .size(px(13.))
+            .size(MARK)
             .flex()
             .items_center()
             .justify_center()
@@ -153,7 +148,7 @@ pub fn live_button(
     };
     match look {
         LiveLook::Off => pill
-            .border_color(RULE_STRONG)
+            .border_color(LINE_STRONG)
             .text_color(if pointed { INK } else { INK_2 })
             .cursor_pointer()
             .hover(|s| s.bg(HOVER))
@@ -161,7 +156,7 @@ pub fn live_button(
             .child(play(pointed, if pointed { green } else { INK_2 }, window, cx))
             .child(words),
         LiveLook::Waiting => pill
-            .border_color(RULE_STRONG)
+            .border_color(LINE_STRONG)
             .text_color(INK_3)
             .opacity(0.6)
             .cursor_default()
@@ -169,18 +164,16 @@ pub fn live_button(
             .child(words),
         LiveLook::Starting => pill
             .border_color(alpha(green, 0.38))
-            .shadow(vec![glow])
             .bg(alpha(green, 0.10))
             .text_color(green)
             .cursor_default()
             .child(spinner(green))
             .child(words),
         LiveLook::Stopping => {
-            pill.border_color(RULE_STRONG).text_color(INK_2).cursor_default().child(spinner(INK_2)).child(words)
+            pill.border_color(LINE_STRONG).text_color(INK_2).cursor_default().child(spinner(INK_2)).child(words)
         }
         LiveLook::Live => pill
             .border_color(alpha(green, 0.38))
-            .shadow(vec![glow])
             .bg(alpha(green, 0.14))
             .text_color(green)
             .cursor_pointer()
@@ -188,7 +181,7 @@ pub fn live_button(
             .active(|s| s.bg(alpha(green, 0.28)))
             .map(|pill| match pointed {
                 // pointing at it turns it into Stop, in the same green
-                true => pill.child(svg().flex_none().size(px(9.)).path("icons/square-fill.svg").text_color(green)),
+                true => pill.child(svg().flex_none().size(px(8.)).path("icons/square-fill.svg").text_color(green)),
                 false => pill.child(live_bars(part("bars"), 10.)),
             })
             .child(words),

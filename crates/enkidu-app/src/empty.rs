@@ -34,27 +34,19 @@ fn screen(
     words: Vec<AnyElement>,
 ) -> impl IntoElement {
     let label: SharedString = label.into();
-    div()
-        .size_full()
-        .flex()
-        .items_center()
-        .justify_center()
-        .px(px(32.))
-        .bg(theme::CANVAS)
-        .rounded(theme::ISLAND_RADIUS)
-        .child(
-            div()
-                .id(id)
-                .test_support()
-                .aria_label(label)
-                .max_w(px(420.))
-                .flex()
-                .flex_col()
-                .items_center()
-                .text_center()
-                .child(div().opacity(shade).child(mark(SharedString::from(format!("{id}-mark")), art)))
-                .children(words),
-        )
+    div().size_full().flex().items_center().justify_center().px(px(32.)).bg(theme::WELL).child(
+        div()
+            .id(id)
+            .test_support()
+            .aria_label(label)
+            .max_w(px(420.))
+            .flex()
+            .flex_col()
+            .items_center()
+            .text_center()
+            .child(div().opacity(shade).child(mark(SharedString::from(format!("{id}-mark")), art)))
+            .children(words),
+    )
 }
 
 fn heading(words: impl Into<SharedString>) -> AnyElement {
@@ -107,7 +99,7 @@ pub fn no_projects(frame: Entity<Frame>, window: &mut Window) -> impl IntoElemen
                         ButtonKind::Primary,
                         ButtonSize::Large,
                     )
-                    .on_click(move |_, _, cx| crate::projects_row::add_project(frame.clone(), handle, cx)),
+                    .on_click(move |_, _, cx| crate::rail::add_project(frame.clone(), handle, cx)),
                 )
                 .into_any_element(),
             shortcuts.into_any_element(),
@@ -116,7 +108,7 @@ pub fn no_projects(frame: Entity<Frame>, window: &mut Window) -> impl IntoElemen
 }
 
 /// Every workspace of the project on screen is hidden (item 18.5): the screen says so, and how one comes back. The
-/// row above it has the button of the hidden ones and New workspace, so the screen has no button of its own.
+/// top row has the button of the hidden ones and the +, so the screen has no button of its own.
 pub fn all_hidden(project: &str) -> impl IntoElement {
     let words = format!("Every workspace in {project} is hidden");
     screen(
@@ -124,7 +116,7 @@ pub fn all_hidden(project: &str) -> impl IntoElement {
         words.clone(),
         60.,
         0.9,
-        vec![heading(words), line("The eye in the row above lists them: a click brings one back.")],
+        vec![heading(words), line("The eye in the top row lists them: a click brings one back.")],
     )
 }
 

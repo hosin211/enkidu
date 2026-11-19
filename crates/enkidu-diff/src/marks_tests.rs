@@ -129,10 +129,10 @@ fn the_view_draws_a_stripe_beside_each_marked_line(cx: &mut TestAppContext) {
     let two = found("mark", 2).expect("line 2");
     let three = found("mark", 3).expect("line 3");
     let six = found("mark", 6).expect("line 6");
-    // one under the other, each as tall as its row and three wide
+    // one under the other, each as tall as its row and 4 px wide
     assert_eq!(two.left(), three.left());
     assert_eq!(two.bottom(), three.top());
-    assert_eq!((two.size.width, six.size.width), (px(3.), px(3.)));
+    assert_eq!((two.size.width, six.size.width), (px(4.), px(4.)));
     assert!(two.size.height > px(10.));
     // where lines went, a small mark at the foot of the line they stood after
     let after_four = found("gone", 4).expect("lines were removed after line 4");

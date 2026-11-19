@@ -1,13 +1,15 @@
-//! The island's terminals (item 2.11; DESIGN.md, "Layout" and "Icons"): a band of tabs, Claude first with its filled
-//! coral sparkle, then shells with a green terminal, and New terminal; under it the terminal on screen. While Claude
-//! works, the hairline under the tabs runs amber. A terminal whose program ended offers to start it again; a Claude
-//! that couldn't start says why.
+//! Claude's pane (item 2.11; DESIGN.md, "Layout" and "Icons"): a bar of tabs, Claude first with its filled coral
+//! sparkle, then shells with a green terminal, and New terminal; under it the terminal on screen. While Claude works,
+//! the line under the tabs runs amber (what Claude is doing stands in words in the status line). A terminal whose
+//! program ended offers to start it again; a Claude that couldn't start says why.
 
 use std::time::Duration;
 
 use enkidu_model::frame::Frame;
+use enkidu_ui::lamp::Status;
 use enkidu_ui::pieces::{
-    ButtonKind, ButtonSize, MenuTrigger, button, button_tinted, button_with, island, lit_edge, menu_item_tinted, raised,
+    ButtonKind, ButtonSize, MenuTrigger, button, button_tinted, button_with, island, line_under, menu_item_tinted,
+    raised,
 };
 use enkidu_ui::running_line::running_line;
 use enkidu_ui::tokens::{self as theme, alpha, tone};
@@ -165,17 +167,19 @@ impl TerminalArea {
         }
     }
 
-    fn tab(&self, ix: usize, tab: &TabDrawn, workspace: &str, cx: &mut Context<Self>) -> AnyElement {
+    /// A terminal's tab: a pill. The one that is shown has the chosen fill and its name in ink, semibold (DESIGN.md,
+    /// "States"); `typing` says your typing goes to it, which the pane's blue edge shows.
+    fn tab(&self, ix: usize, tab: &TabDrawn, typing: bool, workspace: &str, cx: &mut Context<Self>) -> AnyElement {
         let label: SharedString = tab.label.clone().into();
         let said = if tab.exited { format!("{} exited", tab.label) } else { tab.label.clone() };
         let icon = if tab.claude {
             svg()
                 .path("icons/sparkle-filled.svg")
                 .flex_none()
-                .size(px(13.))
+                .size(theme::ICON)
                 .text_color(alpha(theme::CLAUDE, if tab.exited { 0.5 } else { 1.0 }))
         } else {
-            svg().path("icons/square-terminal.svg").flex_none().size(px(13.)).text_color(shell_green())
+            svg().path("icons/square-terminal.svg").flex_none().size(theme::ICON).text_color(shell_green())
         };
         let (show_ws, show_id) = (workspace.to_string(), tab.id.clone());
         let (close_ws, close_id) = (workspace.to_string(), tab.id.clone());
@@ -185,22 +189,22 @@ impl TerminalArea {
             .role(gpui_kit::Role::Tab)
             .aria_label(SharedString::from(said))
             .aria_selected(tab.active)
-            .h(px(26.))
+            // (what a test reads: whether your typing goes to this one)
+            .aria_description(if tab.active && typing { "has the keyboard" } else { "" })
+            .h(theme::CONTROL)
             .flex()
             .flex_none()
             .items_center()
-            .rounded(px(8.))
-            .text_size(theme::TEXT_SMALL)
-            .border_1()
+            .gap(px(8.))
+            .pl(px(12.))
+            .pr(px(8.))
+            .rounded_full()
+            .text_size(theme::TEXT)
             .map(|d| {
                 if tab.active {
-                    // the terminal on screen: the chosen fill (DESIGN.md, "States"; the blue is the island's own
-                    // edge while the keyboard is in it)
-                    d.bg(theme::SELECTED).text_color(theme::INK).border_color(theme::RULE_STRONG)
+                    d.bg(theme::SELECTED).text_color(theme::INK)
                 } else {
-                    d.text_color(theme::INK_2)
-                        .border_color(alpha(theme::RULE_STRONG, 0.))
-                        .hover(|s| s.bg(theme::HOVER).text_color(theme::INK))
+                    d.text_color(theme::INK_2).hover(|s| s.bg(theme::HOVER).text_color(theme::INK))
                 }
             })
             .child(
@@ -211,13 +215,11 @@ impl TerminalArea {
                     .h_full()
                     .flex()
                     .items_center()
-                    .gap(px(6.))
-                    .pl(px(7.5))
-                    .pr(px(4.))
+                    .gap(px(8.))
                     .font_weight(if tab.active { theme::WEIGHT_TITLE } else { FontWeight::MEDIUM })
                     .cursor_pointer()
                     .child(icon)
-                    // an exited terminal's name is dimmer, but never so dim on the tab on screen that the tab
+                    // an exited terminal's name is dimmer, but never so dim on the tab that is shown that the tab
                     // reads as the one not chosen: the word beside it says "exited"
                     .child(
                         div()
@@ -237,17 +239,15 @@ impl TerminalArea {
                     .test_support()
                     .role(gpui_kit::Role::Button)
                     .aria_label(SharedString::from(format!("Close {}", tab.label)))
-                    .mr(px(3.))
-                    .size(px(16.))
+                    .size(theme::BADGE)
                     .flex()
                     .flex_none()
                     .items_center()
                     .justify_center()
-                    .rounded(px(4.))
+                    .rounded_full()
                     .cursor_pointer()
-                    .text_color(theme::INK_3)
-                    .hover(|s| s.bg(theme::HOVER).text_color(theme::INK))
-                    .child(svg().path("icons/x.svg").size(px(10.)).text_color(theme::INK_3))
+                    .hover(|s| s.bg(theme::SELECTED_HOVER))
+                    .child(svg().path("icons/x.svg").size(theme::MARK).text_color(theme::INK_3))
                     .on_click(cx.listener(move |this, _, _, cx| {
                         this.terminals.update(cx, |terminals, cx| terminals.close(&close_ws, &close_id, cx));
                     })),
@@ -260,15 +260,15 @@ impl TerminalArea {
         let (terminals, workspace) = (self.terminals.clone(), workspace.to_string());
         MenuTrigger::new("term-add", "New terminal")
             .tip("New terminal")
-            .size(px(26.))
+            .size(theme::CONTROL)
             .flex()
             .flex_none()
             .items_center()
             .justify_center()
-            .rounded(px(8.))
+            .rounded(theme::RADIUS_CONTROL)
             .cursor_pointer()
             .hover(|s| s.bg(theme::HOVER))
-            .child(svg().path("icons/plus.svg").size(px(15.)).text_color(theme::INK_3))
+            .child(svg().path("icons/plus.svg").size(theme::ICON).text_color(theme::INK_3))
             .menu(gpui_kit::Anchor::TopLeft, move |menu, _, _| {
                 let start = |kind: &'static str| {
                     let (terminals, workspace) = (terminals.clone(), workspace.clone());
@@ -290,15 +290,14 @@ impl TerminalArea {
             })
     }
 
-    /// One terminal in its place in the island.
+    /// One terminal in its place in the pane.
     fn pane(view: &Entity<TerminalView>) -> gpui_kit::Div {
         div()
             .flex_1()
             .min_w_0()
             .h_full()
-            .pl(px(12.))
-            .pr(px(6.))
-            .py(px(8.))
+            .px(theme::INSET)
+            .py(px(12.))
             .child(view.clone().cached(StyleRefinement::default().size_full()))
     }
 
@@ -316,9 +315,9 @@ impl TerminalArea {
                 .flex()
                 .items_center()
                 .gap(px(12.))
-                .py(px(6.))
-                .pl(px(14.))
-                .pr(px(6.))
+                .py(px(8.))
+                .pl(px(16.))
+                .pr(px(8.))
                 .child(
                     div()
                         .id("terminal-exited")
@@ -344,7 +343,7 @@ impl TerminalArea {
         )
     }
 
-    /// What stands in the island while no terminal is open: why Claude didn't start, or the two ways to open one.
+    /// What stands in the pane while no terminal is open: why Claude didn't start, or the two ways to open one.
     fn nothing_open(&self, error: Option<String>, workspace: &str) -> impl IntoElement {
         let start = |kind: &'static str| {
             let (terminals, ws) = (self.terminals.clone(), workspace.to_string());
@@ -378,7 +377,7 @@ impl TerminalArea {
                                 "open-claude-settings",
                                 if not_installed { "Open Setup" } else { "Open Claude settings" },
                                 ButtonKind::Secondary,
-                                ButtonSize::Medium,
+                                ButtonSize::Large,
                             )
                             .on_click({
                                 let frame = self.frame.clone();
@@ -392,7 +391,7 @@ impl TerminalArea {
                             }),
                         )
                         .child(
-                            button("try-claude-again", "Try again", ButtonKind::Primary, ButtonSize::Medium)
+                            button("try-claude-again", "Try again", ButtonKind::Primary, ButtonSize::Large)
                                 .on_click(start("claude")),
                         ),
                 ),
@@ -417,7 +416,7 @@ impl TerminalArea {
                                 shell_green(),
                                 "New shell",
                                 ButtonKind::Secondary,
-                                ButtonSize::Medium,
+                                ButtonSize::Large,
                             )
                             .on_click(start("shell")),
                         )
@@ -428,7 +427,7 @@ impl TerminalArea {
                                 theme::CLAUDE,
                                 "Start Claude",
                                 ButtonKind::Primary,
-                                ButtonSize::Medium,
+                                ButtonSize::Large,
                             )
                             .on_click(start("claude")),
                         ),
@@ -439,8 +438,6 @@ impl TerminalArea {
 
 impl Render for TerminalArea {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        // the island the keyboard is in has the signal-blue edge (DESIGN.md, Principle 2): this one while a terminal of
-        // its has the keyboard, or the window itself holds it because no terminal is there
         // text was typed into Claude here: its terminal takes the keyboard, so Enter is right there. Done as the
         // terminal is drawn: while the changes have the whole workspace it waits until the terminal is back
         if let Some(ws) = self.frame.read(cx).current_workspace().map(|w| w.id.clone())
@@ -450,13 +447,15 @@ impl Render for TerminalArea {
             let terminal = view.read(cx).focus_handle(cx);
             terminal.focus(window, cx);
         }
-        // (no part has the keyboard's edge while the window is behind another app: DESIGN.md, "States")
-        let focused = self.has_keyboard(window, cx) && window.is_window_active();
+        // whether your typing goes to this pane (DESIGN.md, "States"): while a terminal here has the keyboard, or
+        // the window itself holds it because no terminal is there. No pane has the keyboard's edge while the window
+        // is behind another app
+        let typing = self.has_keyboard(window, cx) && window.is_window_active();
         let frame = self.frame.read(cx);
         let Some(workspace) = frame.current_workspace().map(|w| w.id.clone()) else {
-            return island("island-claude", focused).size_full().child(lit_edge());
+            return island("island-claude").size_full();
         };
-        let working = frame.status(&workspace) == "working";
+        let working = Status::from_core(frame.status(&workspace)) == Status::Working;
         let (tabs, known, error, has_live_claude) = match self.terminals.read(cx).of(&workspace) {
             Some(area) => (
                 area.tabs
@@ -484,18 +483,23 @@ impl Render for TerminalArea {
             .role(gpui_kit::Role::TabList)
             .aria_label("Terminals")
             .relative()
-            .h(theme::BAND)
+            .h(theme::BAR)
             .flex_none()
             .flex()
             .items_center()
-            .gap(px(4.))
-            .px(px(5.))
-            .bg(theme::CHROME)
-            .border_b_1()
-            .border_color(theme::RULE)
+            .gap(px(8.))
+            .pl(theme::INSET)
+            .pr(px(12.))
+            .child(line_under())
             // while Claude works, the line under the tabs runs
             .when(working, |band| band.child(running_line("claude-activity")))
-            .children(tabs.iter().enumerate().map(|(ix, tab)| self.tab(ix, tab, &workspace, cx)).collect::<Vec<_>>())
+            .child(
+                div().flex_none().flex().items_center().gap(px(4.)).children(
+                    (tabs.iter().enumerate())
+                        .map(|(ix, tab)| self.tab(ix, tab, typing, &workspace, cx))
+                        .collect::<Vec<_>>(),
+                ),
+            )
             .child(self.add_menu(&workspace, has_live_claude));
 
         let mut body = div().relative().flex_1().min_h_0().flex().flex_row();
@@ -503,7 +507,7 @@ impl Render for TerminalArea {
         if self.split && tabs.len() > 1 {
             body = body
                 .child(Self::pane(&tabs[0].view))
-                .child(div().w(px(1.)).h_full().bg(theme::RULE))
+                .child(div().w(px(1.)).h_full().bg(theme::LINE))
                 .child(Self::pane(&tabs[1].view));
         } else if let Some(tab) = active {
             body = body.child(Self::pane(&tab.view));
@@ -525,6 +529,6 @@ impl Render for TerminalArea {
                 ),
             );
         }
-        island("island-claude", focused).size_full().child(band).child(body).child(lit_edge())
+        island("island-claude").size_full().child(band).child(body)
     }
 }

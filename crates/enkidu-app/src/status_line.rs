@@ -1,6 +1,9 @@
-//! The status line (DESIGN.md, "Layout"; item 1.18): the window's bottom line says in words what the tabs and lamps say
-//! in signs, for the workspace on screen: its branch and where it started, what Claude is doing, Live; then on the
-//! right the changed files with their added and removed lines, and the folder, whose path a click copies.
+//! The status line (DESIGN.md, "Layout": "The status line says it in words"): the window's foot says in words what
+//! the tabs and lamps say in signs, for the workspace on screen: its branch and where it started, what Claude is
+//! doing, Live, its pull request when something waits there, the remarks not sent yet; then at the right the changed
+//! files with their added and removed lines, and the folder, whose path a click copies.
+//!
+//! While the Work page is on screen it says how each source was read, and the keys that work right now.
 
 use enkidu_model::frame::Frame;
 use enkidu_model::work::page::{status_keys, status_keys_words};
@@ -8,10 +11,10 @@ use enkidu_model::work::pr::workspace_line;
 use enkidu_model::work::{Source, lamp as source_state, source_health, status_words};
 use enkidu_ui::lamp::{Status, lamp};
 use enkidu_ui::live::live_bars;
-use enkidu_ui::pieces::mono;
+use enkidu_ui::pieces::{kbd, mono, tabular};
 use enkidu_ui::shimmer::shimmer;
 use enkidu_ui::tips::Tipped as _;
-use enkidu_ui::tokens::{self as theme, tone};
+use enkidu_ui::tokens as theme;
 use enkidu_ui::work::source_lamp;
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::prelude::*;
@@ -20,8 +23,7 @@ use gpui_kit::{
     px, svg,
 };
 
-use crate::projects_row::short_path;
-use crate::tabs_row::changed_words;
+use crate::tabs_row::{changed_words, short_path};
 use crate::toast;
 use crate::work::page::WorkPage;
 use crate::work::store::Work;
@@ -31,6 +33,21 @@ pub struct StatusLine {
     /// The Work index and its page: while the page is on screen, the line says how each source stands, and the
     /// keys that work right now. None in a window without one.
     work: Option<(Entity<Work>, Entity<WorkPage>)>,
+}
+
+/// What Claude is doing, as the status line says it.
+pub fn sentence(status: Status) -> &'static str {
+    match status {
+        Status::Idle => "Claude is idle",
+        Status::Working => "Claude is working",
+        Status::NeedsYou => "Claude needs you",
+        Status::Done => "Claude is done",
+    }
+}
+
+/// The hairline between the line's parts.
+fn rule() -> AnyElement {
+    div().flex_none().h(px(12.)).w(px(1.)).bg(theme::LINE_STRONG).into_any_element()
 }
 
 impl StatusLine {
@@ -76,13 +93,14 @@ impl StatusLine {
                     .flex_none()
                     .flex()
                     .items_center()
-                    .gap(px(6.))
+                    .gap(px(8.))
                     .whitespace_nowrap()
+                    .text_color(theme::INK_2)
                     .when(wrong, |d| d.font_weight(FontWeight::MEDIUM).text_color(theme::LAMP_RED))
                     .child(source_lamp(
                         SharedString::from(format!("work-status-lamp-{}", source.key())),
                         crate::work::page::look(source_state(Some(&stands), checking)),
-                        7.,
+                        8.,
                     ))
                     .child(words)
                     .into_any_element(),
@@ -101,7 +119,7 @@ impl StatusLine {
                 .gap(px(8.))
                 .whitespace_nowrap()
                 .children(status_keys(card_open, flows_open).iter().map(|(keys, does)| {
-                    div().flex().items_center().gap(px(4.)).children(keys.iter().map(|key| key_cap(key))).child(*does)
+                    div().flex().items_center().gap(px(4.)).children(keys.iter().map(|key| kbd(*key))).child(*does)
                 }));
             parts.push(keys.into_any_element());
         }
@@ -109,37 +127,9 @@ impl StatusLine {
     }
 }
 
-/// A key in the status line: a hairline box around its sign.
-fn key_cap(key: &'static str) -> AnyElement {
-    div()
-        .flex_none()
-        .rounded(px(4.))
-        .border_1()
-        .border_color(theme::RULE_STRONG)
-        .px(px(4.))
-        .text_size(px(10.5))
-        .line_height(px(14.))
-        .child(key)
-        .into_any_element()
-}
-
-/// What Claude is doing, as the status line says it.
-pub fn sentence(status: Status) -> &'static str {
-    match status {
-        Status::Idle => "Claude is idle",
-        Status::Working => "Claude is working",
-        Status::NeedsYou => "Claude needs you",
-        Status::Done => "Claude is done",
-    }
-}
-
-/// The hairline between the line's parts.
-fn rule() -> AnyElement {
-    div().flex_none().h(px(12.)).w(px(1.)).bg(theme::RULE_STRONG).into_any_element()
-}
-
 impl Render for StatusLine {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        crate::measure::STATUS_LINES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let bare = div()
             .w_full()
             .h(theme::STATUS_LINE)
@@ -148,8 +138,7 @@ impl Render for StatusLine {
             .items_center()
             .gap(px(12.))
             .overflow_hidden()
-            .pl(px(18.))
-            .pr(px(12.))
+            .px(theme::INSET)
             .text_size(theme::TEXT_STATUS)
             .line_height(theme::TEXT_STATUS_LINE)
             .text_color(theme::INK_3);
@@ -164,8 +153,9 @@ impl Render for StatusLine {
         }
         let line = bare.id("status-line").test_support();
         let frame = self.frame.read(cx);
-        // no workspace on screen: the line keeps its place and says nothing
-        let Some(ws) = frame.current_workspace().cloned() else {
+        // no workspace on screen (or the Work page in a window without its index): the line keeps its place and says
+        // nothing
+        let Some(ws) = frame.current_workspace().filter(|_| !frame.work_open).cloned() else {
             return line.into_any_element();
         };
         let status = Status::from_core(frame.status(&ws.id));
@@ -180,7 +170,8 @@ impl Render for StatusLine {
             Some((line.text, line.severe, line.more))
         });
         let pr = pr.map(|(text, severe, more)| {
-            let color = if severe { theme::LAMP_RED } else { theme::FOCUS };
+            // what blocks is red; what only waits is said plainly
+            let color = if severe { theme::LAMP_RED } else { theme::INK_2 };
             let rest = match more {
                 0 => String::new(),
                 1 => ", and 1 more PR".to_string(),
@@ -194,11 +185,11 @@ impl Render for StatusLine {
                 .min_w_0()
                 .flex()
                 .items_center()
-                .gap(px(6.))
+                .gap(px(8.))
                 .whitespace_nowrap()
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(color)
-                .child(svg().path("icons/git-pull-request.svg").flex_none().size(px(12.)).text_color(color))
+                .child(svg().path("icons/git-pull-request.svg").flex_none().size(theme::MARK).text_color(color))
                 .child(div().min_w_0().truncate().child(text))
                 .when(more > 0, |item| {
                     item.child(div().flex_none().font_weight(FontWeight::NORMAL).text_color(theme::INK_3).child(rest))
@@ -211,22 +202,22 @@ impl Render for StatusLine {
         };
         let branch = div()
             .id("status-branch-item")
+            .test_support()
             .flex_none()
             .min_w_0()
             .flex()
             .items_center()
-            .gap(px(6.))
+            .gap(px(8.))
             .whitespace_nowrap()
             .tipped(tip.clone(), None)
-            .child(svg().path("icons/git-branch.svg").flex_none().size(px(12.)).text_color(tone(35., 0.13)))
+            .child(svg().path("icons/git-branch.svg").flex_none().size(theme::MARK).text_color(theme::INK_2))
             .child(
                 mono(div())
                     .id("status-branch")
                     .test_support()
                     .aria_label(SharedString::from(ws.branch.clone()))
-                    .max_w(px(260.))
+                    .max_w(px(256.))
                     .truncate()
-                    .text_size(px(11.))
                     .text_color(theme::INK_2)
                     .child(ws.branch.clone()),
             )
@@ -236,6 +227,7 @@ impl Render for StatusLine {
                     .id("status-base")
                     .test_support()
                     .aria_label(SharedString::from(words.clone()))
+                    .ml(px(4.))
                     .truncate()
                     .child(words)
             }));
@@ -248,10 +240,11 @@ impl Render for StatusLine {
             .flex_none()
             .flex()
             .items_center()
-            .gap(px(6.))
+            .gap(px(8.))
             .whitespace_nowrap()
+            .text_color(theme::INK_2)
             .when(status == Status::NeedsYou, |d| d.font_weight(FontWeight::MEDIUM).text_color(theme::LAMP_RED))
-            .child(lamp("status-lamp", status, 12., pops))
+            .child(lamp("status-lamp", status, 16., pops))
             .child(match status {
                 // words for something in progress shimmer
                 Status::Working => shimmer("status-shimmer", words).into_any_element(),
@@ -266,7 +259,7 @@ impl Render for StatusLine {
                 .flex_none()
                 .flex()
                 .items_center()
-                .gap(px(6.))
+                .gap(px(8.))
                 .whitespace_nowrap()
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(theme::LAMP_GREEN)
@@ -284,7 +277,7 @@ impl Render for StatusLine {
                 .flex_none()
                 .flex()
                 .items_center()
-                .gap(px(6.))
+                .gap(px(8.))
                 .whitespace_nowrap()
                 .child(
                     div()
@@ -295,15 +288,13 @@ impl Render for StatusLine {
                 )
                 .when(!said.is_empty(), |d| {
                     d.child(
-                        enkidu_ui::pieces::tabular(div())
+                        tabular(div())
                             .id("status-counts")
                             .test_support()
                             .aria_label(SharedString::from(said.join(" ")))
                             .flex()
                             .items_center()
-                            .gap(px(6.))
-                            .text_size(px(12.))
-                            .font_weight(FontWeight::MEDIUM)
+                            .gap(px(8.))
                             .children(
                                 counts.into_iter().flatten().map(|(text, color)| div().text_color(color).child(text)),
                             ),
@@ -321,11 +312,11 @@ impl Render for StatusLine {
                 .flex_none()
                 .flex()
                 .items_center()
-                .gap(px(6.))
+                .gap(px(8.))
                 .whitespace_nowrap()
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(theme::ACCENT)
-                .child(svg().path("icons/message-square.svg").flex_none().size(px(11.)).text_color(theme::ACCENT))
+                .child(svg().path("icons/message-square.svg").flex_none().size(theme::MARK).text_color(theme::ACCENT))
                 .child(words)
         });
 
@@ -341,10 +332,8 @@ impl Render for StatusLine {
             .min_w_0()
             .max_w(px(320.))
             .truncate()
-            .px(px(4.))
-            .rounded(px(4.))
             .cursor_pointer()
-            .hover(|s| s.bg(theme::HOVER).text_color(theme::INK_2))
+            .hover(|s| s.text_color(theme::INK))
             .tipped("Copy the folder's path", None)
             .on_click(move |_, window, cx| {
                 cx.write_to_clipboard(ClipboardItem::new_string(path.clone()));
@@ -357,8 +346,8 @@ impl Render for StatusLine {
             .child(claude)
             .when_some(live, |d, live| d.child(rule()).child(live))
             .when_some(pr, |d, pr| d.child(rule()).child(pr))
+            .when_some(unsent, |d, unsent| d.child(rule()).child(unsent))
             .child(div().flex_1().min_w(px(16.)).h_full())
-            .when_some(unsent, |d, unsent| d.child(unsent).child(rule()))
             .when_some(changes, |d, changes| d.child(changes).child(rule()))
             .child(folder)
             .into_any_element()

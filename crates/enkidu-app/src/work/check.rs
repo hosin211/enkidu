@@ -149,7 +149,7 @@ impl Check {
             .child(
                 div()
                     .flex_none()
-                    .size(px(18.))
+                    .size(px(20.))
                     .flex()
                     .items_center()
                     .justify_center()
@@ -166,7 +166,7 @@ impl Check {
                     .child(SharedString::from(row.verdict.clone())),
             );
         let error = row.error.as_ref().map(|error| {
-            div().mt(px(4.)).pl(px(26.)).text_size(px(12.5)).line_height(px(18.)).child(with_code(
+            div().mt(px(4.)).pl(px(28.)).text_size(px(12.5)).line_height(px(18.)).child(with_code(
                 error,
                 theme::LAMP_RED,
                 theme::LAMP_RED,
@@ -175,23 +175,23 @@ impl Check {
         let compared = (!row.compared.is_empty()).then(|| {
             div()
                 .mt(px(4.))
-                .pl(px(26.))
+                .pl(px(28.))
                 .flex()
                 .flex_col()
-                .gap(px(2.))
+                .gap(px(4.))
                 .text_size(px(12.))
-                .line_height(px(17.))
+                .line_height(theme::TEXT_SMALL_LINE)
                 .children(row.compared.iter().map(|line| div().child(with_code(line, theme::INK_3, theme::INK_2))))
         });
         let differences = (!row.differences.is_empty()).then(|| {
             div()
-                .mt(px(6.))
-                .pl(px(26.))
+                .mt(px(8.))
+                .pl(px(28.))
                 .flex()
                 .flex_col()
-                .gap(px(2.))
+                .gap(px(4.))
                 .text_size(px(12.))
-                .line_height(px(17.))
+                .line_height(theme::TEXT_SMALL_LINE)
                 .text_color(theme::INK_2)
                 .children(row.differences.iter().map(|differs| {
                     // "#12 title: the index has Old, GitHub says New", the two values bright
@@ -212,10 +212,12 @@ impl Check {
             .aria_label(SharedString::from(row.said()))
             .aria_description(SharedString::from(format!("{} {}", row.source, row.ok)))
             .flex_none()
-            .rounded(px(10.))
-            .bg(theme::HOVER)
-            .px(px(12.))
-            .py(px(10.))
+            .rounded(theme::RADIUS_CARD)
+            .bg(theme::PANE)
+            .border_1()
+            .border_color(theme::LINE)
+            .px(px(16.))
+            .py(px(12.))
             .child(head)
             .children(error)
             .children(compared)
@@ -233,8 +235,8 @@ impl Render for Check {
             .items_start()
             .justify_between()
             .gap(px(16.))
-            .px(px(20.))
-            .pt(px(18.))
+            .px(px(24.))
+            .pt(px(16.))
             .pb(px(4.))
             .child(
                 div()
@@ -270,10 +272,12 @@ impl Render for Check {
                     .relative()
                     .flex_none()
                     .overflow_hidden()
-                    .rounded(px(10.))
-                    .bg(theme::HOVER)
-                    .px(px(12.))
-                    .py(px(10.))
+                    .rounded(theme::RADIUS_CARD)
+                    .bg(theme::PANE)
+                    .border_1()
+                    .border_color(theme::LINE)
+                    .px(px(16.))
+                    .py(px(12.))
                     .text_size(px(12.5))
                     .line_height(px(18.))
                     .text_color(theme::INK_2)
@@ -317,7 +321,7 @@ impl Render for Check {
             "check-again",
             if self.running { "Checking…" } else { "Check again" },
             ButtonKind::Primary,
-            ButtonSize::Medium,
+            ButtonSize::Large,
         );
         let again = match self.running {
             true => again.opacity(0.45).cursor_default(),
@@ -343,8 +347,8 @@ impl Render for Check {
                     .min_h_0()
                     .flex()
                     .flex_col()
-                    .gap(px(10.))
-                    .px(px(20.))
+                    .gap(px(8.))
+                    .px(px(24.))
                     .pt(px(12.))
                     .pb(px(16.))
                     .overflow_y_scroll()
@@ -352,6 +356,5 @@ impl Render for Check {
                     .children(body),
             )
             .child(crate::dialog_parts::foot().child(again))
-            .child(crate::dialog_parts::lit_edge())
     }
 }

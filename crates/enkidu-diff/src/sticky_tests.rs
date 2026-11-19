@@ -118,8 +118,8 @@ fn the_next_files_header_pushes_it_away(cx: &mut TestAppContext) {
     draw(cx);
     assert_eq!(top_row(&state, cx), ("b.txt".to_string(), false));
     let (leaving, arriving) = (bar(cx, 1).expect("b.txt's header"), bar(cx, 2).expect("c.txt's header"));
-    // b.txt's header ends where c.txt's begins, 16 px of it cut off above
-    assert_eq!((leaving.top(), leaving.bottom()), (top - px(16.), top + px(20.)));
+    // b.txt's header ends where c.txt's begins, 12 px of it cut off above
+    assert_eq!((leaving.top(), leaving.bottom()), (top - px(12.), top + px(20.)));
     assert_eq!(arriving.top(), top + px(20.));
     assert_eq!(leaving.size.height, HEADER_HEIGHT);
     // c.txt reaches the top: its header is the one that stays, and b.txt's is gone

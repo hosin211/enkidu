@@ -48,7 +48,7 @@ fn look<R>(cx: &mut TestAppContext, app: &App, at: impl FnOnce(&mut Window) -> R
     .unwrap()
 }
 
-/// Where the two islands are, when they are on screen: the changes, then Claude's terminal.
+/// Where the two panes are, when they are on screen: the changes, then Claude's terminal.
 fn islands(window: &Window) -> (Option<Bounds<Pixels>>, Option<Bounds<Pixels>>) {
     (
         window.try_find("island-changes").map(|island| island.bounds()),
@@ -121,12 +121,19 @@ fn double_click(cx: &mut TestAppContext, app: &App, at: Point<Pixels>) {
 #[gpui_kit::test]
 fn the_switch_and_the_keys_put_the_changes_above_beside_or_away(cx: &mut TestAppContext) {
     let (app, _, _) = start(cx);
-    // as the app starts: the changes above the terminal, 8 px apart, the terminal 320 px high
+    // as the app starts: the changes above Claude's pane, a line of 1 px between them, the pane 332 px high
     look(cx, &app, |w| {
-        let (Some(changes), Some(terminal)) = islands(w) else { panic!("both islands are on screen") };
-        assert_eq!(terminal.top() - changes.bottom(), px(8.), "8 px between the islands");
+        let (Some(changes), Some(terminal)) = islands(w) else { panic!("both panes are on screen") };
+        assert_eq!(terminal.top() - changes.bottom(), px(1.), "one line between the panes");
         assert_eq!((changes.left(), changes.right()), (terminal.left(), terminal.right()));
-        assert_eq!(terminal.size.height, px(320.));
+        assert_eq!(terminal.size.height, px(332.));
+        // the panes fill the stage, 1 px inside its edge; the stage starts where the rail ends, under the top row,
+        // and goes down to the status line
+        let (stage, row, rail) = (w.find("stage").bounds(), w.find("tabs-row").bounds(), w.find("rail").bounds());
+        assert_eq!((stage.left(), stage.top()), (rail.right(), row.bottom()));
+        assert_eq!((changes.left(), changes.top()), (stage.left() + px(1.), stage.top() + px(1.)));
+        assert_eq!(terminal.bottom(), stage.bottom() - px(1.));
+        assert_eq!(stage.bottom(), w.find("status-line").bounds().top());
         assert_eq!(chosen(w).as_deref(), Some("Changes above the terminal"));
         assert_eq!(said(w, "layout-divider").as_deref(), Some("Resize terminal"));
     });
@@ -135,8 +142,8 @@ fn the_switch_and_the_keys_put_the_changes_above_beside_or_away(cx: &mut TestApp
     app.click(cx, "layout-side");
     assert!(app.until(cx, |w| chosen(w).as_deref() == Some("Changes beside the terminal")));
     look(cx, &app, |w| {
-        let (Some(changes), Some(terminal)) = islands(w) else { panic!("both islands are on screen") };
-        assert_eq!(changes.left() - terminal.right(), px(8.), "8 px between the islands");
+        let (Some(changes), Some(terminal)) = islands(w) else { panic!("both panes are on screen") };
+        assert_eq!(changes.left() - terminal.right(), px(1.), "one line between the panes");
         assert_eq!((changes.top(), changes.bottom()), (terminal.top(), terminal.bottom()));
         assert_eq!(changes.size.width, px(540.));
         assert_eq!(said(w, "layout-divider").as_deref(), Some("Resize changes"));
@@ -194,7 +201,7 @@ fn the_changes_take_the_whole_workspace_and_give_it_back(cx: &mut TestAppContext
     };
     assert!(in_changes(cx), "the keyboard stayed in a terminal that isn't on screen");
 
-    // ⇧⌘E again: both islands as before
+    // ⇧⌘E again: both panes as before
     app.press(cx, "cmd-shift-e");
     assert!(app.until(cx, |w| w.try_find("island-claude").is_some() && w.try_find("island-changes").is_some()));
     assert_eq!(look(cx, &app, |w| chosen(w)).as_deref(), Some("Changes above the terminal"));
@@ -214,39 +221,40 @@ fn the_changes_take_the_whole_workspace_and_give_it_back(cx: &mut TestAppContext
 }
 
 #[gpui_kit::test]
-fn the_space_between_the_islands_drags_is_remembered_and_resets_on_a_double_click(cx: &mut TestAppContext) {
+fn the_line_between_the_panes_drags_is_remembered_and_resets_on_a_double_click(cx: &mut TestAppContext) {
     let (app, _, _) = start(cx);
     let (room, gap) = look(cx, &app, |w| (w.find("workspace-body").bounds(), w.find("layout-divider").bounds()));
-    assert_eq!(gap.size.height, px(8.));
+    // the line is 1 px; the pointer takes it within 4 px on either side
+    assert_eq!(gap.size.height, px(9.));
     let at = gap.center();
     let up = |by: f32| point(at.x, at.y - px(by));
 
-    // above the terminal: 100 px up, and the terminal is 100 px higher
+    // above the terminal: 100 px up, and Claude's pane is 100 px higher
     drag(cx, &app, at, &[up(30.), up(60.), up(100.)]);
-    assert_eq!(ui(cx, &app).terminal_height, 420);
-    assert_eq!(look(cx, &app, |w| islands(w).1.map(|terminal| terminal.size.height)), Some(px(420.)));
-    assert!(kept_layout(cx, &app, r#""terminalHeight":420"#).contains(r#""terminalHeight":420"#), "not kept");
+    assert_eq!(ui(cx, &app).terminal_height, 432);
+    assert_eq!(look(cx, &app, |w| islands(w).1.map(|terminal| terminal.size.height)), Some(px(432.)));
+    assert!(kept_layout(cx, &app, r#""terminalHeight":432"#).contains(r#""terminalHeight":432"#), "not kept");
 
     // all the way up: the changes keep 120 px; all the way down: the terminal keeps 140
     let gap = look(cx, &app, |w| w.find("layout-divider").bounds().center());
     drag(cx, &app, gap, &[point(gap.x, gap.y - px(40.)), point(gap.x, room.top() - px(50.))]);
-    let most = f32::from(room.size.height) as u32 - 8 - 120;
+    let most = f32::from(room.size.height) as u32 - 1 - 120;
     assert_eq!(ui(cx, &app).terminal_height, most);
     assert_eq!(look(cx, &app, |w| islands(w).0.map(|changes| changes.size.height)), Some(px(120.)));
     let gap = look(cx, &app, |w| w.find("layout-divider").bounds().center());
     drag(cx, &app, gap, &[point(gap.x, gap.y + px(40.)), point(gap.x, room.bottom() + px(50.))]);
     assert_eq!(ui(cx, &app).terminal_height, 140);
 
-    // a double click: back to 320
+    // a double click: back to 332
     let gap = look(cx, &app, |w| w.find("layout-divider").bounds().center());
     double_click(cx, &app, gap);
-    assert_eq!(ui(cx, &app).terminal_height, 320);
+    assert_eq!(ui(cx, &app).terminal_height, 332);
 
     // beside the terminal: 60 px to the left, and the changes are 60 px wider
     app.press(cx, "alt-cmd-l");
     assert!(app.until(cx, |w| said(w, "layout-divider").as_deref() == Some("Resize changes")));
     let gap = look(cx, &app, |w| w.find("layout-divider").bounds());
-    assert_eq!(gap.size.width, px(8.));
+    assert_eq!(gap.size.width, px(9.));
     let at = gap.center();
     drag(cx, &app, at, &[point(at.x - px(20.), at.y), point(at.x - px(60.), at.y)]);
     assert_eq!(ui(cx, &app).review_width, 600);
@@ -258,12 +266,12 @@ fn the_space_between_the_islands_drags_is_remembered_and_resets_on_a_double_clic
     // far to the left: the terminal keeps 360
     let gap = look(cx, &app, |w| w.find("layout-divider").bounds().center());
     drag(cx, &app, gap, &[point(gap.x - px(40.), gap.y), point(room.left() - px(80.), gap.y)]);
-    assert_eq!(ui(cx, &app).review_width, f32::from(room.size.width) as u32 - 8 - 360);
+    assert_eq!(ui(cx, &app).review_width, f32::from(room.size.width) as u32 - 1 - 360);
     assert_eq!(look(cx, &app, |w| islands(w).1.map(|terminal| terminal.size.width)), Some(px(360.)));
 
     // 500 px, and a restart: the window opens laid out as it was left
     let gap = look(cx, &app, |w| w.find("layout-divider").bounds().center());
-    let want = room.right() - px(504.);
+    let want = room.right() - px(500.5);
     drag(cx, &app, gap, &[point(gap.x + px(30.), gap.y), point(want, gap.y)]);
     assert_eq!(ui(cx, &app).review_width, 500);
     let kept = kept_layout(cx, &app, r#""reviewWidth":500"#);
@@ -271,9 +279,9 @@ fn the_space_between_the_islands_drags_is_remembered_and_resets_on_a_double_clic
     let app = common::restart(cx, app);
     assert!(app.until(cx, |w| line_number(w, "Line 5, after").is_some()), "the diff never showed again");
     let again = ui(cx, &app);
-    assert_eq!((again.layout, again.review_width, again.terminal_height), (Layout::Side, 500, 320));
+    assert_eq!((again.layout, again.review_width, again.terminal_height), (Layout::Side, 500, 332));
     look(cx, &app, |w| {
-        let (Some(changes), Some(terminal)) = islands(w) else { panic!("both islands are on screen") };
+        let (Some(changes), Some(terminal)) = islands(w) else { panic!("both panes are on screen") };
         assert_eq!(changes.size.width, px(500.));
         assert!(terminal.right() < changes.left(), "the terminal is on the left");
     });
@@ -414,7 +422,7 @@ fn the_keys_resize_the_code_or_the_terminals_text_whichever_has_the_keyboard(cx:
     app.press(cx, "cmd-0");
     assert_eq!((sizes(cx), rows(cx)), ((12, 12.5), px(20.)), "⌘0: the usual size");
 
-    // both islands again, the keyboard in the terminal: now the keys are the terminal's
+    // both panes again, the keyboard in the terminal: now the keys are the terminal's
     app.press(cx, "cmd-shift-e");
     assert!(app.until(cx, |w| w.try_find("island-claude").is_some()));
     app.click(cx, "terminal");
@@ -448,4 +456,40 @@ fn the_keys_resize_the_code_or_the_terminals_text_whichever_has_the_keyboard(cx:
     assert_eq!((sizes(cx), terminal_text(cx)), ((13, 12.5), px(12.5)), "the code you are looking at, not the terminal");
     app.press(cx, "cmd-0");
     assert_eq!(sizes(cx), (12, 12.5));
+}
+
+/// The pane your typing goes to has the blue edge (DESIGN.md, "States": Keyboard): Claude's while a terminal has the
+/// keyboard, the changes' once a click on a changed file took it to its diff. The edge stands on the pane's own
+/// place, in either layout.
+#[gpui_kit::test]
+fn the_pane_your_typing_goes_to_has_the_blue_edge(cx: &mut TestAppContext) {
+    let (app, _, _) = start(cx);
+    app.click(cx, "terminal");
+    assert!(app.until(cx, |w| w.find("terminal").focused() == Some(true)));
+    look(cx, &app, |w| {
+        let (Some(changes), Some(terminal)) = islands(w) else { panic!("both panes are on screen") };
+        let edge = w.find("key-edge");
+        assert_eq!(edge.label(), Some("Your typing goes here"));
+        assert_eq!(edge.bounds(), terminal, "around Claude's pane");
+        assert_ne!(edge.bounds(), changes);
+    });
+    // a click on a changed file takes the keyboard to its diff: the edge is the changes' now
+    assert!(app.until(cx, |w| w.try_find(("change-row", 0usize)).is_some()), "the changed file's row");
+    app.click(cx, ("change-row", 0usize));
+    let on_changes = |w: &Window| {
+        let (Some(changes), _) = islands(w) else { return false };
+        w.try_find("key-edge").is_some_and(|edge| edge.bounds() == changes)
+    };
+    assert!(app.until(cx, on_changes), "the edge went to the changes");
+    // beside each other: each pane keeps its own edge's place
+    app.click(cx, "layout-side");
+    assert!(app.until(cx, |w| chosen(w).as_deref() == Some("Changes beside the terminal")));
+    assert!(app.until(cx, on_changes), "still the changes', at the right now");
+    app.click(cx, "terminal");
+    assert!(app.until(cx, |w| {
+        let (_, Some(terminal)) = islands(w) else { return false };
+        w.try_find("key-edge").is_some_and(|edge| edge.bounds() == terminal)
+    }));
+    // one edge at a time
+    look(cx, &app, |w| assert_eq!(w.find_all("key-edge").len(), 1));
 }

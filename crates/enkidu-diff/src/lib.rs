@@ -269,7 +269,27 @@ pub struct Diff {
 
 /// enkidu: how tall a file's header is. It is fixed, so the header drawn over the rows (the one that stays in view) and
 /// the row it stands in for are the same height.
-pub const HEADER_HEIGHT: Pixels = px(36.);
+pub const HEADER_HEIGHT: Pixels = px(32.);
+
+// enkidu: the view's own measures, in pixels on a 4 px grid (the original sized its parts in rems). Text starts 16 px
+// from the view's edge; a row of line numbers begins 8 px in, so a 40 px column of them ends at 48 and a second one
+// at 88; the sign of a changed line stands in the next 24 px, and the code begins after it.
+const INSET: Pixels = px(16.);
+const LEAD: Pixels = px(8.);
+const SIGN_WIDTH: Pixels = px(24.);
+/// A row that says something between the lines of code: unchanged lines folded away, the names of the two sides.
+const NOTE_ROW: Pixels = px(24.);
+/// The small text of those rows.
+const SMALL: Pixels = px(11.5);
+/// The plus beside a line.
+const ADD_NOTE: Pixels = px(16.);
+
+/// enkidu: how wide one column of line numbers is: 40 px, or what its longest number needs (with 4 px before it), in
+/// steps of 4 px. The number is set against the column's right edge.
+fn number_width(font_size: Pixels, digits: usize) -> Pixels {
+    let needs = f32::from(font_size) * 0.7 * digits as f32 + 4.;
+    px((needs / 4.).ceil().max(10.) * 4.)
+}
 
 /// enkidu: the view's own colors. The original took them from gpui-kit's theme at fixed strengths
 /// ([`DiffColors::of_theme`] gives those); Enkidu sets its own, so the diff matches the rest of the window.
@@ -299,6 +319,9 @@ pub struct DiffColors {
     pub mark_removed: Hsla,
     /// A name that is a link ([`DiffState::set_link`]): its text and the line under it.
     pub link: Hsla,
+    /// The plus beside a line, which adds a note to it: its fill and its sign.
+    pub add_note: Hsla,
+    pub add_note_sign: Hsla,
 }
 
 impl DiffColors {
@@ -321,6 +344,8 @@ impl DiffColors {
             mark_changed: theme.info,
             mark_removed: theme.danger,
             link: theme.link,
+            add_note: theme.primary,
+            add_note_sign: theme.primary_foreground,
         }
     }
 }
@@ -629,7 +654,7 @@ fn render_diff(props: Diff, state: &mut DiffState, window: &mut Window, cx: &mut
     let font_family = cx.theme().mono_font_family.clone();
     let row_height = props.row_height.unwrap_or(font_size * 1.6);
     let digits = state.files().iter().map(|file| file.line_number_digits()).max().unwrap_or(1);
-    let gutter_width = if props.line_number { font_size * 0.7 * digits as f32 + rem } else { px(0.) };
+    let gutter_width = if props.line_number { number_width(font_size, digits) } else { px(0.) };
     let mode = state.mode();
     let soft_wrap = props.soft_wrap;
     let marker_lane = !props.gutter_markers.is_empty() && props.gutter_marker_content.is_some();
@@ -668,7 +693,6 @@ fn render_diff(props: Diff, state: &mut DiffState, window: &mut Window, cx: &mut
         font_size,
         row_height,
         gutter_width,
-        rem,
         expansion_lines: state.expansion_lines(),
         line_number: props.line_number,
         syntax_highlight: props.syntax_highlight,
@@ -871,7 +895,7 @@ fn render_diff(props: Diff, state: &mut DiffState, window: &mut Window, cx: &mut
                                 px(0.)
                             } else {
                                 let painted = state.geometry().borrow().painted_width();
-                                code_width(painted, gutter_width, lane_width, rem, mode)
+                                code_width(painted, gutter_width, lane_width, mode)
                             };
                             // enkidu: the list's layout can move its top (when the rows no longer fill the view):
                             // then the header that stays was chosen for the wrong file, so draw again
@@ -901,7 +925,7 @@ fn render_diff(props: Diff, state: &mut DiffState, window: &mut Window, cx: &mut
         .min_h_0()
         .bg(cx.theme().background)
         .text_color(cx.theme().foreground)
-        .text_sm()
+        .text_size(px(13.))
         .border_1()
         .border_color(cx.theme().border)
         .child(body)
@@ -934,7 +958,6 @@ struct CodePresentation {
     font_size: Pixels,
     row_height: Pixels,
     gutter_width: Pixels,
-    rem: Pixels,
     expansion_lines: usize,
     line_number: bool,
     syntax_highlight: bool,
@@ -978,12 +1001,11 @@ impl CodePresentation {
 }
 
 /// Total row width for code of `width` in the current mode.
-fn code_width(width: Pixels, gutter_width: Pixels, lane_width: Pixels, rem: Pixels, mode: DiffMode) -> Pixels {
-    if mode == DiffMode::Split {
-        (width + gutter_width + lane_width + rem * 2.) * 2.
-    } else {
-        width + gutter_width * 2. + lane_width + rem * 2.
-    }
+fn code_width(width: Pixels, gutter_width: Pixels, lane_width: Pixels, mode: DiffMode) -> Pixels {
+    // enkidu: what stands around the code in a row: the room before the numbers, the marker lane, the sign, and the
+    // inset at the row's end
+    let around = LEAD + lane_width + SIGN_WIDTH + INSET;
+    if mode == DiffMode::Split { (width + gutter_width + around) * 2. } else { width + gutter_width * 2. + around }
 }
 
 /// Estimates content width from the lines widest in display cells, then
@@ -1038,7 +1060,7 @@ fn measure_code_width(
                 .width
         })
         .fold(px(0.), Pixels::max);
-    code_width(width, gutter_width, lane_width, window.rem_size(), mode)
+    code_width(width, gutter_width, lane_width, mode)
 }
 
 fn render_row(row: &DisplayRow, code: Rc<CodePresentation>, window: &mut Window, cx: &mut App) -> AnyElement {
@@ -1085,17 +1107,17 @@ fn render_row(row: &DisplayRow, code: Rc<CodePresentation>, window: &mut Window,
 
 fn render_hunk_separator(file: usize, hunk: usize, code: &CodePresentation, cx: &App) -> AnyElement {
     let hunks = code.files[file].hunks();
-    let row = h_flex().w_full().px_3().bg(code.colors.gap).text_xs().text_color(cx.theme().muted_foreground);
+    let row = h_flex().w_full().px(INSET).bg(code.colors.gap).text_size(SMALL).text_color(cx.theme().muted_foreground);
     match code.hunk_separator {
-        DiffHunkSeparator::Metadata => row.h_6().child(hunks[hunk].label().clone()).into_any_element(),
+        DiffHunkSeparator::Metadata => row.h(NOTE_ROW).child(hunks[hunk].label().clone()).into_any_element(),
         DiffHunkSeparator::LineInfo => {
             let hidden = hunks[hunk].hidden_lines_before(hunk.checked_sub(1).map(|ix| &hunks[ix]));
             if hidden == 0 {
                 return div().into_any_element();
             }
-            row.h_6().child(t!("Diff.HiddenLines", count = hidden).to_string()).into_any_element()
+            row.h(NOTE_ROW).child(t!("Diff.HiddenLines", count = hidden).to_string()).into_any_element()
         }
-        DiffHunkSeparator::Simple => row.h_1().into_any_element(),
+        DiffHunkSeparator::Simple => row.h(px(4.)).into_any_element(),
     }
 }
 
@@ -1110,38 +1132,51 @@ fn render_fold(file: usize, pairs: std::ops::Range<usize>, code: &CodePresentati
         .map_or(0..document.pairs().len(), |hunk| hunk.pairs());
     let lines = code.expansion_lines;
     let partial = pairs.len() > lines;
-    let expand = |id: (&'static str, usize), expansion: FoldExpansion| {
+    // enkidu: a button of the row: 20 px high, a 12 px sign 4 px inside it and, 8 px on, its words (the original left
+    // these sizes to the button's rem-sized defaults)
+    let expand = |id: (&'static str, usize), expansion: FoldExpansion, icon: IconName, words: Option<String>| {
         let state = code.state.clone();
         let pairs = pairs.clone();
-        Button::new(id).ghost().xsmall().w_auto().text_color(cx.theme().muted_foreground).on_click(move |_, _, cx| {
-            state.update(cx, |state, cx| state.expand_fold(file, pairs.clone(), expansion, cx))
-        })
+        Button::new(id)
+            .ghost()
+            .xsmall()
+            .w_auto()
+            .h(px(20.))
+            .px(px(4.))
+            .rounded(px(4.))
+            .text_color(cx.theme().muted_foreground)
+            .child(h_flex().gap(px(8.)).text_size(SMALL).child(Icon::new(icon).size(px(12.))).children(words))
+            .on_click(move |_, _, cx| {
+                state.update(cx, |state, cx| state.expand_fold(file, pairs.clone(), expansion, cx))
+            })
     };
     h_flex()
         .w_full()
-        .h_6()
-        .px_2()
-        .gap_1()
+        .h(NOTE_ROW)
+        // the first button's sign stands where text starts
+        .pl(INSET - px(4.))
+        .gap(px(4.))
         .bg(code.colors.gap)
         .when(partial && pairs.start > hunk.start, |this| {
             this.child(
-                expand(("expand-down", pairs.start), FoldExpansion::Down)
-                    .icon(IconName::ArrowDown)
+                expand(("expand-down", pairs.start), FoldExpansion::Down, IconName::ArrowDown, None)
                     .accessibility_label(t!("Diff.ExpandBelow", count = lines).to_string()),
             )
         })
         .when(partial && pairs.end < hunk.end, |this| {
             this.child(
-                expand(("expand-up", pairs.start), FoldExpansion::Up)
-                    .icon(IconName::ArrowUp)
+                expand(("expand-up", pairs.start), FoldExpansion::Up, IconName::ArrowUp, None)
                     .accessibility_label(t!("Diff.ExpandAbove", count = lines).to_string()),
             )
         })
         .child(
-            expand(("expand", pairs.start), FoldExpansion::All)
-                .icon(if partial { IconName::ChevronsUpDown } else { IconName::ChevronDown })
-                .label(t!("Diff.UnchangedLines", count = pairs.len()).to_string())
-                .accessibility_label(t!("Diff.ExpandLines", count = pairs.len()).to_string()),
+            expand(
+                ("expand", pairs.start),
+                FoldExpansion::All,
+                if partial { IconName::ChevronsUpDown } else { IconName::ChevronDown },
+                Some(t!("Diff.UnchangedLines", count = pairs.len()).to_string()),
+            )
+            .accessibility_label(t!("Diff.ExpandLines", count = pairs.len()).to_string()),
         )
         .into_any_element()
 }
@@ -1158,15 +1193,21 @@ fn render_conflict(file: usize, ix: usize, part: ConflictPart, code: &CodePresen
             .ghost()
             .xsmall()
             .w_auto()
-            .label(label)
+            .h(px(20.))
+            .px(px(4.))
+            .rounded(px(4.))
+            .accessibility_label(label.clone())
+            .child(div().text_size(SMALL).child(label))
             .on_click(move |_, _, cx| state.update(cx, |state, cx| state.choose_conflict(file, ix, resolution, cx)))
     };
-    let row =
-        h_flex().w_full().h_6().px_3().gap_2().text_xs().text_color(cx.theme().muted_foreground).bg(conflict_tint(
-            Some(part),
-            cx,
-        )
-        .opacity(0.25));
+    let row = h_flex()
+        .w_full()
+        .h(NOTE_ROW)
+        .px(INSET)
+        .gap(px(8.))
+        .text_size(SMALL)
+        .text_color(cx.theme().muted_foreground)
+        .bg(conflict_tint(Some(part), cx).opacity(0.25));
     if let Some(resolution) = resolution {
         let label = match resolution {
             DiffConflictResolution::Current => t!("Diff.AcceptedCurrent"),
@@ -1264,25 +1305,25 @@ fn file_header_bar(file: usize, stays: bool, code: &CodePresentation, window: &m
         h_flex()
             .w_full()
             .min_w_0()
-            .gap_2()
+            .gap(px(8.))
             .children(prefix)
             .child(
                 h_flex()
                     .min_w_0()
                     .flex_1()
-                    .gap_2()
+                    .gap(px(8.))
                     .child(div().min_w_0().truncate().font_medium().child(name))
                     .when_some(title_suffix, |this, suffix| this.child(div().flex_shrink_0().child(suffix))),
             )
             .when(statistics, |this| {
-                this.child(div().text_xs().text_color(foreground).child(format!(
+                this.child(div().text_size(SMALL).text_color(foreground).child(format!(
                     "+{} −{}",
                     document.additions(),
                     document.deletions()
                 )))
             })
             .when_some(status, |this, status| {
-                this.child(div().text_xs().text_color(foreground).child(status.to_string()))
+                this.child(div().text_size(SMALL).text_color(foreground).child(status.to_string()))
             })
             .children(suffix)
             .into_any_element()
@@ -1305,13 +1346,16 @@ fn file_header_bar(file: usize, stays: bool, code: &CodePresentation, window: &m
                 .w_full()
                 .min_w_0()
                 .flex_1()
-                .pl_1()
-                .pr_3()
-                .gap_1()
+                // enkidu: the arrow stands in a 16 px slot where text starts, 4 px before the file's icon (as a
+                // folder's arrow does in a tree); the last button's box ends 12 px before the edge
+                .pl(INSET)
+                .pr(px(12.))
+                .gap(px(4.))
                 .child(
                     Button::new("collapse-file")
                         .ghost()
-                        .xsmall()
+                        .with_size(px(16.))
+                        .rounded(px(4.))
                         .icon(if collapsed { IconName::ChevronRight } else { IconName::ChevronDown })
                         .accessibility_label(
                             if collapsed {
@@ -1348,8 +1392,8 @@ fn render_sides(file: usize, code: &CodePresentation, cx: &App) -> AnyElement {
             .aria_label(words.to_string())
             .w(code.column_width)
             .flex_shrink_0()
-            .h_6()
-            .px_3()
+            .h(NOTE_ROW)
+            .px(INSET)
             .flex()
             .items_center()
             .border_b_1()
@@ -1358,7 +1402,7 @@ fn render_sides(file: usize, code: &CodePresentation, cx: &App) -> AnyElement {
     };
     h_flex()
         .w_full()
-        .text_size(px(11.))
+        .text_size(SMALL)
         .font_medium()
         .text_color(cx.theme().muted_foreground)
         .child(side("split-before", before).border_r_1())
@@ -1383,9 +1427,10 @@ fn render_notice(file: &DiffFile, cx: &App) -> AnyElement {
         .test_support()
         .aria_label(message.to_string())
         .w_full()
-        .px_4()
-        .py_4()
-        .text_xs()
+        .px(INSET)
+        .py(px(8.))
+        .text_size(px(12.))
+        .line_height(px(16.))
         .text_color(cx.theme().muted_foreground)
         .child(message.to_string())
         .into_any_element()
@@ -1397,7 +1442,6 @@ fn render_gutter(file: usize, side: DiffSide, ix: Option<usize>, code: &CodePres
         .id(if side == DiffSide::Original { "old-gutter" } else { "new-gutter" })
         .flex_shrink_0()
         .w(code.gutter_width)
-        .pr_1()
         .when(hover, |this| this.hover(|this| this.bg(cx.theme().list_hover)))
         .when_some(ix, |this, ix| {
             let position = code.position(file, side, ix);
@@ -1411,7 +1455,6 @@ fn render_gutter(file: usize, side: DiffSide, ix: Option<usize>, code: &CodePres
                     .test_support()
                     .w_full()
                     .h(code.row_height)
-                    .px_1()
                     .flex()
                     .items_center()
                     .justify_end()
@@ -1582,7 +1625,6 @@ fn add_annotation_button(
     ix: usize,
     left: Pixels,
     code: &CodePresentation,
-    cx: &App,
 ) -> Option<AnyElement> {
     let handler = code.on_add_annotation.clone()?;
     let position = code.position(file, side, ix);
@@ -1596,20 +1638,21 @@ fn add_annotation_button(
         div()
             .id(("add-annotation", ix))
             .test_support()
+            // enkidu: a 16 px square in the middle of the sign's place, in the view's own color for it
             .absolute()
-            .top_0()
-            .left(left)
-            .size(code.row_height)
+            .top((code.row_height - ADD_NOTE) / 2.)
+            .left(left + (SIGN_WIDTH - ADD_NOTE) / 2.)
+            .size(ADD_NOTE)
             .flex()
             .items_center()
             .justify_center()
-            .rounded(cx.theme().radius)
-            .bg(cx.theme().primary)
-            .text_color(cx.theme().primary_foreground)
+            .rounded(px(4.))
+            .bg(code.colors.add_note)
+            .text_color(code.colors.add_note_sign)
             .when(!at_selection_end, |this| this.opacity(0.).group_hover("diff-line", |this| this.opacity(1.)))
             .role(gpui::accesskit::Role::Button)
             .aria_label(t!("Diff.AddAnnotation", line = position.line()).to_string())
-            .child(Icon::new(IconName::Plus).xsmall())
+            .child(Icon::new(IconName::Plus).size(px(12.)))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
             .on_click(move |_, window, cx| handler(&range, window, cx))
             .into_any_element(),
@@ -1691,22 +1734,26 @@ fn code_line(
     let gutters_width =
         if code.line_number { code.gutter_width * gutters.iter().flatten().count() as f32 } else { px(0.) };
     let indicator = match code.change_indicator {
-        DiffChangeIndicator::Signs => {
-            div().w_4().flex_shrink_0().text_color(if changed { sign } else { cx.theme().muted_foreground }).child(
-                match (changed && conflict_part.is_none(), side) {
-                    (false, _) => " ",
-                    (true, DiffSide::Original) => "−",
-                    (true, DiffSide::Modified) => "+",
-                },
-            )
-        }
-        DiffChangeIndicator::Bars => {
-            div().w_4().h_full().flex_shrink_0().when(changed, |this| this.child(div().w(px(3.)).h_full().bg(sign)))
-        }
-        DiffChangeIndicator::None => div().w_2().flex_shrink_0(),
+        DiffChangeIndicator::Signs => div()
+            .w(SIGN_WIDTH)
+            .flex()
+            .flex_shrink_0()
+            .justify_center()
+            .text_color(if changed { sign } else { cx.theme().muted_foreground })
+            .child(match (changed && conflict_part.is_none(), side) {
+                (false, _) => " ",
+                (true, DiffSide::Original) => "−",
+                (true, DiffSide::Modified) => "+",
+            }),
+        DiffChangeIndicator::Bars => div()
+            .w(SIGN_WIDTH)
+            .h_full()
+            .flex_shrink_0()
+            .when(changed, |this| this.child(div().w(px(3.)).h_full().bg(sign))),
+        DiffChangeIndicator::None => div().w(px(8.)).flex_shrink_0(),
     };
     let hover_line = matches!(code.hover_highlight, DiffHoverHighlight::Line | DiffHoverHighlight::Both);
-    let add_button = add_annotation_button(file, side, ix, gutters_width + code.lane_width + code.rem / 2., &code, cx);
+    let add_button = add_annotation_button(file, side, ix, LEAD + gutters_width + code.lane_width, &code);
     // Unified rows of unchanged lines carry both sides; either may be targeted.
     let positions: Vec<_> =
         gutters.iter().flatten().filter_map(|(side, ix)| ix.map(|ix| code.position(file, *side, ix))).collect();
@@ -1726,8 +1773,8 @@ fn code_line(
             (position.line(), stripe, gone_after, gone_before)
         })
         .filter(|(_, stripe, gone_after, gone_before)| stripe.is_some() || *gone_after || *gone_before);
-    // after the row's own padding, the line numbers and the marker lane: where the signs of a diff stand
-    let mark_left = code.rem / 2. + gutters_width + code.lane_width + px(2.);
+    // after the row's own padding, the line numbers and the marker lane: where the signs of a diff stand, 4 px in
+    let mark_left = LEAD + gutters_width + code.lane_width + px(4.);
     let marker_lane = code.gutter_marker_content.clone().map(|render| {
         let marker = positions.iter().find_map(|position| code.gutter_markers.at(position));
         div()
@@ -1746,7 +1793,8 @@ fn code_line(
         .group("diff-line")
         .relative()
         .w_full()
-        .px_2()
+        .pl(LEAD)
+        .pr(INSET)
         .map(|this| {
             if code.soft_wrap {
                 this.min_h(code.row_height).items_start().whitespace_normal()
@@ -1778,7 +1826,7 @@ fn code_line(
                     .top_0()
                     .bottom_0()
                     .left(mark_left)
-                    .w(px(3.))
+                    .w(px(4.))
                     .bg(color)
             });
             // where lines went: a small mark at the foot of the line they stood after (or at the head of the
@@ -1886,8 +1934,17 @@ fn line_extras(
         } else {
             format!("\\ {}", if ending == "\r\n" { "CRLF" } else { "LF" })
         };
-        extras
-            .push(div().h_6().px_3().text_xs().text_color(cx.theme().muted_foreground).child(label).into_any_element());
+        extras.push(
+            div()
+                .h(NOTE_ROW)
+                .px(INSET)
+                .flex()
+                .items_center()
+                .text_size(SMALL)
+                .text_color(cx.theme().muted_foreground)
+                .child(label)
+                .into_any_element(),
+        );
     }
     extras.extend(line_annotations(file, side, ix, code, window, cx));
     extras
@@ -1922,9 +1979,9 @@ fn annotation_elements(ixs: &[usize], code: &CodePresentation, window: &mut Wind
     vec![
         v_flex()
             .w_full()
-            .px_3()
-            .py_2()
-            .gap_2()
+            .px(INSET)
+            .py(px(8.))
+            .gap(px(8.))
             .border_t_1()
             .border_b_1()
             .border_color(code.colors.rule)
@@ -1967,6 +2024,8 @@ mod extras_tests;
 mod header_tests;
 #[cfg(test)]
 mod keep_tests;
+#[cfg(test)]
+mod measures_tests;
 #[cfg(test)]
 mod newline_tests;
 #[cfg(test)]

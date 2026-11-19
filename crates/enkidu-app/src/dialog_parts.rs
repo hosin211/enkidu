@@ -1,25 +1,25 @@
-//! What every dialog of ours is made of (DESIGN.md, "Color" and "Space, size, shape"): a surface a step above the
-//! window (`raised`, a 14 px corner, lit from above), a head with its title, a line under it and ×, a body, and a foot
-//! band with its buttons. The library's own dialog would stand on the islands' color with their 12 px corner and no lit
-//! edge.
+//! What every dialog of ours is made of (DESIGN.md, "Color" and "Space, size, shape"): the surface of what floats
+//! (`sheet`, true black, a 10 px corner), a head with its title, a line under it and ×, a body, and a foot band with
+//! its buttons. The library's own dialog would stand on its own color with its own corner.
 
 use enkidu_ui::pieces::Observed;
-use enkidu_ui::tokens::{self as theme, alpha};
+use enkidu_ui::tokens as theme;
 use enkidu_ui::work::tinted;
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::dialog::Dialog;
 use gpui_kit::prelude::*;
-use gpui_kit::{Div, FontWeight, Pixels, Role, SharedString, div, px, rgb};
+use gpui_kit::{Div, FontWeight, Pixels, Role, SharedString, div, px};
 
 /// The corner of what fills a dialog to its edge (a foot band, a side column): the dialog's own, less its 1 px edge.
 /// Nothing clips to a rounded corner here, so such a fill rounds itself.
 pub const INNER_RADIUS: Pixels = px(13.);
 
-/// The surface: `raised`, the dialogs' corner, no padding and no × of the library's (the view draws its own head).
+/// The surface: `sheet`, the corner of what floats, no padding and no × of the library's (the view draws its own
+/// head).
 pub fn surface(dialog: Dialog) -> Dialog {
     dialog
         .p(px(0.))
-        .bg(theme::RAISED)
+        .bg(theme::SHEET)
         .rounded(theme::RADIUS_DIALOG)
         .close_button(false)
         // it fades in over its last 8 px, 220 ms (the theme's motion). The palette and Search, opened from the
@@ -35,16 +35,16 @@ pub fn close(id: &'static str) -> Observed {
         .role(Role::Button)
         .aria_label("Close")
         .flex_none()
-        .mr(px(-6.))
+        .mr(px(-12.))
         .mt(px(-2.))
-        .size(px(24.))
+        .size(theme::CONTROL)
         .flex()
         .items_center()
         .justify_center()
-        .rounded(px(5.))
+        .rounded(theme::RADIUS_CONTROL)
         .cursor_pointer()
         .hover(|s| s.bg(theme::HOVER))
-        .child(tinted("icons/x.svg", theme::INK_3, 14.))
+        .child(tinted("icons/x.svg", theme::INK_3, 16.))
 }
 
 /// The head: the title (15/20 semibold), a line under it on what the dialog is for, and what closes it at the right.
@@ -55,8 +55,8 @@ pub fn head(title: impl Into<SharedString>, says: Option<SharedString>, close: O
         .items_start()
         .justify_between()
         .gap(px(16.))
-        .px(px(20.))
-        .pt(px(18.))
+        .px(px(24.))
+        .pt(px(16.))
         .pb(px(4.))
         .child(
             div()
@@ -82,14 +82,8 @@ pub fn head(title: impl Into<SharedString>, says: Option<SharedString>, close: O
         .children(close)
 }
 
-/// The lit top edge of a dialog, its last child (the root is `relative`): the islands' edge, kept clear of the
-/// dialog's wider corner.
-pub fn lit_edge() -> Div {
-    enkidu_ui::pieces::lit_edge().left(theme::RADIUS_DIALOG).right(theme::RADIUS_DIALOG)
-}
-
-/// The foot band: a hairline above it, a shade darker, its buttons at the right (put what is said first, with
-/// `flex_1`, to push them there).
+/// The foot: a line above it, its buttons at the right (put what is said first, with `flex_1`, to push them
+/// there). With a dialog's 32 px buttons it is 64 px high.
 pub fn foot() -> Div {
     div()
         .flex_none()
@@ -98,11 +92,9 @@ pub fn foot() -> Div {
         .justify_end()
         .gap(px(8.))
         .border_t_1()
-        .border_color(theme::RULE)
-        .bg(alpha(rgb(0x000000), 0.2))
-        .rounded_b(INNER_RADIUS)
-        .px(px(20.))
-        .py(px(12.))
+        .border_color(theme::LINE)
+        .px(px(24.))
+        .py(px(16.))
 }
 
 #[cfg(test)]
@@ -110,16 +102,16 @@ mod tests {
     use super::*;
     use gpui_kit::{AbsoluteLength, Fill, TestAppContext};
 
-    /// DESIGN.md, "Color": `raised` is for "menus, dialogs, the palette, toasts, remark cards"; "Space, size, shape":
-    /// radius 14 for "dialogs, the palette, Search".
+    /// DESIGN.md, "Color": `sheet` is for "what floats: menus, dialogs, Search, the palette, the switcher, toasts,
+    /// remark cards"; "Space, size, shape": radius 14 for what floats.
     #[gpui_kit::test]
-    fn a_dialog_stands_on_the_raised_surface_with_the_dialogs_corner(cx: &mut TestAppContext) {
+    fn a_dialog_stands_on_the_sheet_with_the_corner_of_what_floats(cx: &mut TestAppContext) {
         cx.update(|cx| {
             gpui_kit::init(cx);
             let mut dialog = surface(Dialog::new(cx));
             let style = dialog.style();
-            assert_eq!(style.background, Some(Fill::from(theme::RAISED)));
-            assert_eq!(theme::RAISED, gpui_kit::rgb(0x191b21));
+            assert_eq!(style.background, Some(Fill::from(theme::SHEET)));
+            assert_eq!(theme::SHEET, gpui_kit::rgb(0x000000));
             let corner = Some(AbsoluteLength::Pixels(px(14.)));
             let radii = &style.corner_radii;
             assert_eq!([radii.top_left, radii.top_right, radii.bottom_left, radii.bottom_right], [corner; 4]);

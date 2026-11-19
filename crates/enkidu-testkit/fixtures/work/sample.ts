@@ -125,7 +125,7 @@ export function sampleWork(now: number, home: string, scenario: string, mode = "
         ],
         commitCount: 5,
         recentCommits: [
-          { oid: "4973abc", headline: "Skip rows with a zero total" },
+          { oid: "2414abc", headline: "Skip rows with a zero total" },
           { oid: "91c2d0e", headline: "Use the outlet's locale for numbers" },
           { oid: "77e1f3a", headline: "Stream the file" },
           { oid: "3b8a9c1", headline: "Add the export action to the order list" },
@@ -172,7 +172,7 @@ export function sampleWork(now: number, home: string, scenario: string, mode = "
         ],
         reviews: [{ who: "mira-k", state: "APPROVED", at: iso(20), bot: false }],
         commitCount: 1,
-        recentCommits: [{ oid: "4964abc", headline: "Hotfix: stock counts twice after a return" }],
+        recentCommits: [{ oid: "2413abc", headline: "Hotfix: stock counts twice after a return" }],
       }),
     }),
     pr(2375, "feature/SH-21376-bundle-units", "development", "SH-21376 Units on bundles", {
@@ -200,7 +200,7 @@ export function sampleWork(now: number, home: string, scenario: string, mode = "
     // a PR that names no ticket stands where its state puts it (here: the review column)
     pr(2415, "chore/django-5.2.8", "development", "Bump Django to 5.2.8", {
       updatedAt: iso(3 * 60),
-      details: details({ body: "Security release.", additions: 2, deletions: 2, changedFiles: 1, labels: ["dependencies"], requested: ["mira-k"], commitCount: 1, recentCommits: [{ oid: "4977d0c", headline: "Bump Django to 5.2.8" }] }),
+      details: details({ body: "Security release.", additions: 2, deletions: 2, changedFiles: 1, labels: ["dependencies"], requested: ["mira-k"], commitCount: 1, recentCommits: [{ oid: "2415d0c", headline: "Bump Django to 5.2.8" }] }),
     }),
     // a second project's PR: the board offers one project at a time, or all
     {
@@ -303,7 +303,7 @@ export function sampleWork(now: number, home: string, scenario: string, mode = "
   });
   const r = (n: number) => `${REPO}#${n}`;
   const items: WorkItem[] = [
-    item(`checks:${r(2414)}:4973abc0def1`, "pipeline_failed", {
+    item(`checks:${r(2414)}:2414abc0def1`, "pipeline_failed", {
       pr: r(2414),
       title: "Checks failing: tests (3.12)",
       detail: "tests (3.12): failure",
@@ -382,12 +382,12 @@ export function sampleWork(now: number, home: string, scenario: string, mode = "
   ];
   const ev = (subject: string, agoMin: number, kind: string, text: string): WorkEvent => ({ subject, at: now - agoMin * MIN, kind, text });
   const events: WorkEvent[] = [
-    ev(r(2413), 7, "pushed", "Pushed 4964abc"),
+    ev(r(2413), 7, "pushed", "Pushed 2413abc"),
     ev(r(2414), 14, "item-opened", "Question from jonas-qa"),
     ev(r(2395), 38, "review", "Changes requested"),
     ev("SH-21112", 45, "item-opened", "QA replied: Jonas Weber"),
     ev(r(2414), 90, "checks", "Checks failed: tests (3.12)"),
-    ev(r(2414), 95, "pushed", "Pushed 4973abc"),
+    ev(r(2414), 95, "pushed", "Pushed 2414abc"),
     ev("SH-21616", 130, "status", "QA Review → In Progress"),
   ];
   const health: WorkSnapshot["health"] = [

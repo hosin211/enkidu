@@ -39,11 +39,21 @@ fn start(cx: &mut TestAppContext, second: bool) -> (App, PathBuf) {
     app.click(cx, ("tab", 0usize));
     assert!(app.until_frame(cx, |f| f.current_workspace().is_some_and(|w| w.name == "stock-fix")));
     assert!(app.until_terminal(cx, "\n>"), "Claude's prompt");
-    let (_, folder) = workspace(cx, &app, "stock-fix");
+    let (id, folder) = workspace(cx, &app, "stock-fix");
+    // (when it fails, it says where the file was lost: on screen, in the window's own list, in the core's, or in
+    // git's answer)
     assert!(
         app.until(cx, |w| changed(w) == ["setup-ran.txt"]),
-        "the setup script's file: {:?}",
-        look(cx, &app, |w| changed(w))
+        "the setup script's file: on screen {:?}, the window's list {:?}, the core's list {:?}, git says {:?}, the \
+         file is there: {}",
+        look(cx, &app, |w| changed(w)),
+        cx.update(|cx| {
+            let lists = cx.global::<enkidu_app::stores::Stores>().changes.read(cx);
+            lists.of(&id).map(|list| list.iter().map(|c| c.path.clone()).collect::<Vec<_>>())
+        }),
+        app.shared.changes.snapshot().get(&id).map(|list| list.iter().map(|c| c.path.clone()).collect::<Vec<_>>()),
+        git(&folder, &["status", "--porcelain"]),
+        folder.join("setup-ran.txt").exists()
     );
     (app, folder)
 }
@@ -218,8 +228,8 @@ fn updates_the_changes_panel_as_files_change_and_empties_it_after_a_commit(cx: &
     assert!(app.until(cx, |w| has_line(w, "second edit", "Line 2, after, added")), "the diff didn't refresh");
     look(cx, &app, |w| {
         assert!(has_line(w, "ask", "Line 1, after, added"));
-        assert_eq!(said(w, "status-changes").as_deref(), Some("2 changed files"));
-        assert_eq!(said(w, "rail-count").as_deref(), Some("2"));
+        assert_eq!(said(w, ("tab-changed", 0usize)).as_deref(), Some("2 changed files"));
+        assert_eq!(said(w, "panel-count").as_deref(), Some("2"));
         assert_eq!(said(w, "changes-count").as_deref(), Some("2 files"));
         assert_eq!(mode(w), "stack");
     });
@@ -233,9 +243,8 @@ fn updates_the_changes_panel_as_files_change_and_empties_it_after_a_commit(cx: &
         assert_eq!(mode(w), "terminal");
         assert_eq!(w.find("island-claude").bounds(), room, "the terminal has the room");
         assert!(changed(w).is_empty(), "the panel still lists {:?}", changed(w));
-        assert!(w.try_find("status-changes").is_none() && w.try_find("status-counts").is_none());
-        assert!(w.try_find("rail-count").is_none() && w.try_find("changes-count").is_none(), "a count of nothing");
-        assert_ne!(said(w, ("tab-words", 0usize)).as_deref(), Some("2 changed files"));
+        assert!(w.try_find("panel-count").is_none() && w.try_find("changes-count").is_none(), "a count of nothing");
+        assert_eq!(said(w, ("tab-changed", 0usize)), None, "on its row too");
     });
 }
 
@@ -256,11 +265,11 @@ fn keeps_every_workspaces_changes_fresh_in_the_background(cx: &mut TestAppContex
         std::thread::sleep(Duration::from_millis(10));
     }
     assert!(seen.iter().any(|path| path == "notes.md"), "the hidden workspace's changes never arrived: {seen:?}");
-    // its tab counts both new files (the setup script's and this one) without ever being opened
+    // its row counts both new files (the setup script's and this one) without ever being opened
     assert!(
-        app.until(cx, |w| said(w, ("tab-words", 1usize)).as_deref() == Some("2 changed files")),
-        "its tab says {:?}",
-        look(cx, &app, |w| said(w, ("tab-words", 1usize)))
+        app.until(cx, |w| said(w, ("tab-changed", 1usize)).as_deref() == Some("2 changed files")),
+        "its row says {:?}",
+        look(cx, &app, |w| said(w, ("tab-changed", 1usize)))
     );
     assert_eq!(app.on_screen(cx).map(|(name, _, _)| name).as_deref(), Some("stock-fix"), "it was never opened");
     // and the workspace on screen still shows its own
@@ -481,7 +490,7 @@ fn switches_layouts_without_restarting_the_terminal(cx: &mut TestAppContext) {
 #[gpui_kit::test]
 fn browses_the_projects_files_from_the_right_edge_and_opens_one_read_only(cx: &mut TestAppContext) {
     let (app, folder) = start(cx, false);
-    app.click(cx, "rail-files");
+    app.click(cx, "panel-tab-files");
     assert!(app.until(cx, |w| said(w, "panel-band").as_deref() == Some("Files")), "Files never opened");
     assert!(app.until(cx, |w| files(w).contains(&"dir src".to_string())), "{:?}", look(cx, &app, |w| files(w)));
     // what git sees: the ignored .env stays out, though the project copied it into the workspace
@@ -519,7 +528,7 @@ fn browses_the_projects_files_from_the_right_edge_and_opens_one_read_only(cx: &m
     assert!(app.until(cx, |w| files(w) == ["src/app.py"]), "the filter's matches: {:?}", look(cx, &app, |w| files(w)));
 
     // back to the changed files; the edit is there too
-    app.click(cx, "rail-changes");
+    app.click(cx, "panel-tab-changes");
     assert!(app.until(cx, |w| changed(w) == ["src/app.py", "setup-ran.txt"]), "{:?}", look(cx, &app, |w| changed(w)));
     git(&folder, &["checkout", "--", "src/app.py"]);
     assert!(
@@ -545,7 +554,7 @@ fn leaves_a_remark_on_a_line_of_an_opened_file_and_sends_it_to_claude_with_the_o
     assert_eq!(until_kept(cx, &app, &ws, 1).len(), 1, "the remark in the diff was never saved");
 
     // a file without changes, opened from the Files panel: the filter's best match, with Enter
-    app.click(cx, "rail-files");
+    app.click(cx, "panel-tab-files");
     assert!(app.until(cx, |w| said(w, "panel-band").as_deref() == Some("Files")), "Files never opened");
     app.click(cx, "files-filter");
     app.typed(cx, "app");
@@ -576,7 +585,7 @@ fn leaves_a_remark_on_a_line_of_an_opened_file_and_sends_it_to_claude_with_the_o
     // back at the changes it waits with the others: under the diffs, in the Changed files panel and in the status
     // line
     app.click(cx, "close-file");
-    app.click(cx, "rail-changes");
+    app.click(cx, "panel-tab-changes");
     assert!(app.until(cx, |w| rows(w, "remark-file-row") == ["src/app.py"]), "not in the Changed files panel");
     app.click(cx, "maximize-review");
     assert!(
@@ -587,7 +596,7 @@ fn leaves_a_remark_on_a_line_of_an_opened_file_and_sends_it_to_claude_with_the_o
     assert!(app.until(cx, |w| w.try_find(card.clone()).is_some()), "its card isn't under the diffs");
     look(cx, &app, |w| {
         assert_eq!(all(w, "file-unchanged"), ["No changes"]);
-        assert_eq!(said(w, "status-remarks").as_deref(), Some("2 remarks not sent"));
+        assert_eq!(said(w, ("tab-remarks", 0usize)).as_deref(), Some("2 remarks not sent yet"));
         assert_eq!(changed(w), ["fake-output.txt", "setup-ran.txt"]);
     });
 
@@ -672,10 +681,10 @@ fn goes_live_copies_the_workspaces_changes_into_the_main_folder_follows_them_and
 
     assert_eq!(look(cx, &app, |w| live_button(w)), ("Go live".into(), "off".into(), false));
     app.click(cx, "live-button");
-    // the tab says Live, and the button is the green one, pressed
+    // its row says Live, and the button is the green one, pressed
     assert!(
-        app.until(cx, |w| said(w, ("tab-words", 0usize)).as_deref() == Some("Live")),
-        "the tab never said Live; the toasts: {:?}",
+        app.until(cx, |w| said(w, ("tab-live", 0usize)).as_deref() == Some("Live")),
+        "its row never said Live; the toasts: {:?}",
         look(cx, &app, |w| toasts(w))
     );
     // the pointer is still on the button, so it says what a click would do now; away from it, it says Live
@@ -693,8 +702,15 @@ fn goes_live_copies_the_workspaces_changes_into_the_main_folder_follows_them_and
     // the copy came first, then the project's own command
     assert!(read(&main.join("src/app.py")).contains("# live v1"));
     assert_eq!(read(&state).trim(), format!("on {}", ws.display()));
-    // the status line says it in words
-    assert_eq!(look(cx, &app, |w| said(w, "status-live")).as_deref(), Some("Live in shop's dev environment"));
+    // the button's tooltip says where: in the project's dev environment
+    cx.update_window(app.window, |_, w, cx| w.hover("live-button", cx)).unwrap();
+    cx.executor().advance_clock(Duration::from_millis(900));
+    assert!(
+        app.until(cx, |w| said(w, "tip").is_some_and(|tip| tip.contains("shop"))),
+        "{:?}",
+        look(cx, &app, |w| said(w, "tip"))
+    );
+    point_away(cx, &app);
     // and Claude in the Live workspace is told
     app.type_in_terminal(cx, "are we live\r");
     assert!(
@@ -724,9 +740,8 @@ fn goes_live_copies_the_workspaces_changes_into_the_main_folder_follows_them_and
     assert!(app.until(cx, |w| live_button(w).0 == "Stop"), "{:?}", look(cx, &app, |w| live_button(w)));
     app.click(cx, "live-button");
     assert!(app.until_frame(cx, |_| read(&state).trim() == "off"), "the off command never ran: {:?}", read(&state));
-    assert!(app.until(cx, |w| said(w, ("tab-words", 0usize)).as_deref() != Some("Live")), "the tab still says Live");
+    assert!(app.until(cx, |w| said(w, ("tab-live", 0usize)).is_none()), "its row still says Live");
     assert!(app.until(cx, |w| live_button(w).1 == "off"), "{:?}", look(cx, &app, |w| live_button(w)));
-    assert!(look(cx, &app, |w| w.try_find("status-live").is_none()), "the status line still says Live");
     // the main folder is back as it was, its own edit included, and Claude's file is gone from it
     assert!(read(&main.join("src/app.py")).contains("# main's own edit"));
     assert!(!followed.exists());
@@ -814,10 +829,9 @@ fn shows_which_way_live_is_switching_and_ignores_a_second_click_meanwhile(cx: &m
     assert!(app.until(cx, |w| live_button(w).1 == "off"), "{:?}", look(cx, &app, |w| (live_button(w), toasts(w))));
     assert_eq!(read(), "on stock-fix\noff stock-fix\non remote-only\n", "the first one's off, then the other one's on");
     assert!(app.until(cx, |w| toast(w, "remote-only is Live").is_some()), "{:?}", look(cx, &app, |w| toasts(w)));
-    // the tabs say which one is Live
-    let words = look(cx, &app, |w| (said(w, ("tab-words", 0usize)), said(w, ("tab-words", 1usize))));
-    assert_eq!(words.1.as_deref(), Some("Live"));
-    assert_ne!(words.0.as_deref(), Some("Live"));
+    // the rows say which one is Live
+    let words = look(cx, &app, |w| (said(w, ("tab-live", 0usize)), said(w, ("tab-live", 1usize))));
+    assert_eq!(words, (None, Some("Live".to_string())));
     // stopping from the Live one: "Stopping…", then off
     app.press(cx, "cmd-2");
     assert!(app.until(cx, |w| live_button(w).1 == "live"));

@@ -574,15 +574,15 @@ fn picker(
     MenuTrigger::new(id, shown.clone())
         .aria_description(what)
         .aria_value(SharedString::from(value.clone()))
-        .h(theme::INPUT_HEIGHT)
+        .h(theme::DIALOG_CONTROL)
         .min_w_0()
         .flex()
         .items_center()
-        .gap(px(6.))
+        .gap(px(8.))
         .rounded(theme::RADIUS_CONTROL)
-        .bg(theme::CANVAS)
+        .bg(theme::WELL)
         .border_1()
-        .border_color(theme::RULE_STRONG)
+        .border_color(theme::LINE_STRONG)
         .px(px(8.))
         .text_size(px(12.5))
         .text_color(theme::INK)
@@ -617,8 +617,9 @@ fn option(id: SharedString, label: SharedString, picked: bool) -> PopupMenuItem 
             .flex()
             .items_center()
             .gap(px(8.))
+            .map(enkidu_ui::pieces::in_menu)
             .text_color(theme::INK)
-            .child(svg().path("icons/check.svg").flex_none().size(px(13.)).text_color(if picked {
+            .child(svg().path("icons/check.svg").flex_none().size(theme::MARK).text_color(if picked {
                 theme::INK
             } else {
                 alpha(theme::INK, 0.)
@@ -644,7 +645,7 @@ fn row_button(
         .items_center()
         .justify_center()
         .rounded(px(6.))
-        .child(tinted(icon, theme::INK_3, 13.));
+        .child(tinted(icon, theme::INK_3, 16.));
     match off {
         // the first can't go earlier, the last can't go later
         true => button.opacity(0.3).cursor_default(),
@@ -661,6 +662,7 @@ fn link(id: impl Into<ElementId>, words: impl Into<SharedString>) -> enkidu_ui::
         .aria_label(words.clone())
         .flex_none()
         .text_size(theme::TEXT_SMALL)
+        .line_height(theme::TEXT_SMALL_LINE)
         .text_color(theme::INK_3)
         .cursor_pointer()
         .hover(|s| s.text_color(theme::ACCENT))
@@ -672,7 +674,7 @@ fn top_row(label: &'static str, control: impl IntoElement) -> Div {
     div()
         .flex()
         .items_center()
-        .gap(px(10.))
+        .gap(px(12.))
         .min_w_0()
         .child(div().flex_none().w(px(76.)).text_size(theme::TEXT_SMALL).text_color(theme::INK_3).child(label))
         .child(div().min_w_0().flex_1().child(control))
@@ -800,7 +802,8 @@ impl FlowEditor {
                     .test_support()
                     .aria_label(SharedString::from(starts.clone()))
                     .flex_none()
-                    .pt(px(10.))
+                    .pt(px(8.))
+                    .line_height(px(20.))
                     .text_size(theme::TEXT_STATUS)
                     .text_color(theme::INK_3)
                     .child(starts)
@@ -854,14 +857,14 @@ impl FlowEditor {
             .flex()
             .flex_col()
             .border_r_1()
-            .border_color(theme::RULE)
+            .border_color(theme::LINE)
             .child(
                 div()
                     .flex_none()
                     .flex()
                     .flex_col()
                     .gap(px(8.))
-                    .pl(px(20.))
+                    .pl(px(24.))
                     .pr(px(16.))
                     .pt(px(12.))
                     .pb(px(12.))
@@ -877,7 +880,7 @@ impl FlowEditor {
                     .min_h_0()
                     .flex()
                     .flex_col()
-                    .pl(px(10.))
+                    .pl(px(16.))
                     .pr(px(8.))
                     .pb(px(16.))
                     .overflow_y_scroll()
@@ -897,7 +900,7 @@ impl FlowEditor {
                     .when(count > 0, |chain| chain.child(Self::chain_end(made)))
                     // a task of your own, made here: it joins the tasks as the last one (item 8.7)
                     .child(
-                        div().flex_none().mt(px(8.)).pl(px(42.)).flex().child(
+                        div().flex_none().mt(px(8.)).pl(px(40.)).flex().child(
                             button_with(
                                 "flow-new-task",
                                 Some("icons/plus.svg"),
@@ -923,7 +926,7 @@ impl FlowEditor {
             switch_live("flow-live", LIVE, editor.draft.live, window, cx).on_click(cx.listener(|this, _, _, cx| {
                 this.change(cx, |editor, world| editor.change(world, |flow| flow.live = !flow.live))
             }));
-        let line = || div().h(theme::INPUT_HEIGHT).flex().items_center().gap(px(8.)).min_w_0();
+        let line = || div().h(theme::DIALOG_CONTROL).flex().items_center().gap(px(8.)).min_w_0();
         let head = div()
             .flex_none()
             .child(
@@ -934,7 +937,7 @@ impl FlowEditor {
                     .text_color(theme::INK)
                     .child(START_TITLE),
             )
-            .child(div().mt(px(2.)).text_size(theme::TEXT_SMALL).text_color(theme::INK_3).child(START_SAYS));
+            .child(div().mt(px(4.)).text_size(theme::TEXT_SMALL).text_color(theme::INK_3).child(START_SAYS));
         let starts =
             step_row(
                 "Starts at",
@@ -970,10 +973,10 @@ impl FlowEditor {
         let follows = step_row(
             "Live",
             div()
-                .min_h(theme::INPUT_HEIGHT)
+                .min_h(theme::DIALOG_CONTROL)
                 .flex()
                 .items_center()
-                .gap(px(10.))
+                .gap(px(12.))
                 .min_w_0()
                 .child(div().flex_none().child(live))
                 // one sentence that wraps as a whole: what Live does, then what that means, quieter
@@ -996,7 +999,7 @@ impl FlowEditor {
                 )
                 .child(
                     div()
-                        .mt(px(6.))
+                        .mt(px(4.))
                         .text_size(theme::TEXT_SMALL)
                         .line_height(theme::TEXT_SMALL_LINE)
                         .text_color(theme::INK_3)
@@ -1048,7 +1051,7 @@ impl FlowEditor {
                             .id("flow-step-place")
                             .test_support()
                             .aria_label(SharedString::from(format!("{}, task {} of {count}", row.name, at + 1)))
-                            .mt(px(2.))
+                            .mt(px(4.))
                             .flex()
                             .items_center()
                             .text_size(theme::TEXT_SMALL)
@@ -1115,7 +1118,7 @@ impl FlowEditor {
                 .id(("flow-task-waits", at))
                 .test_support()
                 .aria_label(SharedString::from(waits.clone()))
-                .mt(px(6.))
+                .mt(px(4.))
                 .min_w_0()
                 .text_size(theme::TEXT_SMALL)
                 .line_height(theme::TEXT_SMALL_LINE)
@@ -1149,7 +1152,7 @@ impl FlowEditor {
                 .children(waits)
                 .child(
                     div()
-                        .mt(px(6.))
+                        .mt(px(4.))
                         .flex()
                         .flex_wrap()
                         .items_center()
@@ -1177,7 +1180,7 @@ impl FlowEditor {
                             ),
                     )
                     .when(row.edited, |message| {
-                        message.child(div().mt(px(6.)).flex().child(
+                        message.child(div().mt(px(4.)).flex().child(
                             link(("flow-task-undo", at), "Undo my edits").on_click(cx.listener(
                                 move |this, _, _, cx| this.change(cx, |editor, world| editor.undo_edits(at, world)),
                             )),
@@ -1215,11 +1218,11 @@ impl Render for FlowEditor {
             .items_start()
             .justify_between()
             .gap(px(16.))
-            .px(px(20.))
-            .pt(px(18.))
+            .px(px(24.))
+            .pt(px(16.))
             .pb(px(12.))
             .border_b_1()
-            .border_color(theme::RULE)
+            .border_color(theme::LINE)
             .child(
                 div()
                     .min_w_0()
@@ -1264,10 +1267,10 @@ impl Render for FlowEditor {
             .min_h_0()
             .flex()
             .flex_col()
-            .gap(px(14.))
+            .gap(px(16.))
             .px(px(24.))
             .pt(px(16.))
-            .pb(px(20.))
+            .pb(px(16.))
             .overflow_y_scroll()
             .track_scroll(&self.step_scroll)
             .children(step);
@@ -1280,7 +1283,7 @@ impl Render for FlowEditor {
             "Run now",
             None,
             ButtonKind::Secondary,
-            ButtonSize::Medium,
+            ButtonSize::Large,
         ));
         let save = dim(button_with(
             "flow-save",
@@ -1288,7 +1291,7 @@ impl Render for FlowEditor {
             made.save.clone(),
             None,
             ButtonKind::Primary,
-            ButtonSize::Medium,
+            ButtonSize::Large,
         ));
         let (run, save) = match off {
             true => (run, save),
@@ -1324,7 +1327,7 @@ impl Render for FlowEditor {
         let foot = crate::dialog_parts::foot()
             .child(div().min_w_0().flex_1().children(says))
             .child(
-                button("flow-cancel", "Cancel", ButtonKind::Ghost, ButtonSize::Medium)
+                button("flow-cancel", "Cancel", ButtonKind::Ghost, ButtonSize::Large)
                     .on_click(cx.listener(|this, _, window, cx| this.close(window, cx))),
             )
             .child(run)
@@ -1334,6 +1337,5 @@ impl Render for FlowEditor {
             .child(head)
             .child(body)
             .child(foot)
-            .child(crate::dialog_parts::lit_edge())
     }
 }

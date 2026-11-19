@@ -1,5 +1,6 @@
 //! Toasts (DESIGN.md, "Motion": "Toasts: rise from the corner (300 ms), leave to the right (180 ms)"): news, and what
-//! went wrong with how to fix it, one above the other in the window's bottom right corner. Each window has its own
+//! went wrong with how to fix it, one above the other in the window's bottom right corner, above the status line
+//! (which they never cover). Each window has its own
 //! [`Toasts`], drawn by [`layer`] as one of the window's last children; a screen test reads them by "toast" and
 //! "toast-detail".
 //!
@@ -179,6 +180,7 @@ impl Toasts {
                     .role(Role::Button)
                     .aria_label(words)
                     .text_size(theme::TEXT_SMALL)
+                    .line_height(theme::TEXT_SMALL_LINE)
                     .font_weight(FontWeight::MEDIUM)
                     .text_color(theme::INK_3)
                     .hover(|s| s.text_color(theme::INK))
@@ -211,16 +213,16 @@ impl Toasts {
         let card = raised(("toast-card", key))
             .role(Role::Status)
             .w_full()
-            .px(px(12.))
-            .py(px(10.))
+            .px(px(16.))
+            .py(px(12.))
             // it takes the mouse: what is under a toast isn't pressed through it
             .occlude()
             .child(
                 div()
                     .flex()
                     .items_start()
-                    .gap(px(10.))
-                    .child(tinted(sign, color, 15.).mt(px(1.)))
+                    .gap(px(8.))
+                    .child(tinted(sign, color, 16.).mt(px(1.)))
                     .child(div().min_w_0().flex_1().child(title).children(detail).children(unfold))
                     .child(close),
             );
@@ -258,7 +260,8 @@ impl Render for Toasts {
             div()
                 .id("toasts")
                 .absolute()
-                .bottom(px(CORNER))
+                // 8 px above the stage's foot: the status line's 28 px under the stage stay free
+                .bottom(theme::STATUS_LINE + px(8.))
                 .right(px(CORNER))
                 .w(px(WIDTH))
                 .flex()

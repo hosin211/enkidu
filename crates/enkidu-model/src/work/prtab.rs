@@ -346,7 +346,7 @@ mod tests {
         // the conversation and the latest commits
         assert_eq!(pr.comments.len(), 2);
         assert_eq!((pr.comments[1].who.as_deref(), pr.comments[1].when.as_str()), (Some("jonas-qa"), "14 min ago"));
-        assert_eq!(pr.recent_commits[0], ("4973abc".to_string(), "Skip rows with a zero total".to_string()));
+        assert_eq!(pr.recent_commits[0], ("2414abc".to_string(), "Skip rows with a zero total".to_string()));
         assert_eq!(pr.commits_shown, "5");
     }
 

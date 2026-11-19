@@ -629,6 +629,22 @@ pub fn open_link(url: String) -> CmdResult<()> {
     Ok(())
 }
 
+/// enkidu: each project's own icon for its button on the rail, by project: the picture its settings name, or the one
+/// found in its folder. A project that has none (or wants its letter) is not in the answer.
+pub fn project_icons(state: &Arc<Shared>) -> CmdResult<HashMap<String, String>> {
+    let shared = state.clone();
+    blocking(move || {
+        let mut icons = HashMap::new();
+        for project in shared.db.projects()? {
+            let rail = shared.project_settings(&project.id).map(|settings| settings.rail).unwrap_or_default();
+            if let Some(path) = crate::icon::of(Path::new(&project.path), &rail) {
+                icons.insert(project.id, path.to_string_lossy().into_owned());
+            }
+        }
+        Ok(icons)
+    })
+}
+
 pub fn get_project_settings(state: &Arc<Shared>, project_id: String) -> CmdResult<ProjectSettings> {
     let shared = state.clone();
     blocking(move || Ok(shared.project_settings(&project_id)?))

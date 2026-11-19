@@ -77,18 +77,15 @@ fn the_index_is_read_at_launch_and_again_when_the_core_says_it_changed(cx: &mut 
     done.sort();
     assert_eq!(done, ["SH-20698", "SH-21254"]);
     assert!(work.items.iter().any(|item| item.kind == "pipeline_failed" && item.state == "open"));
-    // each source's lamp, and what the status line says of it
+    // each source's lamp, and who it is read as
     let github = work::source_health(&work.health, Source::Github).expect("GitHub is read");
     let jira = work::source_health(&work.health, Source::Jira).expect("Jira is read");
     assert_eq!(
         (work::lamp(Some(&github), work.checking), work::lamp(Some(&jira), work.checking)),
         (Lamp::Ok, Lamp::Ok)
     );
-    assert_eq!(
-        work::status_words(&github, Source::Github, now()),
-        ("GitHub read just now as me-dev".to_string(), false)
-    );
-    assert_eq!(work::status_words(&jira, Source::Jira, now()), ("Jira read just now as Me Dev".to_string(), false));
+    assert_eq!((github.state.as_str(), github.account.as_deref()), ("ok", Some("me-dev")));
+    assert_eq!((jira.state.as_str(), jira.account.as_deref()), ("ok", Some("Me Dev")));
 
     // news that changes nothing: one question at a time (the first, and one more for all that came meanwhile), and
     // the views hear nothing, because the index that came back is the one they show
@@ -140,7 +137,7 @@ fn refresh_reads_both_sources_now_and_a_source_that_cant_be_read_keeps_its_data(
     );
     let github = work::source_health(&work.health, Source::Github).unwrap();
     assert_eq!(work::lamp(Some(&github), work.checking), Lamp::Error);
-    assert_eq!(work::status_words(&github, Source::Github, now()), ("GitHub can't be read".to_string(), true));
+    assert_eq!(github.state, "error");
     let lines = work::broken(&work.health, &projects, now());
     assert_eq!(lines.len(), 1, "{lines:?}");
     assert_eq!((lines[0].source, lines[0].title.as_str()), (Source::Github, "GitHub can't be read:"));

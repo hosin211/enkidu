@@ -337,6 +337,7 @@ mod tests {
     fn a_lamp_says_each_projects_read_and_the_status_line_the_newest() {
         let mut work = sample();
         assert_eq!(lamp_lines(&work.health, Source::Github, &projects(), NOW), ["shop: read 2 min ago as sam-lee"]);
+        assert_eq!(lamp_lines(&work.health, Source::Jira, &projects(), NOW), ["shop: read 2 min ago as Sam Lee"]);
         assert_eq!(lamp_lines(&[], Source::Jira, &projects(), NOW), ["Jira isn't read for any project"]);
         let github = source_health(&work.health, Source::Github).unwrap();
         assert_eq!(status_words(&github, Source::Github, NOW), ("GitHub read 2 min ago as sam-lee".to_string(), false));

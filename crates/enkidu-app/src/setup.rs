@@ -139,7 +139,7 @@ impl Settings {
                     .aria_label(words::WELCOME)
                     .flex()
                     .flex_col()
-                    .gap(px(6.))
+                    .gap(px(8.))
                     .pb(px(4.))
                     .child(
                         div()
@@ -200,7 +200,7 @@ impl Settings {
             _ => with_code(&row.line, theme::INK_3, theme::INK_2).into_any_element(),
         };
         let commands = (!row.commands.is_empty()).then(|| {
-            div().pl(px(18.)).flex().flex_wrap().gap(px(6.)).children(row.commands.iter().enumerate().map(
+            div().pl(px(16.)).flex().flex_wrap().gap(px(8.)).children(row.commands.iter().enumerate().map(
                 |(ix, command)| {
                     let copied = command.clone();
                     mono(div())
@@ -213,7 +213,7 @@ impl Settings {
                         .items_center()
                         .gap(px(8.))
                         .rounded(px(6.))
-                        .bg(theme::CHROME)
+                        .bg(theme::PANE)
                         .px(px(8.))
                         .py(px(4.))
                         .text_size(theme::MONO_TEXT)
@@ -237,16 +237,18 @@ impl Settings {
             .aria_description(SharedString::from(format!("{}: {}", row.stands, row.line)))
             .flex()
             .flex_col()
-            .gap(px(6.))
+            .gap(px(4.))
             .rounded(px(8.))
-            .bg(theme::HOVER)
-            .px(px(12.))
-            .py(px(10.))
+            .bg(theme::PANE)
+            .border_1()
+            .border_color(theme::LINE)
+            .px(px(16.))
+            .py(px(12.))
             .child(
                 div()
                     .flex()
                     .items_center()
-                    .gap(px(10.))
+                    .gap(px(8.))
                     .child(source_lamp(id("lamp"), look, 8.))
                     .child(
                         div()
@@ -270,7 +272,7 @@ impl Settings {
                         )
                     }),
             )
-            .child(div().pl(px(18.)).text_size(theme::TEXT_SMALL).line_height(px(16.)).child(line))
+            .child(div().pl(px(16.)).text_size(theme::TEXT_SMALL).line_height(px(16.)).child(line))
             .children(commands)
             .into_any_element()
     }
@@ -305,7 +307,7 @@ fn part(title: &'static str, says: &'static str, right: Option<AnyElement>, firs
         .flex()
         .flex_col()
         .gap(px(8.))
-        .when(!first, |part| part.pt(px(20.)).border_t_1().border_color(theme::RULE))
+        .when(!first, |part| part.pt(px(24.)).border_t_1().border_color(theme::LINE))
         .child(
             div()
                 .flex()
@@ -318,7 +320,7 @@ fn part(title: &'static str, says: &'static str, right: Option<AnyElement>, firs
                         .min_w_0()
                         .flex()
                         .flex_col()
-                        .gap(px(2.))
+                        .gap(px(4.))
                         .child(
                             div()
                                 .text_size(theme::TEXT)

@@ -78,9 +78,11 @@ static PAINTS: Mutex<Option<Paints>> = Mutex::new(None);
 /// Every frame the window drew (the root view rendered) and every paint of any terminal's grid: the calm plans report
 /// them per second, to see how often a lamp redraws the window and whether the cached terminal stays still.
 pub static FRAMES: AtomicU64 = AtomicU64::new(0);
-/// How many times the tabs row was drawn again (item 1.18b: with the frame in cached views, a turning lamp redraws
-/// only it).
+/// How many times the top row was drawn again (item 1.18b: with the frame in cached views, a turning lamp redraws
+/// only the row with its tab, and the status line), and likewise the rail and the status line.
 pub static TAB_ROWS: AtomicU64 = AtomicU64::new(0);
+pub static RAILS: AtomicU64 = AtomicU64::new(0);
+pub static STATUS_LINES: AtomicU64 = AtomicU64::new(0);
 static GRID_PAINTS: AtomicU64 = AtomicU64::new(0);
 
 /// Called by the terminal grid after each paint.
@@ -178,7 +180,7 @@ fn open_calm(
         write(
             plan,
             &format!(
-                "{{\"plan\":\"{}\",\"pid\":{},\"first_frame_ms\":{first:.1},\"terminal\":{{\"cols\":{},\"rows\":{},\"shell_output_bytes\":{},\"shell_exited\":{}}},\"frames_per_s\":{frames_per_s:.1},\"grid_paints_per_s\":{paints_per_s:.1},\"tab_rows_per_s\":{rows_per_s:.1},\"visible_share\":{visible_share:.2}}}",
+                "{{\"plan\":\"{}\",\"pid\":{},\"first_frame_ms\":{first:.1},\"terminal\":{{\"cols\":{},\"rows\":{},\"shell_output_bytes\":{},\"shell_exited\":{}}},\"frames_per_s\":{frames_per_s:.1},\"grid_paints_per_s\":{paints_per_s:.1},\"top_row_draws_per_s\":{rows_per_s:.1},\"visible_share\":{visible_share:.2}}}",
                 plan.name(),
                 std::process::id(),
                 size.cols,

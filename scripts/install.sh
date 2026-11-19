@@ -20,9 +20,12 @@ cd "$(dirname "$0")/.."
 
 ID="io.github.hosin211.enkidu"
 NAME="Enkidu"
+# the version is the workspace's, so the app says the number its source has
+VERSION=$(sed -n '/^\[workspace\.package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)
 TARGET="${ENKIDU_INSTALL_TARGET:-/Applications/$NAME.app}"
 
 refuse() { echo "Refused: $1"; exit 1; }
+[ -n "$VERSION" ] || refuse "Cargo.toml names no version."
 if [ -e "$TARGET" ]; then
   have=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$TARGET/Contents/Info.plist" 2>/dev/null || echo none)
   [ "$have" = "$ID" ] || refuse "$TARGET is there already and is not $NAME (its identity: $have)."
@@ -67,8 +70,8 @@ cat > "$stage/Contents/Info.plist" <<PLIST
   <key>CFBundleExecutable</key><string>enkidu-app</string>
   <key>CFBundleIconFile</key><string>icon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.0.1</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>$VERSION</string>
+  <key>CFBundleVersion</key><string>$VERSION</string>
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
   <key>NSHighResolutionCapable</key><true/>

@@ -18,7 +18,7 @@ use gpui_kit::{
 use crate::changes_island::ChangesIsland;
 
 /// A row of the list.
-const ROW: f32 = 34.;
+const ROW: f32 = 32.;
 
 /// What the list is opened with: the workspace, where the click was made (the file and the line), and what the
 /// core found.
@@ -110,9 +110,9 @@ impl Definitions {
             .flex()
             .flex_none()
             .items_center()
-            .gap(px(10.))
-            .px(px(10.))
-            .rounded(px(7.))
+            .gap(px(8.))
+            .px(px(8.))
+            .rounded(theme::RADIUS_CONTROL)
             .cursor_pointer()
             .text_size(theme::TEXT)
             .when(active, |row| row.bg(theme::SELECTED))
@@ -125,15 +125,15 @@ impl Definitions {
             .on_click(cx.listener(move |this, _, window, cx| this.pick(ix, window, cx)))
             .child(
                 mono(div())
-                    .size(px(18.))
+                    .size(theme::BADGE)
                     .flex()
                     .flex_none()
                     .items_center()
                     .justify_center()
-                    .rounded(px(5.))
+                    .rounded(theme::RADIUS_SMALL)
                     .bg(alpha(color, 0.15))
                     .text_color(color)
-                    .text_size(px(10.5))
+                    .text_size(px(10.))
                     .font_weight(FontWeight::SEMIBOLD)
                     .child(said.letter),
             )
@@ -143,7 +143,7 @@ impl Definitions {
                     .min_w_0()
                     .flex()
                     .items_baseline()
-                    .gap(px(6.))
+                    .gap(px(8.))
                     .child(
                         mono(div())
                             .min_w_0()
@@ -197,13 +197,13 @@ impl Render for Definitions {
             }))
             .child(
                 div()
-                    .h(px(36.))
+                    .h(theme::BAR)
                     .flex_none()
                     .flex()
                     .items_center()
                     .px(px(16.))
                     .border_b_1()
-                    .border_color(theme::RULE)
+                    .border_color(theme::LINE)
                     .text_size(theme::TEXT_SMALL)
                     .text_color(theme::INK_3)
                     .child(words),
@@ -216,9 +216,8 @@ impl Render for Definitions {
                     .flex_col()
                     .overflow_y_scroll()
                     .track_scroll(&self.scroll)
-                    .p(px(6.))
+                    .p(px(8.))
                     .children(rows),
             )
-            .child(crate::dialog_parts::lit_edge())
     }
 }

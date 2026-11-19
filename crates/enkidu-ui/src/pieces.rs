@@ -10,6 +10,7 @@ use std::sync::Arc;
 use gpui_kit::base::ElementExt as _;
 use gpui_kit::base::ObservedElement;
 use gpui_kit::base::TestSupportExt as _;
+use gpui_kit::component::Sizable as _;
 use gpui_kit::prelude::*;
 use gpui_kit::{
     AbsoluteLength, Animation, AnimationExt as _, App, BoxShadow, Div, ElementId, FontWeight, IntoElement, Rgba, Role,
@@ -32,14 +33,28 @@ pub fn mono<E: Styled>(el: E) -> E {
     el.font_family(MONO_FONT).font_features(gpui_kit::FontFeatures::disable_ligatures())
 }
 
-/// A one-line text field as dialogs have it: 32 px tall with 13 px text (DESIGN.md: "32 (inputs in dialogs)"). The
-/// library's own field follows the window's base size and comes out at 26 px.
+/// A one-line text field as dialogs have it: 32 px tall with 13 px text, its words 8 px inside it (DESIGN.md, "Space,
+/// size, shape": "a control in a dialog 32"). The library's own field follows the window's base size.
 pub fn text_field(
     state: &gpui_kit::Entity<gpui_kit::component::input::InputState>,
 ) -> gpui_kit::component::input::Input {
-    let mut field = gpui_kit::component::input::Input::new(state).text_size(TEXT);
+    // (a field inside what floats stands on the parts' gray, with a clear edge)
+    let mut field =
+        gpui_kit::component::input::Input::new(state).small().text_size(TEXT).rounded(RADIUS_CONTROL).bg(PANE);
     // the field's own `h` is for fields of several lines only, and it hides the style's: the style is set itself
-    field.style().size.height = Some(INPUT_HEIGHT.into());
+    field.style().size.height = Some(DIALOG_CONTROL.into());
+    field
+}
+
+/// A text field without a frame of its own: what is around it is its frame (Search's row, the palette's, a filter's
+/// box in a bar). `height` px tall with 13 px text; its words stand 8 px inside it, so a sign right before it is
+/// 8 px from them.
+pub fn bare_field(
+    state: &gpui_kit::Entity<gpui_kit::component::input::InputState>,
+    height: gpui_kit::Pixels,
+) -> gpui_kit::component::input::Input {
+    let mut field = gpui_kit::component::input::Input::new(state).small().appearance(false).text_size(TEXT);
+    field.style().size.height = Some(height.into());
     field
 }
 
@@ -49,7 +64,8 @@ pub fn text_area(
     state: &gpui_kit::Entity<gpui_kit::component::input::TextareaState>,
     code: bool,
 ) -> gpui_kit::component::input::Textarea {
-    let area = gpui_kit::component::input::Textarea::new(state);
+    // its words stand 8 px inside it on every side (the library's small field brings 8 and 2)
+    let area = gpui_kit::component::input::Textarea::new(state).small().py(px(6.)).rounded(RADIUS_CONTROL).bg(PANE);
     if code {
         mono(area).text_size(MONO_TEXT).line_height(px(18.))
     } else {
@@ -131,66 +147,172 @@ fn shadow(color: Rgba, y: f32, blur: f32, spread: f32) -> BoxShadow {
 
 const BLACK: Rgba = Rgba { r: 0., g: 0., b: 0., a: 1. };
 
-/// An island: a pane one step lighter than the frame, with 12 px corners and a 1 px edge. The island the keyboard is
-/// in gets a signal-blue edge and a faint glow (DESIGN.md, Principles 1 and 2). Give it [`lit_edge`] as its last
-/// child.
-pub fn island(id: impl Into<ElementId>, focused: bool) -> Observed {
+/// An island: a pane of the stage, which holds what you read and write (DESIGN.md, Principle 1). It is flat and
+/// has no ground and no edge of its own: it stands on the stage's black, the lines between the panes are drawn by
+/// what lays them out, and so is the blue edge of the pane the keyboard is in ("States").
+pub fn island(id: impl Into<ElementId>) -> Observed {
+    div().id(id).test_support().relative().flex().flex_col().overflow_hidden()
+}
+
+/// The stage (DESIGN.md, "Layout"): one sheet of true black with 12 px corners and an edge, which holds the panes of
+/// the workspace on screen, or the board. What it holds may fill it to its corners: the corners are cut after it is
+/// drawn, and the edge is drawn over it. Who uses it gives it its room (`flex_1`, a size).
+pub fn stage(id: impl Into<ElementId>, holds: impl IntoElement) -> Observed {
+    let radius = f32::from(RADIUS_STAGE);
+    // what stands outside a corner's arc is painted in the frame's color again. A rounded band 5 px wide around the
+    // arc reaches the corner's own point (12 px times √2 is less than 17), and nothing stands that near the stage
+    let (band, reach) = (5., radius + 5.);
+    let cut = |top: bool, left: bool| {
+        let mut corner = div().absolute().size(px(reach)).border_color(PANE);
+        let edges = &mut corner.style().border_widths;
+        let width: AbsoluteLength = px(band).into();
+        match top {
+            true => edges.top = Some(width),
+            false => edges.bottom = Some(width),
+        }
+        match left {
+            true => edges.left = Some(width),
+            false => edges.right = Some(width),
+        }
+        let corner = if top { corner.top(px(-band)) } else { corner.bottom(px(-band)) };
+        let corner = if left { corner.left(px(-band)) } else { corner.right(px(-band)) };
+        match (top, left) {
+            (true, true) => corner.rounded_tl(px(reach)),
+            (true, false) => corner.rounded_tr(px(reach)),
+            (false, false) => corner.rounded_br(px(reach)),
+            (false, true) => corner.rounded_bl(px(reach)),
+        }
+    };
     div()
         .id(id)
         .test_support()
         .relative()
         .flex()
-        .flex_col()
-        .overflow_hidden()
-        .rounded(ISLAND_RADIUS)
-        .bg(CANVAS)
-        .border_1()
-        .border_color(if focused { ISLAND_EDGE_FOCUS } else { ISLAND_EDGE })
-        .shadow(if focused {
-            vec![shadow(alpha(ACCENT, 0.10), 0., 12., 0.), shadow(alpha(BLACK, 0.35), 1., 3., 0.)]
-        } else {
-            vec![shadow(alpha(BLACK, 0.35), 1., 3., 0.)]
-        })
+        .child(
+            // (1 px inside it is the edge's own: what the stage holds starts after it)
+            div()
+                .flex_1()
+                .min_w_0()
+                .min_h_0()
+                .p(px(1.))
+                .flex()
+                .flex_col()
+                .rounded(RADIUS_STAGE)
+                .bg(WELL)
+                .overflow_hidden()
+                .child(div().flex_1().min_h_0().min_w_0().child(holds)),
+        )
+        .child(cut(true, true))
+        .child(cut(true, false))
+        .child(cut(false, false))
+        .child(cut(false, true))
+        .child(div().absolute().inset_0().rounded(RADIUS_STAGE).border_1().border_color(LINE))
 }
 
-/// An island's lit top edge, drawn over its content so a terminal can't cover it: the island's last child.
-pub fn lit_edge() -> Div {
-    div().absolute().top_0().left(px(10.)).right(px(10.)).h(px(1.)).bg(HIGHLIGHT)
+/// The line under a bar: 1 px along its lower edge, drawn over the bar and not as its border. The bar's own height
+/// stays whole that way, and what stands in it is centred on whole pixels. The bar must be `relative()`, and this
+/// its first child (a tab's own line lies over it).
+pub fn line_under() -> Div {
+    div().absolute().left_0().right_0().bottom_0().h(px(1.)).bg(LINE)
 }
 
-/// A floating layer (a menu, a toast, a remark card): raised, its own edge and a soft shadow.
+/// The same along a bar's upper edge (the bar at the foot of the changes).
+pub fn line_over() -> Div {
+    div().absolute().left_0().right_0().top_0().h(px(1.)).bg(LINE)
+}
+
+/// The edge of the pane your typing goes to (DESIGN.md, "States": Keyboard): 1.5 px of blue just inside the pane,
+/// drawn over what the pane holds. `corners` are the pane's own, clockwise from the top left: the stage's where the
+/// pane stands in one of its corners, none where it meets another pane. The pane must be `relative()`.
+pub fn key_edge(corners: [f32; 4]) -> Div {
+    let [top_left, top_right, bottom_right, bottom_left] = corners;
+    border_width(
+        div()
+            .absolute()
+            .inset_0()
+            .rounded_tl(px(top_left))
+            .rounded_tr(px(top_right))
+            .rounded_br(px(bottom_right))
+            .rounded_bl(px(bottom_left))
+            .border_color(KEY_EDGE),
+        f32::from(ON_SCREEN_EDGE),
+    )
+}
+
+/// One tab of a row of tabs (DESIGN.md, "States": Picked): a pill as high as a control, with 12 px inside it. The one
+/// shown has the chosen fill and its name in ink, semibold. Who uses it puts in what it holds and says what a click
+/// does.
+pub fn tab(id: impl Into<ElementId>, label: impl Into<SharedString>, shown: bool) -> Observed {
+    let tab = div()
+        .id(id)
+        .test_support()
+        .role(Role::Tab)
+        .aria_label(label.into())
+        .aria_selected(shown)
+        .h(CONTROL)
+        .flex()
+        .flex_none()
+        .items_center()
+        .gap(px(8.))
+        .px(px(12.))
+        .rounded_full()
+        .text_size(TEXT)
+        .cursor_pointer();
+    match shown {
+        true => tab.bg(SELECTED).font_weight(WEIGHT_TITLE).text_color(INK),
+        false => tab.font_weight(WEIGHT_LABEL).text_color(INK_2).hover(|s| s.bg(HOVER).text_color(INK)),
+    }
+}
+
+/// What floats (a menu, a toast, a dialog): true black and solid, with a clear edge and its shadow (DESIGN.md,
+/// Principle 1).
 pub fn raised(id: impl Into<ElementId>) -> Observed {
     div()
         .id(id)
         .test_support()
         .relative()
-        .rounded(ISLAND_RADIUS)
-        .bg(RAISED)
+        .rounded(RADIUS_DIALOG)
+        .bg(SHEET)
         .border_1()
-        .border_color(white(0.085))
-        .shadow(vec![shadow(alpha(BLACK, 0.35), 2., 6., 0.), shadow(alpha(BLACK, 0.6), 12., 32., -6.)])
+        .border_color(LINE_STRONG)
+        .shadow(float_shadow())
+}
+
+/// The shadow of what floats, the only shadow there is: a faint ring that parts a black sheet from the black under
+/// it, and a deep soft shadow below.
+pub fn float_shadow() -> Vec<BoxShadow> {
+    vec![shadow(alpha(BLACK, 0.85), 24., 32., 0.), shadow(white(0.04), 0., 0., 4.)]
+}
+
+/// The frame of a menu: the edge and the shadow of what floats, drawn around the library's own menu (its edge alone is
+/// too faint to part a black menu from the black under it). The library's faint ring lies on ours, and the two
+/// together come to `line-strong`.
+pub fn menu_frame(menu: impl IntoElement) -> Div {
+    let around =
+        vec![shadow(alpha(BLACK, 0.85), 24., 32., 0.), shadow(white(0.04), 0., 0., 5.), shadow(LINE, 0., 0., 1.)];
+    div().relative().rounded(RADIUS_DIALOG).shadow(around).child(menu)
 }
 
 /// What a button does, which sets its look.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ButtonKind {
-    /// White, lit from above like a key.
+    /// White with black words.
     Primary,
-    /// Signal blue: the button that types into Claude ("Open in Claude", "Type remarks into Claude").
+    /// Blue: the button that types into Claude ("Open in Claude", "Type remarks into Claude").
     Accent,
-    /// A hairline on a faint fill.
+    /// A clear edge and no fill.
     Secondary,
     /// Words only, until you point at it.
     Ghost,
-    /// Red, for what deletes.
+    /// Red with black words, for what deletes.
     Danger,
 }
 
-/// A button's size: 24, 28 or 32 px high (DESIGN.md, "Space, size, shape").
+/// A button's size (DESIGN.md, "Space, size, shape"): a control is 28 px high with 8 px inside it, and a control in
+/// a dialog 32 with 16.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ButtonSize {
     Small,
-    Medium,
     Large,
 }
 
@@ -199,7 +321,7 @@ pub fn button(id: impl Into<ElementId>, label: impl Into<SharedString>, kind: Bu
     button_with(id, None, label, None, kind, size)
 }
 
-/// A button with an icon before its words (Lucide, 14 px) and a key after them, dimmed ("New workspace ⌘N").
+/// A button with an icon before its words (Lucide, 16 px) and a key after them, dimmed ("New workspace ⌘N").
 pub fn button_with(
     id: impl Into<ElementId>,
     icon: Option<&'static str>,
@@ -231,16 +353,16 @@ fn button_drawn(
     kind: ButtonKind,
     size: ButtonSize,
 ) -> Pressed {
-    let fg = match kind {
-        ButtonKind::Primary => ON_INK,
-        ButtonKind::Accent | ButtonKind::Danger => white(1.0),
-        ButtonKind::Secondary => INK,
-        ButtonKind::Ghost => INK_2,
+    // a button with a fill says more than one without: its words are semibold
+    let (fg, weight) = match kind {
+        ButtonKind::Primary | ButtonKind::Danger => (ON_INK, WEIGHT_TITLE),
+        ButtonKind::Accent => (white(1.0), WEIGHT_TITLE),
+        ButtonKind::Secondary => (INK, WEIGHT_LABEL),
+        ButtonKind::Ghost => (INK_2, WEIGHT_LABEL),
     };
-    let (height, pad, text, radius) = match size {
-        ButtonSize::Small => (SMALL_CONTROL_HEIGHT, px(8.), TEXT_SMALL, px(6.)),
-        ButtonSize::Medium => (CONTROL_HEIGHT, px(10.), TEXT, RADIUS_CONTROL),
-        ButtonSize::Large => (INPUT_HEIGHT, px(14.), TEXT, RADIUS_CONTROL),
+    let (height, pad) = match size {
+        ButtonSize::Small => (CONTROL, px(8.)),
+        ButtonSize::Large => (DIALOG_CONTROL, px(16.)),
     };
     let base = pressable(div().id(id))
         .test_support()
@@ -252,51 +374,55 @@ fn button_drawn(
         .flex_none()
         .items_center()
         .justify_center()
-        .gap(px(6.))
-        .rounded(radius)
-        .text_size(text)
-        .font_weight(WEIGHT_LABEL)
+        .gap(px(8.))
+        .rounded(RADIUS_CONTROL)
+        .text_size(TEXT)
+        .font_weight(weight)
         .cursor_pointer();
-    let lit =
-        |top: Rgba, bottom: Rgba| linear_gradient(180., linear_color_stop(top, 0.), linear_color_stop(bottom, 1.));
+    // flat fills: the pointer lightens one, a press darkens it
+    let (lighter, darker) = (|fill: Rgba| over(white(0.14), fill), |fill: Rgba| over(alpha(BLACK, 0.14), fill));
     let styled = match kind {
-        ButtonKind::Primary => base
-            .bg(lit(white(1.0), hex(0xe2e5ec)))
-            .text_color(ON_INK)
-            .shadow(vec![shadow(white(0.18), 0., 0., 1.), shadow(alpha(BLACK, 0.45), 1., 2., 0.)])
-            .hover(|s| s.bg(white(1.0)))
-            .active(|s| s.bg(hex(0xd8dbe2))),
+        ButtonKind::Primary => {
+            base.bg(INK).text_color(ON_INK).hover(|s| s.bg(white(1.0))).active(move |s| s.bg(darker(INK)))
+        }
         ButtonKind::Accent => base
             .bg(ACCENT_STRONG)
             .text_color(white(1.0))
-            .shadow(vec![shadow(alpha(ACCENT, 0.35), 0., 0., 1.), shadow(alpha(BLACK, 0.4), 1., 2., 0.)])
-            .hover(|s| s.bg(hex(0x5c88ff)))
-            .active(|s| s.bg(hex(0x4472f0))),
-        ButtonKind::Secondary => border_width(base.bg(white(0.055)).border_color(RULE_STRONG), 1.)
+            .hover(move |s| s.bg(lighter(ACCENT_STRONG)))
+            .active(move |s| s.bg(darker(ACCENT_STRONG))),
+        // the edge is drawn inside the button's box, so its words stand where another button's do
+        ButtonKind::Secondary => base
+            .shadow(vec![BoxShadow {
+                color: hsla(LINE_STRONG),
+                offset: point(px(0.), px(0.)),
+                blur_radius: px(0.),
+                spread_radius: px(1.),
+                inset: true,
+            }])
             .text_color(INK)
-            .hover(|s| s.bg(white(0.09)))
-            .active(|s| s.bg(white(0.12))),
+            .hover(|s| s.bg(HOVER))
+            .active(|s| s.bg(SOFT)),
         ButtonKind::Ghost => base.text_color(INK_2).hover(|s| s.bg(HOVER).text_color(INK)).active(|s| s.bg(SOFT)),
         ButtonKind::Danger => base
             .bg(LAMP_RED)
-            .text_color(white(1.0))
-            .shadow(vec![shadow(alpha(BLACK, 0.4), 1., 2., 0.)])
-            .hover(|s| s.bg(hex(0xff7378)))
-            .active(|s| s.bg(hex(0xe85a60))),
+            .text_color(ON_INK)
+            .hover(move |s| s.bg(lighter(LAMP_RED)))
+            .active(move |s| s.bg(darker(LAMP_RED))),
     };
     styled
-        .children(icon.map(|(icon, tint)| svg().path(icon).flex_none().size(px(14.)).text_color(tint.unwrap_or(fg))))
+        .children(icon.map(|(icon, tint)| svg().path(icon).flex_none().size(ICON).text_color(tint.unwrap_or(fg))))
         .child(label)
-        .children(key.map(|key| div().ml(px(4.)).text_color(alpha(fg, 0.6)).child(key)))
+        .children(key.map(|key| div().text_color(alpha(fg, 0.7)).child(key)))
 }
 
-/// A square button holding one icon, labelled for tests and the accessibility tree (26 px, as in the top rows).
+/// A square button holding one icon, labelled for tests and the accessibility tree: a control's 28 px around a
+/// 16 px icon.
 pub fn icon_button(id: impl Into<ElementId>, icon: &'static str, label: impl Into<SharedString>) -> Pressed {
     pressable(div().id(id))
         .test_support()
         .role(Role::Button)
         .aria_label(label.into())
-        .size(PROJECT_TAB_HEIGHT)
+        .size(CONTROL)
         .flex()
         .flex_none()
         .items_center()
@@ -305,10 +431,37 @@ pub fn icon_button(id: impl Into<ElementId>, icon: &'static str, label: impl Int
         .cursor_pointer()
         .hover(|s| s.bg(HOVER))
         .active(|s| s.bg(SOFT))
-        .child(svg().path(icon).size(px(15.)).text_color(INK_3))
+        .child(svg().path(icon).size(ICON).text_color(INK_3))
 }
 
-/// One item of our menus: a 14 px icon, then the words, 8 px apart, in `color` (INK, or LAMP_RED for what removes
+/// What every item of our menus is (DESIGN.md, "Space, size, shape"): a row of 28 px with 13 px words that start
+/// 8 px inside the item's fill. The library's item brings 6.5 of those 8 px itself, so ours stands 1.5 px inside it
+/// and takes the room that is left.
+pub fn in_menu<E: Styled>(item: E) -> E {
+    item.h(LIST_ROW).mx(px(1.5)).flex_1().min_w_0().text_size(TEXT).line_height(TEXT_LINE)
+}
+
+/// A line of a menu that names it, or a group of its items: quiet, and not one to choose. It starts where the
+/// items' signs do.
+pub fn menu_label(words: impl Into<SharedString>) -> gpui_kit::component::menu::PopupMenuItem {
+    let words: SharedString = words.into();
+    gpui_kit::component::menu::PopupMenuItem::element(move |_, _| {
+        div()
+            .id(SharedString::from(format!("menu-label:{words}")))
+            .test_support()
+            .aria_label(words.clone())
+            .flex()
+            .items_center()
+            .map(in_menu)
+            .h(CONTROL)
+            .text_size(TEXT_SMALL)
+            .text_color(INK_3)
+            .child(div().min_w_0().truncate().child(words.clone()))
+    })
+    .disabled(true)
+}
+
+/// One item of our menus: a 16 px icon, then the words, 8 px apart, in `color` (INK, or LAMP_RED for what removes
 /// something, INK_3 while it can't be chosen). Its `id` and words let a test find and click it.
 pub fn menu_item(
     id: &'static str,
@@ -325,8 +478,9 @@ pub fn menu_item(
             .flex()
             .items_center()
             .gap(px(8.))
+            .map(in_menu)
             .text_color(color)
-            .child(svg().path(icon).flex_none().size(px(14.)).text_color(color))
+            .child(svg().path(icon).flex_none().size(ICON).text_color(color))
             .child(words.clone())
     })
 }
@@ -347,8 +501,9 @@ pub fn menu_item_tinted(
             .flex()
             .items_center()
             .gap(px(8.))
+            .map(in_menu)
             .text_color(INK)
-            .child(svg().path(icon).flex_none().size(px(14.)).text_color(tint))
+            .child(svg().path(icon).flex_none().size(ICON).text_color(tint))
             .child(words.clone())
     })
 }
@@ -372,8 +527,9 @@ pub fn menu_item_with_key(
             .flex()
             .items_center()
             .gap(px(8.))
+            .map(in_menu)
             .text_color(color)
-            .child(svg().path(icon).flex_none().size(px(14.)).text_color(color))
+            .child(svg().path(icon).flex_none().size(ICON).text_color(color))
             .child(div().flex_1().child(words.clone()))
             .child(div().flex_none().text_size(TEXT_SMALL).text_color(INK_3).child(key))
     })
@@ -530,16 +686,13 @@ impl gpui_kit::RenderOnce for MenuFrom {
                 let fading =
                     ElementId::Name(SharedString::from(format!("menu-out:{:?}:{}", self.id, open.read(cx).turn)));
                 self.trigger.child(
-                    gpui_kit::deferred(
-                        gpui_kit::anchored().position(at.origin).child(
-                            div()
-                                .relative()
-                                .w(at.size.width)
-                                .child(menu)
-                                .child(div().absolute().inset_0().occlude())
-                                .with_animation(fading, Animation::new(MENU_LEAVE), |menu, t| menu.opacity(1. - t)),
+                    gpui_kit::deferred(gpui_kit::anchored().position(at.origin).child(
+                        menu_frame(menu).w(at.size.width).child(div().absolute().inset_0().occlude()).with_animation(
+                            fading,
+                            Animation::new(MENU_LEAVE),
+                            |menu, t| menu.opacity(1. - t),
                         ),
-                    )
+                    ))
                     .with_priority(gpui_kit::base::POPUP_PRIORITY),
                 )
             }
@@ -572,7 +725,7 @@ impl gpui_kit::RenderOnce for MenuFrom {
                     }
                 };
                 let at = open.read(cx).at.clone();
-                div().relative().child(menu).on_prepaint(move |bounds, _, _| at.set(bounds)).with_animation(
+                menu_frame(menu).on_prepaint(move |bounds, _, _| at.set(bounds)).with_animation(
                     moving.clone(),
                     Animation::new(DUR_QUICK).with_easing(|t| bezier(EASE_OUT, t)),
                     |menu, t| menu.top(px(-MENU_SLIDE * (1. - t))).opacity(t),
@@ -596,17 +749,17 @@ pub fn chip(text: impl Into<SharedString>, color: Rgba) -> Div {
         .flex()
         .flex_none()
         .items_center()
-        .h(px(18.))
-        .px(px(6.))
+        .h(CHIP)
+        .px(px(8.))
         .rounded(RADIUS_TAG)
         .bg(alpha(color, 0.14))
         .text_color(color)
-        .text_size(CAPTION)
+        .text_size(TEXT_STATUS)
         .font_weight(WEIGHT_LABEL)
         .child(text.into())
 }
 
-/// A key or shortcut as the keyboard writes it (`⌘K`), in a small hairline box.
+/// A key or shortcut as the keyboard writes it (`⌘K`), in a small box with a clear edge.
 pub fn kbd(keys: impl Into<SharedString>) -> Div {
     border_width(
         div()
@@ -614,20 +767,19 @@ pub fn kbd(keys: impl Into<SharedString>) -> Div {
             .flex_none()
             .items_center()
             .justify_center()
-            .h(px(18.))
-            .min_w(px(18.))
+            .h(CHIP)
+            .min_w(CHIP)
             .px(px(4.))
-            .rounded(RADIUS_TAG)
-            .bg(white(0.04))
-            .border_color(RULE_STRONG)
-            .text_color(INK_2)
+            .rounded(RADIUS_SMALL)
+            .border_color(LINE_STRONG)
+            .text_color(INK_3)
             .text_size(CAPTION)
             .child(keys.into()),
         1.,
     )
 }
 
-/// A switch, on or off: 30 by 18, a dim track with a white thumb when off, a bright track with a dark thumb when on.
+/// A switch, on or off: 32 by 20 with 2 px around its 16 px thumb, a dim track with a white thumb when off, a bright track with a dark thumb when on.
 /// The thumb glides across in 160 ms when it changes while you look at it; a page that opens shows it where it stands.
 /// `id` and `label` name it, and a test reads `checked()`.
 pub fn switch(
@@ -663,19 +815,11 @@ fn switch_toned(
     let changes = changes_seen(part("seen".into()), on as u64, window, cx);
     let (off_at, on_at) = (2., 14.);
     let (from, to) = if on { (off_at, on_at) } else { (on_at, off_at) };
-    let thumb = div()
-        .absolute()
-        .top(px(2.))
-        .size(px(14.))
-        .rounded_full()
-        .bg(if on { gpui_kit::rgb(0x000000) } else { gpui_kit::rgb(0xffffff) })
-        .shadow(vec![gpui_kit::BoxShadow {
-            color: alpha(gpui_kit::rgb(0x000000), 0.4).into(),
-            offset: gpui_kit::point(px(0.), px(1.)),
-            blur_radius: px(2.),
-            spread_radius: px(0.),
-            inset: false,
-        }]);
+    let thumb = div().absolute().top(px(2.)).size(px(16.)).rounded_full().bg(if on {
+        gpui_kit::rgb(0x000000)
+    } else {
+        gpui_kit::rgb(0xffffff)
+    });
     let thumb = match changes {
         0 => thumb.left(px(to)).into_any_element(),
         _ => thumb
@@ -694,8 +838,8 @@ fn switch_toned(
         .aria_toggled(if on { gpui_kit::Toggled::True } else { gpui_kit::Toggled::False })
         .relative()
         .flex_none()
-        .w(px(30.))
-        .h(px(18.))
+        .w(px(32.))
+        .h(CHIP)
         .rounded_full()
         .bg(if on { track } else { alpha(INK, 0.18) })
         .cursor_pointer()
@@ -790,11 +934,11 @@ fn arrive(
         .into_any_element()
 }
 
-/// The hues of projects, by their place in the top row: far apart, and no yellows (a white letter needs a hue that
+/// The hues of projects, by their place on the rail: far apart, and no yellows (a white letter needs a hue that
 /// stays deep at this lightness).
 pub const PROJECT_HUES: [f32; 7] = [258., 155., 32., 305., 200., 345., 280.];
 
-/// A project's hue: from its place in the top row, so two projects never share one.
+/// A project's hue: from its place on the rail, so two projects never share one.
 pub fn project_hue(index: usize) -> f32 {
     PROJECT_HUES[index % PROJECT_HUES.len()]
 }
@@ -804,49 +948,56 @@ pub fn badge_letter(name: &str) -> String {
     name.chars().find(|c| c.is_ascii_alphanumeric()).map_or("?".into(), |c| c.to_ascii_uppercase().to_string())
 }
 
+/// A badge's corner and its letter's size: a small one (16 px, beside a name) and the rail's (24 px).
+fn badge_shape(size: f32) -> (f32, f32) {
+    if size >= 24. { (8., 13.) } else { (4., 10.) }
+}
+
 /// A project's badge: its first letter in white on its own color, lit from above like an app icon.
 pub fn project_badge(name: &str, hue: f32, size: f32) -> Div {
+    let (corner, letter) = badge_shape(size);
     div()
         .flex()
         .flex_none()
         .items_center()
         .justify_center()
         .size(px(size))
-        .rounded(RADIUS_TAG)
+        .rounded(px(corner))
         .bg(linear_gradient(
             180.,
             linear_color_stop(oklch(0.64, 0.15, hue), 0.),
             linear_color_stop(oklch(0.52, 0.15, hue), 1.),
         ))
-        .shadow(vec![shadow(alpha(oklch(0.3, 0.08, hue), 0.6), 0., 0., 0.5)])
         .text_color(white(1.0))
-        .text_size(px((size * 0.58).round()))
-        .font_weight(FontWeight::SEMIBOLD)
+        .text_size(px(letter))
+        .font_weight(FontWeight::BOLD)
         .child(badge_letter(name))
 }
 
-/// The badge of a project that is not the one on screen: its letter on a gray tile, so the top row keeps its color
-/// for the project you are in (DESIGN.md, "States": the ranks of the top rows).
+/// A project's badge without its color: its letter on a gray tile (a card of the switcher that is not the project
+/// on screen).
 pub fn project_badge_quiet(name: &str, size: f32) -> Div {
+    let (corner, letter) = badge_shape(size);
     div()
         .flex()
         .flex_none()
         .items_center()
         .justify_center()
         .size(px(size))
-        .rounded(RADIUS_TAG)
+        .rounded(px(corner))
         .bg(white(0.14))
         .text_color(INK_2)
-        .text_size(px((size * 0.58).round()))
-        .font_weight(FontWeight::SEMIBOLD)
+        .text_size(px(letter))
+        .font_weight(FontWeight::BOLD)
         .child(badge_letter(name))
 }
 
-/// The bar at the left of the row of what is on screen (DESIGN.md, "States"): signal blue, gray while the window is
-/// behind another app. It stands `inset` px in from the row's top and bottom; the row must be `relative()`.
+/// The bar at the left of the row of what is on screen, in a list that has a picked row as well (DESIGN.md,
+/// "States"): blue, gray while the window is behind another app. It stands `inset` px in from the row's top and
+/// bottom; the row must be `relative()`.
 pub fn on_screen_bar(inset: f32, window_in_front: bool) -> Div {
     div().absolute().top(px(inset)).bottom(px(inset)).left_0().w(SELECTED_BAR).rounded_full().bg(if window_in_front {
-        ACCENT
+        HERE
     } else {
         BEHIND
     })

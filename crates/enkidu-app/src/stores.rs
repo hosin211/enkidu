@@ -50,7 +50,18 @@ pub struct Stores {
     pub work: Entity<Work>,
     /// What you wrote about each card of the Work page, kept until it goes.
     pub drafts: Entity<Drafts>,
+    /// Each project's own icon, for its button on the rail.
+    pub icons: Entity<Icons>,
     core: Option<Arc<enkidu_core::Core>>,
+}
+
+/// Each project's own icon, by project: the picture its settings name, or the one found in its folder. A project
+/// that has none shows its letter.
+#[derive(Default)]
+pub struct Icons {
+    pub of: HashMap<String, PathBuf>,
+    /// The projects the icons were last looked for, in their order.
+    asked: Vec<String>,
 }
 
 /// Toasts that wait for the window: news that came from the core, not from something you pressed.
@@ -137,6 +148,32 @@ impl Stores {
 
     pub fn work(cx: &App) -> Entity<Work> {
         cx.global::<Stores>().work.clone()
+    }
+
+    /// A project's own icon, where one was found for it (none in a window made without the stores).
+    pub fn icon_of(project: &str, cx: &App) -> Option<PathBuf> {
+        cx.try_global::<Stores>().and_then(|stores| stores.icons.read(cx).of.get(project).cloned())
+    }
+
+    /// Looks for every project's icon again, off the drawing thread: as the projects are read, when one is added or
+    /// removed, and after a project's settings were saved.
+    pub fn read_icons(cx: &mut App) {
+        let Some(icons) = cx.try_global::<Stores>().map(|stores| stores.icons.clone()) else { return };
+        let answer = Bridge::ask(cx, enkidu_core::commands::project_icons);
+        cx.spawn(async move |cx: &mut AsyncApp| {
+            let Ok(Ok(found)) = answer.await else { return };
+            let found: HashMap<String, PathBuf> =
+                found.into_iter().map(|(id, path)| (id, PathBuf::from(path))).collect();
+            cx.update(|cx| {
+                icons.update(cx, |icons, cx| {
+                    if icons.of != found {
+                        icons.of = found;
+                        cx.notify();
+                    }
+                })
+            });
+        })
+        .detach();
     }
 
     /// Asks git for a workspace's changes again, as when it comes on screen. Mostly nothing changed, and the list shown
@@ -431,7 +468,20 @@ pub fn install(mut events: UnboundedReceiver<Event>, feeds: Arc<Feeds>, places: 
     if let Some(path) = kept_drafts {
         keep_drafts(&drafts, path, cx);
     }
-    Stores { frame, progress, terminals, changes, ui, remarks, search, notices, work, drafts, core: None }
+    // each project's own icon: looked for whenever the projects themselves change
+    let icons = cx.new(|_| Icons::default());
+    cx.observe(&frame, {
+        let icons = icons.clone();
+        move |frame, cx| {
+            let projects: Vec<String> = frame.read(cx).projects.iter().map(|project| project.id.clone()).collect();
+            if icons.read(cx).asked != projects {
+                icons.update(cx, |icons, _| icons.asked = projects);
+                Stores::read_icons(cx);
+            }
+        }
+    })
+    .detach();
+    Stores { frame, progress, terminals, changes, ui, remarks, search, notices, work, drafts, icons, core: None }
 }
 
 /// Writes what you wrote about the Work page's cards to `path`, off the drawing thread, a moment after it last

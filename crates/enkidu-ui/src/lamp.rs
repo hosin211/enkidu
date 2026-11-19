@@ -11,11 +11,10 @@ use std::time::Duration;
 
 use gpui_kit::prelude::*;
 use gpui_kit::{
-    Animation, AnimationExt as _, BoxShadow, ElementId, IntoElement, Rgba, SharedString, Transformation, div,
-    percentage, point, px, svg,
+    Animation, AnimationExt as _, ElementId, IntoElement, Rgba, SharedString, Transformation, div, percentage, px, svg,
 };
 
-use crate::tokens::{self, EASE_POP, POP, alpha, bezier, hsla};
+use crate::tokens::{self, EASE_POP, POP, bezier};
 
 /// How many times a second a lamp's ring or ping moves on.
 pub const LAMP_FPS: f32 = 15.0;
@@ -72,13 +71,8 @@ impl Status {
 
     /// The light's own width for a lamp `size` wide.
     pub fn dot(self, size: f32) -> f32 {
-        (size
-            * match self {
-                Status::Working => 0.42,
-                Status::Idle => 0.58,
-                _ => 0.5,
-            })
-        .round()
+        // half the lamp: 8 px of 16; the working light is smaller inside its ring, 6 px
+        (size * if self == Status::Working { 0.375 } else { 0.5 }).round()
     }
 }
 
@@ -97,15 +91,10 @@ pub fn lamp(id: impl Into<ElementId>, status: Status, size: f32, pops: u32) -> i
     let dot = status.dot(size);
     let name = |what: &str| ElementId::NamedChild(Arc::new(id.clone()), SharedString::from(what.to_string()));
 
+    // a flat light: a hollow ring while idle, else filled with its state's color
     let light = div().flex_none().size(px(dot)).rounded_full().map(|light| match status {
-        Status::Idle => light.border_1().border_color(color),
-        _ => light.bg(color).shadow(vec![BoxShadow {
-            color: hsla(alpha(color, 0.55)),
-            offset: point(px(0.), px(0.)),
-            blur_radius: px(dot * 1.1),
-            spread_radius: px(0.),
-            inset: false,
-        }]),
+        Status::Idle => crate::pieces::border_width(light, 1.5).border_color(color),
+        _ => light.bg(color),
     });
     // a new state: the light grows from 0.3 of its size with a small overshoot, 460 ms
     let light = if pops > 0 {
@@ -169,8 +158,8 @@ mod tests {
         assert_eq!(Status::from_core("done"), Status::Done);
         assert_eq!(Status::from_core("idle"), Status::Idle);
         assert_eq!(Status::from_core("anything else"), Status::Idle);
-        // the sizes at 14 px: working 6, idle 8, the others 7
-        assert_eq!((Status::Working.dot(14.), Status::Idle.dot(14.), Status::Done.dot(14.)), (6., 8., 7.));
+        // the sizes at 16 px: working 6, the others 8
+        assert_eq!((Status::Working.dot(16.), Status::Idle.dot(16.), Status::Done.dot(16.)), (6., 8., 8.));
         assert_eq!(Status::NeedsYou.label(), "Needs you");
     }
 

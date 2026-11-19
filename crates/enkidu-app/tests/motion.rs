@@ -121,7 +121,7 @@ fn another_workspace_coming_on_screen_shows_its_changes_in_place(cx: &mut TestAp
 }
 
 #[gpui_kit::test]
-fn a_panel_slides_in_from_the_right_edge(cx: &mut TestAppContext) {
+fn the_panel_slides_in_from_the_right_edge(cx: &mut TestAppContext) {
     let (app, _) = start(cx, true);
     // as the window opened, the panel is in its place
     let place = bounds(cx, &app, "island-panel");
@@ -134,20 +134,26 @@ fn a_panel_slides_in_from_the_right_edge(cx: &mut TestAppContext) {
     assert_eq!((first.top(), first.size), (place.top(), place.size));
     settle(cx, &app, 300);
     assert_eq!(bounds(cx, &app, "island-panel"), place);
-    // the other panel takes its place: it slides in too
+    // its other tab just shows: the panel is there already, so nothing arrives
     app.press(cx, "alt-cmd-2");
     assert!(app.until(cx, |w| said(w, "panel-band").as_deref() == Some("Files")));
-    assert_eq!(bounds(cx, &app, "island-panel").left() - place.left(), px(14.), "the other panel");
+    assert_eq!(bounds(cx, &app, "island-panel"), place, "the other tab made the panel slide");
+    // and so does the other tab's key: closed, then open again from 14 px to the right
+    app.press(cx, "alt-cmd-2");
+    assert!(app.until(cx, |w| w.try_find("island-panel").is_none()));
+    app.press(cx, "alt-cmd-2");
+    assert_eq!(appears(cx, &app, "island-panel").left() - place.left(), px(14.), "the other key");
     settle(cx, &app, 300);
     assert_eq!(bounds(cx, &app, "island-panel"), place);
 }
 
 #[gpui_kit::test]
-fn a_new_changed_files_row_flashes_once_and_the_bars_count_pops(cx: &mut TestAppContext) {
+fn a_new_changed_files_row_flashes_once_and_the_tabs_count_ticks(cx: &mut TestAppContext) {
     let (app, folder) = start(cx, true);
     std::fs::write(folder.join("src/app.py"), CODE).unwrap();
     assert!(app.until(cx, |w| w.try_find(("change-row", 0usize)).is_some()), "the file was never listed");
     settle(cx, &app, 2000);
+    let place = bounds(cx, &app, "panel-count");
     // a file that turns up while the panel is on screen lights up; the one that was there doesn't
     std::fs::write(folder.join("notes.md"), "# Notes\n").unwrap();
     assert!(app.until(cx, |w| w.try_find(("change-row", 1usize)).is_some()), "the new file was never listed");
@@ -158,12 +164,12 @@ fn a_new_changed_files_row_flashes_once_and_the_bars_count_pops(cx: &mut TestApp
     });
     assert_eq!(new_row.label(), Some("notes.md"));
     assert_eq!(flashes, [new_row.bounds()], "the new file's row, and only it: {:?}", old_row.bounds());
-    // the count on the bar's button went from 1 to 2: it pops in from half its size
-    let pill = bounds(cx, &app, "rail-count-pill");
-    assert!(pill.size.height < px(15.), "the count didn't pop: {pill:?}");
+    // the count on the tab went from 1 to 2: it ticks into place from 4 px above
+    let ticking = bounds(cx, &app, "panel-count");
+    assert_eq!(place.top() - ticking.top(), px(4.), "the count didn't tick: {ticking:?}");
     settle(cx, &app, 400);
-    assert_eq!(bounds(cx, &app, "rail-count-pill").size.height, px(15.));
-    assert_eq!(look(cx, &app, |w| said(w, "rail-count")).as_deref(), Some("2"));
+    assert_eq!(bounds(cx, &app, "panel-count").top(), place.top());
+    assert_eq!(look(cx, &app, |w| said(w, "panel-count")).as_deref(), Some("2"));
     // 1.8 s later it has settled: the row is drawn without the light
     settle(cx, &app, 1900);
     assert!(look(cx, &app, |w| w.find_all("row-flash").is_empty()), "the flash stayed");
@@ -187,7 +193,7 @@ fn a_new_changed_files_row_flashes_once_and_the_bars_count_pops(cx: &mut TestApp
     std::fs::write(folder.join("later.md"), "later\n").unwrap();
     app.press(cx, "alt-cmd-1");
     assert!(app.until(cx, |w| w.try_find("island-panel").is_none()));
-    assert!(app.until(cx, |w| said(w, "rail-count").as_deref() == Some("4")), "the fourth file never came");
+    assert!(app.until(cx, |w| said(w, "changes-count").as_deref() == Some("4 files")), "the fourth file never came");
     app.press(cx, "alt-cmd-1");
     assert!(app.until(cx, |w| w.try_find(("change-row", 2usize)).is_some()));
     assert!(look(cx, &app, |w| w.find_all("row-flash").is_empty()), "a file that was there when the panel opened");
@@ -208,10 +214,7 @@ fn counts_tick_into_place_when_they_change_never_on_first_show(cx: &mut TestAppC
     assert!(app.until(cx, |w| said(w, "file-added").as_deref() == Some("+5")), "the count never changed");
     let (ticking, ticking_row) = (bounds(cx, &app, "file-added"), bounds(cx, &app, "row-added"));
     assert_eq!(header.top() - ticking.top(), px(4.), "the header's count starts 4 px up");
-    // (in a row of 26 px its place is 3.3 px under the row's top, so its start above that edge lands on the half
-    // pixel: 3.5 px up)
-    let rise = row.top() - ticking_row.top();
-    assert!(rise == px(4.) || rise == px(3.5), "the row's count starts 4 px up: {rise:?}");
+    assert_eq!(row.top() - ticking_row.top(), px(4.), "the row's count starts 4 px up");
     settle(cx, &app, 300);
     assert_eq!(bounds(cx, &app, "file-added").top(), header.top());
     assert_eq!(bounds(cx, &app, "row-added").top(), row.top());
@@ -257,15 +260,15 @@ fn nothing_moves_with_reduced_motion(cx: &mut TestAppContext) {
     assert_eq!(appears(cx, &app, "island-panel"), place, "the panel slid");
     // a count that changes
     assert!(app.until(cx, |w| said(w, "file-added").as_deref() == Some("+4")));
-    let count = bounds(cx, &app, "file-added");
+    let (count, on_the_tab) = (bounds(cx, &app, "file-added"), bounds(cx, &app, "panel-count"));
     std::fs::write(folder.join("src/app.py"), format!("{CODE}\n")).unwrap();
     assert!(app.until(cx, |w| said(w, "file-added").as_deref() == Some("+5")), "the count never changed");
     assert_eq!(bounds(cx, &app, "file-added").top(), count.top(), "the count ticked");
-    // a new changed file, and the bar's count
+    // a new changed file, and the count on the panel's tab
     std::fs::write(folder.join("notes.md"), "# Notes\n").unwrap();
     assert!(app.until(cx, |w| w.try_find(("change-row", 1usize)).is_some()), "the new file was never listed");
     assert!(look(cx, &app, |w| w.find_all("row-flash").is_empty()), "a row flashed");
-    assert_eq!(bounds(cx, &app, "rail-count-pill").size.height, px(15.), "the count popped");
+    assert_eq!(bounds(cx, &app, "panel-count").top(), on_the_tab.top(), "the tab's count ticked");
     // a remark's box (once the new file's diff is read: its lines arriving above would move everything under them,
     // which is no motion of the box)
     assert!(
@@ -486,7 +489,7 @@ fn tip(cx: &mut TestAppContext, app: &App) -> Option<(String, Bounds<Pixels>)> {
 fn a_tooltip_eases_in_under_its_button_after_the_wait_and_fades_as_the_pointer_leaves(cx: &mut TestAppContext) {
     let (app, _) = start(cx, true);
     point_at(cx, &app, "terminal");
-    point_at(cx, &app, "palette");
+    point_at(cx, &app, "layout-side");
     // nothing until the pointer has rested there for 450 ms
     settle(cx, &app, 400);
     assert_eq!(tip(cx, &app), None, "it came before its time");
@@ -494,7 +497,7 @@ fn a_tooltip_eases_in_under_its_button_after_the_wait_and_fades_as_the_pointer_l
     // moment it comes and no further: the window is drawn as it comes)
     cx.executor().advance_clock(Duration::from_millis(50));
     let (said, first) = tip(cx, &app).expect("the tooltip never came");
-    assert_eq!(said, "Commands");
+    assert_eq!(said, "Changes beside the terminal");
     settle(cx, &app, 20);
     let midway = tip(cx, &app).expect("still there").1;
     settle(cx, &app, 300);
@@ -503,7 +506,7 @@ fn a_tooltip_eases_in_under_its_button_after_the_wait_and_fades_as_the_pointer_l
     assert!(midway.top() > first.top() && midway.top() < there.top(), "{first:?} {midway:?} {there:?}");
     assert_eq!((first.left(), first.size), (there.left(), there.size), "only down");
     // under its button, 6 px away, and inside the window
-    let button = bounds(cx, &app, "palette");
+    let button = bounds(cx, &app, "layout-side");
     assert_eq!(there.top(), button.bottom() + px(6.), "{there:?} under {button:?}");
     let window = look(cx, &app, |w| w.viewport_size());
     assert!(there.right() <= window.width - px(8.) && there.left() >= px(8.), "{there:?} in {window:?}");
@@ -515,38 +518,38 @@ fn a_tooltip_eases_in_under_its_button_after_the_wait_and_fades_as_the_pointer_l
     settle(cx, &app, 60);
     assert_eq!(tip(cx, &app), None, "it stayed past its 110 ms");
 
-    // back on a button within a quarter of a second: no wait and no motion, as along a toolbar
+    // back on a button within a quarter of a second: no wait and no motion, as along a bar
     settle(cx, &app, 100);
-    point_at(cx, &app, "settings");
+    point_at(cx, &app, "layout-stack");
     let (said, at_once) = tip(cx, &app).expect("the next one waited");
-    assert_eq!(said, "Settings");
+    assert_eq!(said, "Changes above the terminal");
     settle(cx, &app, 300);
     assert_eq!(tip(cx, &app).map(|(_, bounds)| bounds), Some(at_once), "the next one moved");
     // and from one button straight to the one beside it
-    point_at(cx, &app, "palette");
-    assert_eq!(tip(cx, &app).map(|(said, _)| said).as_deref(), Some("Commands"));
+    point_at(cx, &app, "layout-side");
+    assert_eq!(tip(cx, &app).map(|(said, _)| said).as_deref(), Some("Changes beside the terminal"));
 
     // later than that, it waits again
     point_at(cx, &app, "terminal");
     settle(cx, &app, 400);
-    point_at(cx, &app, "settings");
+    point_at(cx, &app, "layout-stack");
     settle(cx, &app, 400);
     assert_eq!(tip(cx, &app), None, "it came without its wait");
     settle(cx, &app, 100);
-    assert_eq!(tip(cx, &app).map(|(said, _)| said).as_deref(), Some("Settings"));
+    assert_eq!(tip(cx, &app).map(|(said, _)| said).as_deref(), Some("Changes above the terminal"));
 
     // a key sends it away, and so does the wheel
     app.press(cx, "shift-f12");
     assert_eq!(tip(cx, &app), None, "a key left it there");
     point_at(cx, &app, "terminal");
     settle(cx, &app, 400);
-    point_at(cx, &app, "settings");
+    point_at(cx, &app, "layout-stack");
     settle(cx, &app, 460);
     assert!(tip(cx, &app).is_some());
-    let on_the_gear = bounds(cx, &app, "settings").center();
+    let on_the_button = bounds(cx, &app, "layout-stack").center();
     cx.update_window(app.window, |_, w, cx| {
         let wheel = gpui_kit::ScrollEvent {
-            position: on_the_gear,
+            position: on_the_button,
             delta: gpui_kit::ScrollDelta::Pixels(gpui_kit::point(px(0.), px(-12.))),
             ..Default::default()
         };
@@ -559,7 +562,7 @@ fn a_tooltip_eases_in_under_its_button_after_the_wait_and_fades_as_the_pointer_l
     cx.update(|cx| cx.set_reduce_motion(true));
     point_at(cx, &app, "terminal");
     settle(cx, &app, 400);
-    point_at(cx, &app, "palette");
+    point_at(cx, &app, "layout-side");
     settle(cx, &app, 460);
     assert_eq!(tip(cx, &app).map(|(_, bounds)| bounds.top()), Some(there.top()), "nothing moves with reduced motion");
 }
@@ -642,10 +645,9 @@ fn a_dialog_fades_in_over_its_last_8_px_and_the_palette_and_search_are_there_at_
     assert_eq!(appears(cx, &app, "new-workspace-dialog").top(), there.top(), "nothing moves with reduced motion");
 }
 
-/// DESIGN.md, "Motion": "The tab pill, segmented thumbs: glide 220 ms to the new choice". (The tab pill's own test
-/// is `the_tab_pill_glides_to_the_chosen_tab` in tests/screen.rs.)
+/// DESIGN.md, "Motion": "A switch's thumb: glides 220 ms to the new choice".
 #[gpui_kit::test]
-fn a_segmented_controls_thumb_glides_to_the_new_choice(cx: &mut TestAppContext) {
+fn a_switch_s_thumb_glides_to_the_new_choice(cx: &mut TestAppContext) {
     let (app, _) = start(cx, true);
     settle(cx, &app, 400);
     let from = bounds(cx, &app, "workspace-layout-thumb");
@@ -686,10 +688,14 @@ fn a_toast_rises_into_the_corner_and_leaves_to_the_right(cx: &mut TestAppContext
     assert!(midway.top() < first.top() && midway.top() > there.top(), "{first:?} {midway:?} {there:?}");
     assert!(near(nearly.top(), there.top()), "{nearly:?} {there:?}");
     assert_eq!((first.left(), first.size), (there.left(), there.size), "only up");
-    // in the window's bottom right corner, 16 px from its edges
+    // in the window's bottom right corner: 16 px from its right edge (over the files' column when that is open),
+    // and 8 px above the stage's foot, so it never covers the status line
     let window = look(cx, &app, |w| w.viewport_size());
     let card = look(cx, &app, |w| w.find(("toast-card", 0usize)).bounds());
-    assert_eq!((card.right(), card.bottom()), (window.width - px(16.), window.height - px(16.)), "{card:?}");
+    let (stage, line) = look(cx, &app, |w| (w.find("stage").bounds(), w.find("status-line").bounds()));
+    assert_eq!((card.right(), card.bottom()), (window.width - px(16.), window.height - px(36.)), "{card:?}");
+    assert_eq!(stage.bottom() - card.bottom(), px(8.), "{stage:?}");
+    assert!(card.bottom() < line.top(), "{card:?} over {line:?}");
     assert_eq!(card.size.width, px(360.));
 
     // closed, it goes to the right for 180 ms and is gone; the frame of the press still has it in its place

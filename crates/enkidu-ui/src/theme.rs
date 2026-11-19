@@ -14,11 +14,11 @@ pub fn colors() -> ThemeColor {
     let none = h(white(0.0));
     let mut c = ThemeColor::default();
     // the layers and their text
-    c.background = h(CANVAS);
+    c.background = h(WELL);
     c.foreground = h(INK);
-    c.border = h(RULE_STRONG);
-    c.window_border = h(ISLAND_EDGE);
-    c.popover = h(RAISED);
+    c.border = h(LINE_STRONG);
+    c.window_border = h(LINE);
+    c.popover = h(SHEET);
     c.popover_foreground = h(INK);
     c.overlay = h(SCRIM);
     c.muted = h(HOVER);
@@ -29,7 +29,7 @@ pub fn colors() -> ThemeColor {
     c.ring = h(FOCUS);
     c.caret = h(ACCENT);
     c.selection = h(ACCENT_SOFT);
-    c.input = h(RULE_STRONG);
+    c.input = h(LINE_STRONG);
     c.link = h(ACCENT);
     c.link_hover = h(ACCENT);
     c.link_active = h(ACCENT_STRONG);
@@ -37,7 +37,7 @@ pub fn colors() -> ThemeColor {
     c.drop_target = h(ACCENT_SOFT);
     c.progress_bar = h(ACCENT);
     c.skeleton = h(HOVER);
-    // buttons: primary is white, lit from above like a key; secondary a hairline on a faint fill; info is ours
+    // buttons: primary is white with black words; secondary has a faint fill; info is ours
     c.primary = h(INK);
     c.primary_hover = h(white(1.0));
     c.primary_active = h(INK_2);
@@ -102,38 +102,38 @@ pub fn colors() -> ThemeColor {
     // lists and tables: the selected row is a fill with a signal-blue bar
     c.list = none;
     c.list_even = none;
-    c.list_head = h(CHROME);
+    c.list_head = h(PANE);
     c.list_hover = h(HOVER);
     c.list_active = h(SELECTED);
     c.list_active_border = h(ACCENT);
     c.table = none;
     c.table_even = none;
-    c.table_head = h(CHROME);
+    c.table_head = h(PANE);
     c.table_head_foreground = h(INK_2);
-    c.table_foot = h(CHROME);
+    c.table_foot = h(PANE);
     c.table_foot_foreground = h(INK_2);
     c.table_hover = h(HOVER);
     c.table_active = h(SELECTED);
     c.table_active_border = h(ACCENT);
-    c.table_row_border = h(RULE);
-    c.description_list_label = h(CHROME);
+    c.table_row_border = h(LINE);
+    c.description_list_label = h(PANE);
     c.description_list_label_foreground = h(INK_2);
-    c.group_box = h(CHROME);
+    c.group_box = h(PANE);
     c.group_box_foreground = h(INK);
-    c.accordion = h(CANVAS);
+    c.accordion = h(WELL);
     // tabs, bars and the side rail: the frame around the islands
-    c.tab_bar = h(FRAME);
-    c.tab_bar_segmented = h(FRAME);
+    c.tab_bar = h(PANE);
+    c.tab_bar_segmented = h(PANE);
     c.tab = none;
-    c.tab_active = h(CANVAS);
+    c.tab_active = h(WELL);
     c.tab_foreground = h(INK_2);
     c.tab_active_foreground = h(INK);
-    c.title_bar = h(FRAME);
-    c.title_bar_border = h(RULE);
-    c.status_bar = h(FRAME);
-    c.status_bar_border = h(RULE);
-    c.sidebar = h(FRAME);
-    c.sidebar_border = h(RULE);
+    c.title_bar = h(PANE);
+    c.title_bar_border = h(LINE);
+    c.status_bar = h(PANE);
+    c.status_bar_border = h(LINE);
+    c.sidebar = h(PANE);
+    c.sidebar_border = h(LINE);
     c.sidebar_foreground = h(INK_2);
     c.sidebar_accent = h(HOVER);
     c.sidebar_accent_foreground = h(INK);
@@ -142,7 +142,7 @@ pub fn colors() -> ThemeColor {
     // controls
     c.scrollbar = none;
     c.scrollbar_thumb = h(THUMB);
-    c.scrollbar_thumb_hover = h(RULE_STRONG);
+    c.scrollbar_thumb_hover = h(LINE_STRONG);
     c.slider_bar = h(SOFT);
     c.slider_thumb = h(INK);
     c.switch = h(SOFT);
@@ -162,7 +162,7 @@ pub fn colors() -> ThemeColor {
     c.cyan_light = h(ADD_BG);
     c.chart_bullish = h(LAMP_GREEN);
     c.chart_bearish = h(LAMP_RED);
-    c.chart_grid = h(RULE);
+    c.chart_grid = h(LINE);
     c.chart_1 = h(ACCENT);
     c.chart_2 = h(LAMP_GREEN);
     c.chart_3 = h(LAMP_AMBER);
@@ -182,8 +182,10 @@ pub fn apply(cx: &mut App) {
         theme.font_size = TEXT;
         theme.mono_font_family = MONO_FONT.into();
         theme.mono_font_size = MONO_TEXT;
-        theme.radius = RADIUS_CONTROL;
-        theme.radius_lg = ISLAND_RADIUS;
+        // what the library rounds with this is what floats (its menus, the list of a select); our own controls and
+        // fields round themselves
+        theme.radius = RADIUS_DIALOG;
+        theme.radius_lg = RADIUS_DIALOG;
         theme.shadow = true;
         // what the library moves (a dialog coming in) moves by the design's numbers: 220 ms, our strong ease-out,
         // 8 px of travel (DESIGN.md, "Motion": "Dialogs: rise 8 px and fade, 220 ms")
@@ -206,19 +208,16 @@ mod tests {
     /// Every color our palette can give gpui-kit.
     fn palette() -> Vec<Hsla> {
         [
-            FRAME,
-            CANVAS,
-            CHROME,
-            RAISED,
+            PANE,
+            WELL,
+            SHEET,
             TIP,
-            ISLAND_EDGE,
-            HIGHLIGHT,
             INK,
             INK_2,
             INK_3,
             ON_INK,
-            RULE,
-            RULE_STRONG,
+            LINE,
+            LINE_STRONG,
             HOVER,
             SOFT,
             SELECTED,
@@ -276,13 +275,13 @@ mod tests {
             let theme = Theme::global(cx);
             assert!(theme.is_dark());
             assert_eq!(theme.colors, colors());
-            assert_eq!(theme.background, hsla(CANVAS));
-            assert_eq!(theme.popover, hsla(RAISED));
+            assert_eq!(theme.background, hsla(WELL));
+            assert_eq!(theme.popover, hsla(SHEET));
             assert_eq!(theme.ring, hsla(ACCENT));
             assert_eq!(theme.primary, hsla(INK), "primary buttons are white");
             assert_eq!(theme.font_family.as_ref(), ".SystemUIFont");
             assert_eq!(theme.mono_font_family.as_ref(), "JetBrains Mono");
-            assert_eq!((theme.radius, theme.radius_lg), (RADIUS_CONTROL, ISLAND_RADIUS));
+            assert_eq!((theme.radius, theme.radius_lg), (RADIUS_DIALOG, RADIUS_DIALOG));
         });
     }
 }

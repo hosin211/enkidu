@@ -25,6 +25,7 @@ pub mod goto;
 #[rustfmt::skip]
 #[allow(clippy::style, clippy::complexity)]
 pub mod hooks;
+pub mod icon;
 #[rustfmt::skip]
 #[allow(clippy::style, clippy::complexity)]
 pub mod live;

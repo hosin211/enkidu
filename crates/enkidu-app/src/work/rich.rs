@@ -181,13 +181,13 @@ fn file_chip(name: &str) -> Div {
             .flex_none()
             .items_center()
             .gap(px(4.))
-            .rounded(px(5.))
+            .rounded(theme::RADIUS_TAG)
             .bg(theme::HOVER)
-            .px(px(6.))
-            .py(px(1.))
+            .px(px(8.))
+            .h(theme::CHIP)
             .text_size(px(11.5))
             .text_color(theme::INK_3)
-            .child(tinted("icons/image.svg", theme::INK_3, 11.))
+            .child(tinted("icons/image.svg", theme::INK_3, 12.))
             .child(name.to_string()),
     )
 }
@@ -224,7 +224,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
             Block::List { start, items } => {
                 // the marks hang in a gutter of their own, wide enough for the last number
                 let last = start.map(|start| start + items.len().saturating_sub(1) as u64);
-                let gutter = last.map_or(20., |last| 14. + 7. * last.to_string().len() as f32);
+                let gutter = last.map_or(24., |last| 16. + 8. * last.to_string().len() as f32);
                 let rows = items.iter().enumerate().map(|(n, item)| {
                     let mark = match start {
                         Some(start) => format!("{}.", start + n as u64),
@@ -237,7 +237,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                             div()
                                 .w(px(gutter))
                                 .flex_none()
-                                .pr(px(6.))
+                                .pr(px(8.))
                                 .flex()
                                 .justify_end()
                                 .text_color(theme::INK_3)
@@ -260,7 +260,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                         .flex()
                         .items_start()
                         .gap(px(8.))
-                        .child(tinted(icon, color, 13.).mt(px(3.)))
+                        .child(tinted(icon, color, 16.).mt(px(2.)))
                         .child(div().min_w_0().flex_1().children(words(spans, said, names)))
                         .into_any_element(),
                 );
@@ -269,8 +269,8 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                 mono(div())
                     .rounded(px(8.))
                     .border_1()
-                    .border_color(theme::RULE)
-                    .bg(alpha(theme::FRAME, 0.6))
+                    .border_color(theme::LINE)
+                    .bg(alpha(theme::PANE, 0.6))
                     .px(px(12.))
                     .py(px(8.))
                     .text_size(px(12.))
@@ -282,7 +282,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
             Block::Quote(blocks) => out.push(
                 column(8., draw(blocks, QUIET, names, window, cx))
                     .border_l_2()
-                    .border_color(theme::RULE_STRONG)
+                    .border_color(theme::LINE_STRONG)
                     .pl(px(12.))
                     .text_color(theme::INK_3)
                     .into_any_element(),
@@ -300,7 +300,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                         .into_any_element(),
                 );
             }
-            Block::Rule => out.push(div().h(px(1.)).flex_none().bg(theme::RULE).into_any_element()),
+            Block::Rule => out.push(div().h(px(1.)).flex_none().bg(theme::LINE).into_any_element()),
             Block::Fold { title, blocks } => {
                 let id = names.next("fold");
                 // closed until it is opened, and it stays as it was left while the text is on screen
@@ -312,7 +312,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                     div()
                         .rounded(px(8.))
                         .border_1()
-                        .border_color(theme::RULE)
+                        .border_color(theme::LINE)
                         .px(px(12.))
                         .py(px(8.))
                         .child(
@@ -324,7 +324,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                                 .aria_expanded(is_open)
                                 .flex()
                                 .items_center()
-                                .gap(px(6.))
+                                .gap(px(4.))
                                 .text_color(theme::INK)
                                 .cursor_pointer()
                                 .child(tinted(icon, theme::INK_3, 12.))
@@ -351,10 +351,10 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                         let inside = cell.map(|cell| draw(&cell.blocks, said, names, window, cx)).unwrap_or_default();
                         cells.push(
                             column(4., inside)
-                                .px(px(10.))
-                                .py(px(6.))
+                                .px(px(12.))
+                                .py(px(8.))
                                 .when(header, |cell| cell.bg(theme::HOVER))
-                                .when(r + 1 < rows.len(), |cell| cell.border_b_1().border_color(theme::RULE))
+                                .when(r + 1 < rows.len(), |cell| cell.border_b_1().border_color(theme::LINE))
                                 .into_any_element(),
                         );
                     }
@@ -363,7 +363,7 @@ fn draw(blocks: &[Block], base: Base, names: &Names, window: &mut Window, cx: &m
                     div()
                         .rounded(px(8.))
                         .border_1()
-                        .border_color(theme::RULE)
+                        .border_color(theme::LINE)
                         .overflow_hidden()
                         .grid()
                         .grid_cols(columns as u16)
@@ -400,7 +400,7 @@ fn rich_in(id: impl Into<SharedString>, blocks: &[Block], base: Base, window: &m
         .min_w_0()
         .flex()
         .flex_col()
-        .gap(px(10.))
+        .gap(px(8.))
         .text_size(px(13.))
         .line_height(px(20.))
         .text_color(base.color)

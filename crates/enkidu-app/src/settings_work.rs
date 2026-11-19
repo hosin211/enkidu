@@ -26,7 +26,7 @@ const WORK_SAYS: &str = "Your PRs on GitHub and your tickets in Jira, on the Wor
                          your own logins; nothing is ever written to either.";
 
 /// A switch with its name before it: the name on the left, the switch at the right end of the row.
-fn switch_row(label: &'static str, control: impl IntoElement) -> Div {
+pub(crate) fn switch_row(label: &'static str, control: impl IntoElement) -> Div {
     div()
         .flex()
         .items_center()
@@ -105,7 +105,7 @@ impl Settings {
     }
 
     /// Turns one of a project's switches.
-    fn flip(&mut self, project: &str, which: fn(&mut ProjectFields) -> &mut bool, cx: &mut Context<Self>) {
+    pub(crate) fn flip(&mut self, project: &str, which: fn(&mut ProjectFields) -> &mut bool, cx: &mut Context<Self>) {
         if let Some(fields) = self.projects.get_mut(project) {
             let on = which(fields);
             *on = !*on;
@@ -213,14 +213,14 @@ impl Settings {
             div()
                 .flex()
                 .flex_col()
-                .gap(px(6.))
+                .gap(px(8.))
                 .child(switch_row(FAILED_CHECKS, checks))
                 .child(says(FAILED_CHECKS_SAYS))
                 .into_any_element(),
             div()
                 .flex()
                 .flex_col()
-                .gap(px(6.))
+                .gap(px(8.))
                 .child(switch_row(MORNING, morning))
                 .child(says(MORNING_SAYS))
                 .into_any_element(),
@@ -274,8 +274,8 @@ impl Settings {
                             .items_start()
                             .gap(px(8.))
                             .text_size(theme::TEXT_SMALL)
-                            .line_height(px(17.))
-                            .child(div().flex_none().mt(px(5.)).size(px(7.)).rounded_full().bg(lamp))
+                            .line_height(theme::TEXT_SMALL_LINE)
+                            .child(div().flex_none().mt(px(4.)).size(px(8.)).rounded_full().bg(lamp))
                             .child(
                                 div()
                                     .flex_none()

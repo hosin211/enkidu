@@ -14,7 +14,7 @@ use gpui_kit::{
     div, point, px,
 };
 
-use crate::tokens::{ACCENT_STRONG, EASE_OUT, INK_3, alpha, bezier};
+use crate::tokens::{EASE_OUT, INK_3, MARK_BLUE, alpha, bezier};
 
 /// A wedge: its head pressed in at (`x`, `y`), its tail running `len` down. `head` is the head's width, `neck` how
 /// far down the head reaches, `stem` and `tip` the tail's width at the neck and at its end.
@@ -121,7 +121,7 @@ fn paint(bounds: Bounds<Pixels>, pressed: [f32; 2], light: f32, window: &mut Win
         // pressed into the window's gray; the second one then lights in the icon's own blue: the one beside you
         let lit = if ix == last { light } else { 0. };
         fill(wedge, pressed[ix], alpha(INK_3, 0.55 * pressed[ix] * (1. - lit)));
-        fill(wedge, pressed[ix], alpha(ACCENT_STRONG, lit));
+        fill(wedge, pressed[ix], alpha(MARK_BLUE, lit));
     }
 }
 
@@ -177,7 +177,7 @@ mod tests {
             }
         }
         // the second wedge's blue is the icon's own
-        assert!(icon.contains("fill=\"#4F7DFF\""), "the icon's second wedge is accent-strong");
-        assert_eq!(ACCENT_STRONG, crate::tokens::hex(0x4f7dff));
+        assert!(icon.contains("fill=\"#4F7DFF\""), "the icon's second wedge is the mark's blue");
+        assert_eq!(MARK_BLUE, crate::tokens::hex(0x4f7dff));
     }
 }

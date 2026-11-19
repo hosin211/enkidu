@@ -67,8 +67,9 @@ fn writes_a_remark_on_a_line_with_its_code(cx: &mut TestAppContext) {
     );
     cx.update_window(app.window, |_, w, _| {
         assert_eq!(said(w, "file-remarks").as_deref(), Some("1 remark"));
-        assert_eq!(said(w, ("tab-words", 0usize)).as_deref(), Some("1 remark not sent yet"));
-        assert_eq!(said(w, "status-remarks").as_deref(), Some("1 remark not sent"));
+        // on its workspace's tab in the top row, and at the foot of the changes
+        assert_eq!(said(w, ("tab-remarks", 0usize)).as_deref(), Some("1 remark not sent yet"));
+        assert_eq!(said(w, "review-bar").as_deref(), Some("1 remark not sent yet"));
         let card = w.find(gpui_kit::SharedString::from(format!("remark-{}", saved[0].id))).bounds();
         let line = line_number(w, "Line 4, after").unwrap();
         assert!(card.top() > line.y && card.top() - line.y < gpui_kit::px(40.), "the card is right under line 4");
@@ -153,7 +154,10 @@ fn a_remark_is_cancelled_edited_and_deleted_where_it_stands(cx: &mut TestAppCont
     app.click(cx, "delete-remark");
     assert!(until_kept(cx, &app, &ws, 0).is_empty());
     assert!(app.until(cx, |w| cards(w, &edited).is_empty() && w.try_find("file-remarks").is_none()));
-    cx.update_window(app.window, |_, w, _| assert!(w.try_find("status-remarks").is_none())).unwrap();
+    cx.update_window(app.window, |_, w, _| {
+        assert!(w.try_find("review-bar").is_none() && w.try_find(("tab-remarks", 0usize)).is_none())
+    })
+    .unwrap();
 }
 
 #[gpui_kit::test]
@@ -241,7 +245,7 @@ fn a_remark_on_a_file_without_changes_is_listed_under_the_diffs_and_keeps_the_is
         w.render_frame(cx);
         assert!(w.try_find("island-changes").is_some() && w.try_find("changes-count").is_none());
         assert_eq!(cards(w, &saved), ["Sum the prices with sum()"]);
-        assert_eq!(said(w, ("tab-words", 0usize)).as_deref(), Some("1 remark not sent yet"));
+        assert_eq!(said(w, ("tab-remarks", 0usize)).as_deref(), Some("1 remark not sent yet"));
     })
     .unwrap();
 

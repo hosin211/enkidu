@@ -10,9 +10,11 @@ use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::prelude::*;
 use gpui_kit::{AnyElement, Div, ElementId, IntoElement, div, px};
 
-/// A step's mark on the rail: how far down its step it stands, and the square it stands in.
-pub(crate) const MARK_TOP: f32 = 9.;
-pub(crate) const MARK: f32 = 22.;
+/// A step's mark on the rail: how far down its step it stands (level with its first line), and the square it stands
+/// in. The rail's column is 24 px wide, with the square in its middle.
+pub(crate) const MARK_TOP: f32 = 8.;
+pub(crate) const MARK: f32 = 20.;
+const COLUMN: f32 = 24.;
 
 /// A step of a chain: its mark on the rail, the rail going on above it and below it, then what the caller adds
 /// (its words, a time at the right). Steps stand right under each other, so the rail is one line from the first
@@ -26,7 +28,7 @@ pub(crate) fn chain_step(
     below: bool,
 ) -> Pressed {
     let near = if ringed { 0. } else { 2. };
-    let rail = || div().absolute().left(px(MARK / 2. - 0.5)).w(px(1.)).bg(theme::RULE_STRONG);
+    let rail = || div().absolute().left(px(COLUMN / 2. - 0.5)).w(px(1.)).bg(theme::LINE_STRONG);
     enkidu_ui::press::pressable(div().id(id))
         .test_support()
         .relative()
@@ -34,26 +36,26 @@ pub(crate) fn chain_step(
         .w_full()
         .min_w_0()
         .flex()
-        .gap(px(10.))
-        .rounded(px(9.))
-        .px(px(10.))
+        .gap(px(8.))
+        .rounded(theme::RADIUS_CONTROL)
+        .px(px(8.))
         .child(
             div()
                 .relative()
                 .flex_none()
-                .w(px(MARK))
+                .w(px(COLUMN))
                 .when(above, |column| column.child(rail().top_0().h(px(MARK_TOP + near))))
                 .when(below, |column| column.child(rail().top(px(MARK_TOP + MARK - near)).bottom_0()))
                 .child(
                     div()
                         .absolute()
                         .top(px(MARK_TOP))
-                        .left_0()
+                        .left(px((COLUMN - MARK) / 2.))
                         .size(px(MARK))
                         .flex()
                         .items_center()
                         .justify_center()
-                        .when(ringed, |mark| mark.rounded_full().border_1().border_color(theme::RULE_STRONG))
+                        .when(ringed, |mark| mark.rounded_full().border_1().border_color(theme::LINE_STRONG))
                         .child(mark),
                 ),
         )
@@ -61,7 +63,7 @@ pub(crate) fn chain_step(
 
 /// What a step says: its first line, and the quieter one under it.
 pub(crate) fn chain_words(first: impl IntoElement, second: Option<AnyElement>) -> Div {
-    div().min_w_0().flex_1().py(px(8.)).child(first).children(second.map(|second| div().mt(px(2.)).child(second)))
+    div().min_w_0().flex_1().py(px(8.)).child(first).children(second)
 }
 
 /// The step that is shown beside the chain: pressed in, with the blue bar of what is on screen (DESIGN.md,

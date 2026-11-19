@@ -21,17 +21,18 @@ use crate::work::store::Work;
 
 /// A round mark: picked or not.
 fn radio(on: bool) -> Div {
+    // 16 px, level with the row's first line (20 px); the one picked is white, as a ticked box is
     div()
-        .mt(px(3.))
-        .size(px(12.))
+        .mt(px(2.))
+        .size(px(16.))
         .flex()
         .flex_none()
         .items_center()
         .justify_center()
         .rounded_full()
         .border_1()
-        .border_color(if on { theme::ACCENT } else { theme::RULE_STRONG })
-        .when(on, |mark| mark.child(div().size(px(6.)).rounded_full().bg(theme::ACCENT)))
+        .border_color(if on { theme::INK } else { theme::LINE_STRONG })
+        .when(on, |mark| mark.child(div().size(px(8.)).rounded_full().bg(theme::INK)))
 }
 
 /// A row you can pick: its round mark, then what it is on two lines.
@@ -47,8 +48,8 @@ fn option(id: SharedString, label: String, said: String, picked: bool) -> enkidu
         .flex()
         .items_start()
         .gap(px(8.))
-        .rounded(px(7.))
-        .px(px(6.))
+        .rounded(theme::RADIUS_CONTROL)
+        .px(px(8.))
         .py(px(4.))
         .cursor_pointer()
         .map(|row| if picked { row.bg(theme::SELECTED) } else { row.hover(|s| s.bg(theme::HOVER)) })
@@ -57,7 +58,7 @@ fn option(id: SharedString, label: String, said: String, picked: bool) -> enkidu
 
 /// The second line of a row: quiet, on one line.
 fn under(line: &str) -> Div {
-    div().mt(px(2.)).truncate().text_size(px(11.5)).text_color(theme::INK_3).child(line.to_string())
+    div().truncate().text_size(px(11.5)).line_height(px(16.)).text_color(theme::INK_3).child(line.to_string())
 }
 
 impl Card {
@@ -131,15 +132,16 @@ impl Card {
                         .flex_1()
                         .child(
                             div()
+                                .h(px(20.))
                                 .flex()
                                 .items_center()
-                                .gap(px(6.))
-                                .text_size(px(12.5))
-                                .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 12.))
+                                .gap(px(8.))
+                                .text_size(theme::TEXT)
+                                .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 16.))
                                 .child(
                                     div().min_w_0().flex_1().truncate().text_color(theme::INK).child(row.name.clone()),
                                 )
-                                .children(lit.map(|status| lamp(id("claude-lamp"), status, 12., 0))),
+                                .children(lit.map(|status| lamp(id("claude-lamp"), status, 16., 0))),
                         )
                         .child(under(&row.line)),
                 )
@@ -152,7 +154,7 @@ impl Card {
                     .role(Role::Button)
                     .aria_label("Unlink")
                     .mt(px(2.))
-                    .size(px(22.))
+                    .size(theme::CONTROL)
                     .flex()
                     .flex_none()
                     .items_center()
@@ -165,7 +167,7 @@ impl Card {
                     .child(
                         svg()
                             .path("icons/unlink.svg")
-                            .size(px(12.))
+                            .size(theme::ICON)
                             .text_color(theme::INK_3)
                             .group_hover(group, |s| s.text_color(theme::LAMP_RED)),
                     )
@@ -178,12 +180,15 @@ impl Card {
                     .role(Role::Button)
                     .aria_label(SharedString::from(format!("Open {}", row.name)))
                     .mt(px(2.))
+                    .h(theme::CONTROL)
+                    .flex()
                     .flex_none()
-                    .rounded(px(6.))
-                    .px(px(6.))
-                    .py(px(2.))
-                    .text_size(px(12.))
-                    .text_color(theme::INK_3)
+                    .items_center()
+                    .rounded(theme::RADIUS_CONTROL)
+                    .px(px(8.))
+                    .text_size(theme::TEXT_SMALL)
+                    .font_weight(gpui_kit::FontWeight::MEDIUM)
+                    .text_color(theme::INK_2)
                     .cursor_pointer()
                     .hover(|s| s.bg(theme::HOVER).text_color(theme::ACCENT))
                     .child("Open")
@@ -202,11 +207,12 @@ impl Card {
                         .flex_1()
                         .child(
                             div()
+                                .h(px(20.))
                                 .flex()
                                 .items_center()
-                                .gap(px(6.))
-                                .text_size(px(12.5))
-                                .child(tinted(icon, theme::INK_3, 12.))
+                                .gap(px(8.))
+                                .text_size(theme::TEXT)
+                                .child(tinted(icon, theme::INK_3, 16.))
                                 .child(div().text_color(theme::INK).child(title)),
                         )
                         .child(under(line)),
@@ -227,17 +233,18 @@ impl Card {
                     .flex()
                     .items_center()
                     .gap(px(8.))
-                    .rounded(px(7.))
-                    .px(px(6.))
-                    .py(px(4.))
-                    .text_size(px(12.5))
+                    .rounded(theme::RADIUS_CONTROL)
+                    .px(px(8.))
+                    .h(theme::LIST_ROW)
+                    .text_size(theme::TEXT)
                     .text_color(theme::INK_3)
                     .cursor_pointer()
                     .hover(|s| s.bg(theme::HOVER).text_color(theme::INK))
-                    .child(div().w(px(12.)).flex_none())
+                    .child(div().w(px(16.)).flex_none())
                     .child("Another workspace's Claude…")
                     .menu(gpui_kit::Anchor::TopLeft, move |menu, _, _| {
-                        let mut menu = menu.min_w(px(240.)).label("Send it to the Claude in");
+                        let mut menu =
+                            menu.min_w(px(240.)).item(enkidu_ui::pieces::menu_label("Send it to the Claude in"));
                         for (session, name, branch) in others.clone() {
                             let (card, pick) = (card.clone(), session.clone());
                             let id = SharedString::from(format!("claude-other-option:{session}"));
@@ -251,8 +258,9 @@ impl Card {
                                     .flex()
                                     .items_center()
                                     .gap(px(8.))
+                                    .map(enkidu_ui::pieces::in_menu)
                                     .text_color(theme::INK)
-                                    .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 12.))
+                                    .child(tinted("icons/sparkle-filled.svg", theme::CLAUDE, 16.))
                                     .child(div().min_w_0().flex_1().truncate().child(name.clone()))
                                     .child(
                                         mono(div())
@@ -287,10 +295,11 @@ impl Card {
                     .id("claude-options")
                     .role(Role::RadioGroup)
                     .aria_label("The Claude your message goes to")
-                    .mx(px(-6.))
+                    // a row's fill reaches 8 px past its words, to the box's own inset less 8
+                    .mx(px(-8.))
                     .flex()
                     .flex_col()
-                    .gap(px(2.))
+                    .gap(px(4.))
                     .children(rows),
             )
             .into_any_element()

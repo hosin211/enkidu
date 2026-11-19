@@ -233,6 +233,9 @@ pub struct ProjectForm {
     pub send_failed_checks: bool,
     pub morning_summary: bool,
     pub morning_at: String,
+    /// The rail: show the project's own icon, and another picture than the one found in its folder.
+    pub icon: bool,
+    pub icon_picture: String,
     /// The settings the form was made from: what it doesn't edit is saved as it was.
     read: ProjectSettings,
 }
@@ -276,6 +279,8 @@ impl ProjectForm {
             send_failed_checks: settings.work.send_failed_checks,
             morning_summary: settings.work.morning_summary,
             morning_at: settings.work.morning_at.clone(),
+            icon: settings.rail.icon,
+            icon_picture: settings.rail.picture.clone(),
             read: settings.clone(),
         }
     }
@@ -290,6 +295,8 @@ impl ProjectForm {
         settings.live.on = self.live_on.clone();
         settings.live.off = self.live_off.clone();
         settings.live.message = self.live_message.clone();
+        settings.rail.icon = self.icon;
+        settings.rail.picture = self.icon_picture.trim().to_string();
         settings.claude.args = args_of(&self.args, &format!("Claude's arguments in {name}"))?;
         settings.claude.env = env_of(&self.env, &format!("Claude's environment in {name}"))?;
         let between_commas = |text: &str| -> Vec<String> {
@@ -516,6 +523,7 @@ mod tests {
         assert!(edited.edited());
         let read = edited.settings("shop").unwrap();
         assert_eq!(read.default_base, "main");
+        assert_eq!((read.rail.icon, read.rail.picture.as_str()), (true, ""), "the rail's part is as it was read");
         assert_eq!(read.copy_files, [".env", "config/local.py"], "one path a line, blanks left out");
         assert_eq!(read.setup_script, "  make setup && make seed\n", "a script is kept as it was typed");
         assert_eq!(

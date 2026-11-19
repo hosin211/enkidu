@@ -1,14 +1,12 @@
 //! The gallery: every token and piece on one screen (item 1.12). It is drawn offscreen to `shots/out/gallery.png` and
 //! looked at; later items add their own pieces here.
 
-use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::prelude::*;
 use gpui_kit::{AnyElement, Context, Div, FontWeight, IntoElement, Render, Rgba, SharedString, Window, div, px};
 
 use crate::lamp::{Status, lamp};
 use crate::live::{LiveLook, live_badge, live_button};
 use crate::pieces::*;
-use crate::tab_pill::{Pill, tab_row_of};
 use crate::tokens::*;
 
 /// The gallery's view. `changes` counts made-up changes, so the tick and the lamps' pop can be shown moving.
@@ -21,12 +19,12 @@ fn block(title: &'static str, note: &'static str, body: impl IntoElement) -> Div
     div()
         .flex()
         .flex_col()
-        .gap(px(10.))
+        .gap(px(8.))
         .child(
             div()
                 .flex()
                 .items_baseline()
-                .gap(px(10.))
+                .gap(px(8.))
                 .child(div().text_size(PANEL_TITLE).font_weight(WEIGHT_TITLE).text_color(INK).child(title))
                 .child(div().text_size(TEXT_SMALL).text_color(INK_3).child(note)),
         )
@@ -34,7 +32,7 @@ fn block(title: &'static str, note: &'static str, body: impl IntoElement) -> Div
 }
 
 fn row() -> Div {
-    div().flex().flex_wrap().items_center().gap(px(14.))
+    div().flex().flex_wrap().items_center().gap(px(16.))
 }
 
 fn labelled(label: impl Into<SharedString>, piece: impl IntoElement) -> Div {
@@ -42,7 +40,7 @@ fn labelled(label: impl Into<SharedString>, piece: impl IntoElement) -> Div {
         .flex()
         .flex_col()
         .items_center()
-        .gap(px(6.))
+        .gap(px(8.))
         .child(piece)
         .child(div().text_size(CAPTION).text_color(INK_3).child(label.into()))
 }
@@ -51,7 +49,7 @@ fn swatch(name: &'static str, color: Rgba, on: Rgba) -> Div {
     div()
         .flex()
         .flex_col()
-        .gap(px(5.))
+        .gap(px(4.))
         .w(px(92.))
         .child(
             div()
@@ -67,17 +65,17 @@ impl Gallery {
     fn lamps(&self) -> Div {
         let mut lamps = row();
         for (ix, status) in [Status::Idle, Status::Working, Status::NeedsYou, Status::Done].into_iter().enumerate() {
-            lamps = lamps.child(labelled(status.label(), lamp(("gallery-lamp", ix), status, 14., self.changes)));
+            lamps = lamps.child(labelled(status.label(), lamp(("gallery-lamp", ix), status, 16., self.changes)));
         }
         lamps.child(labelled("12 px, in the status line", lamp("gallery-lamp-small", Status::Working, 12., 0)))
     }
 
     fn colors(&self) -> Div {
-        let layers = [("frame", FRAME), ("canvas", CANVAS), ("chrome", CHROME), ("raised", RAISED), ("tip", TIP)];
+        let layers = [("frame", PANE), ("canvas", WELL), ("chrome", PANE), ("raised", SHEET), ("tip", TIP)];
         let text = [("ink", INK), ("ink-2", INK_2), ("ink-3", INK_3)];
         let lines = [
-            ("rule", RULE),
-            ("rule-strong", RULE_STRONG),
+            ("rule", LINE),
+            ("rule-strong", LINE_STRONG),
             ("hover", HOVER),
             ("soft", SOFT),
             ("selected", SELECTED),
@@ -116,11 +114,11 @@ impl Gallery {
             .flex()
             .flex_col()
             .gap(px(12.))
-            .child(set(&layers, FRAME))
-            .child(set(&text, CANVAS))
-            .child(set(&lines, CANVAS))
-            .child(set(&signals, CANVAS))
-            .child(set(&diff, CANVAS))
+            .child(set(&layers, PANE))
+            .child(set(&text, WELL))
+            .child(set(&lines, WELL))
+            .child(set(&signals, WELL))
+            .child(set(&diff, WELL))
     }
 
     fn icons(&self) -> Div {
@@ -144,9 +142,9 @@ impl Gallery {
             "pnpm-lock.yaml",
             "notes",
         ] {
-            files = files.child(labelled(path, file_icon(path, 15.)));
+            files = files.child(labelled(path, file_icon(path, 16.)));
         }
-        files.child(labelled("folder", folder_icon(false, 15.))).child(labelled("open", folder_icon(true, 15.)))
+        files.child(labelled("folder", folder_icon(false, 16.))).child(labelled("open", folder_icon(true, 16.)))
     }
 
     fn type_scale(&self) -> Div {
@@ -219,7 +217,7 @@ impl Gallery {
         .into_iter()
         .enumerate()
         {
-            r = r.child(button(("gallery-button", ix), label, kind, ButtonSize::Medium));
+            r = r.child(button(("gallery-button", ix), label, kind, ButtonSize::Small));
         }
         r.child(button("gallery-small", "Small", ButtonKind::Secondary, ButtonSize::Small))
             .child(button("gallery-large", "Large", ButtonKind::Primary, ButtonSize::Large))
@@ -239,7 +237,7 @@ impl Gallery {
                 div()
                     .flex()
                     .items_center()
-                    .gap(px(6.))
+                    .gap(px(8.))
                     .text_size(TEXT_STATUS)
                     .text_color(INK_2)
                     .child(tick("gallery-count", format!("{} changed files", 5 + self.changes), self.changes))
@@ -268,71 +266,32 @@ impl Gallery {
         row()
             .items_start()
             .child(
-                island("gallery-island", false)
-                    .w(px(260.))
-                    .h(px(120.))
-                    .child(div().p(px(14.)).text_color(INK_2).child("An island"))
-                    .child(lit_edge()),
+                div().border_1().border_color(LINE).child(
+                    island("gallery-island")
+                        .w(px(260.))
+                        .h(px(120.))
+                        .child(div().p(px(16.)).text_color(INK_2).child("A pane: what you read and write")),
+                ),
             )
-            .child(
-                island("gallery-island-focused", true)
-                    .w(px(260.))
-                    .h(px(120.))
-                    .child(div().p(px(14.)).text_color(INK_2).child("The island the keyboard is in"))
-                    .child(lit_edge()),
-            )
+            .child(div().w(px(260.)).h(px(120.)).bg(PANE).border_1().border_color(LINE).child(
+                div().p(px(16.)).text_color(INK_2).child("The frame around it: the top row, the rail, the files"),
+            ))
             .child(
                 raised("gallery-raised")
                     .w(px(260.))
                     .h(px(120.))
-                    .child(div().p(px(14.)).text_color(INK_2).child("A menu, a toast, a card"))
-                    .child(lit_edge()),
+                    .child(div().p(px(16.)).text_color(INK_2).child("What floats: a menu, a toast, a card")),
             )
     }
 
-    fn projects(&self, window: &mut Window, cx: &mut Context<Self>) -> Div {
+    fn projects(&self) -> Div {
         let mut badges = row();
         for (place, name) in
             ["shop", "enkidu", "crm", "ten-bridges", "fieldnotes", "flashcards", "dataloader"].into_iter().enumerate()
         {
             badges = badges.child(labelled(name, project_badge(name, project_hue(place), 16.)));
         }
-        let selected = self.changes as usize % 3;
-        let tabs: Vec<Observed> =
-            [("stock-fix", Status::Working), ("sh-21309", Status::NeedsYou), ("pr-2175", Status::Done)]
-                .into_iter()
-                .enumerate()
-                .map(|(ix, (name, status))| {
-                    gpui_kit::div()
-                        .id(("gallery-tab", ix))
-                        .test_support()
-                        .h(TAB_HEIGHT)
-                        .px(px(10.))
-                        .flex()
-                        .items_center()
-                        .gap(px(7.))
-                        .rounded(TAB_RADIUS)
-                        .child(lamp(("gallery-tab-lamp", ix), status, 14., 0))
-                        .child(
-                            div()
-                                .text_size(TEXT)
-                                .text_color(if ix == selected { INK } else { INK_2 })
-                                .when(ix == selected, |name| name.font_weight(WEIGHT_TITLE))
-                                .child(name),
-                        )
-                })
-                .collect();
-        div().flex().flex_col().gap(px(14.)).child(badges).child(
-            // the workspace on screen: the chosen fill and the blue edge of where you are
-            div().p(px(6.)).rounded(ISLAND_RADIUS).bg(FRAME).child(tab_row_of(
-                Pill::OnScreen,
-                "gallery-tabs",
-                selected,
-                tabs,
-                window,
-                cx,
-            )),
-        )
+        badges.child(labelled("not on screen", project_badge_quiet("shop", 16.)))
     }
 }
 
@@ -347,7 +306,7 @@ impl Render for Gallery {
             .into_any_element(),
             block(
                 "Color",
-                "Layers step up from the frame; the lamps are Claude's, signal blue is yours.",
+                "One black, two tones; the lamps are Claude's, blue is what is yours: where you are, where you type.",
                 self.colors(),
             )
             .into_any_element(),
@@ -369,15 +328,24 @@ impl Render for Gallery {
             .into_any_element(),
             block("Chips, keys, counts", "Counts tick into place when they change.", self.small_things())
                 .into_any_element(),
-            block("Layers", "Every layer has an edge and a lit top edge.", self.layers()).into_any_element(),
-            block("Projects and workspaces", "A project's color comes from its place.", self.projects(window, cx))
-                .into_any_element(),
+            block(
+                "Layers",
+                "True black for the work, a hair above it around it; what floats has a clear edge.",
+                self.layers(),
+            )
+            .into_any_element(),
+            block(
+                "Projects",
+                "A project shows its own icon when it has one; else its letter, on a color that comes from its place.",
+                self.projects(),
+            )
+            .into_any_element(),
         ];
         div()
             .id("gallery")
             .size_full()
             .overflow_y_scroll()
-            .bg(CANVAS)
+            .bg(WELL)
             .text_color(INK)
             .font_family(UI_FONT)
             .text_size(TEXT)
@@ -385,8 +353,8 @@ impl Render for Gallery {
                 div()
                     .flex()
                     .flex_col()
-                    .gap(px(28.))
-                    .p(px(28.))
+                    .gap(px(32.))
+                    .p(px(32.))
                     .child(
                         div()
                             .text_size(EMPTY_TITLE)

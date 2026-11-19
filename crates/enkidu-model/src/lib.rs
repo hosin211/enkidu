@@ -14,6 +14,7 @@ pub mod search;
 pub mod sessions;
 pub mod settings;
 pub mod setup;
+pub mod switcher;
 pub mod text;
 pub mod ui;
 pub mod work;

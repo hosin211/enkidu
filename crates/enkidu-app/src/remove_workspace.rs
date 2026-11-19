@@ -15,7 +15,7 @@ use gpui_kit::{
 };
 
 use crate::bridge::Bridge;
-use crate::projects_row::short_path;
+use crate::tabs_row::short_path;
 use crate::toast;
 
 pub struct RemoveWorkspace {
@@ -142,7 +142,7 @@ impl Render for RemoveWorkspace {
             "confirm-remove",
             if self.dirty { "Remove anyway" } else { "Remove workspace" },
             ButtonKind::Danger,
-            ButtonSize::Medium,
+            ButtonSize::Large,
         );
         let confirm = if enabled { confirm } else { confirm.opacity(0.45).cursor_default() };
         let title = format!("Remove {}?", ws.name);
@@ -155,7 +155,7 @@ impl Render for RemoveWorkspace {
             .flex()
             .flex_col()
             .gap(px(12.))
-            .px(px(20.))
+            .px(px(24.))
             .pt(px(12.))
             .pb(px(16.))
             .text_size(theme::TEXT)
@@ -186,7 +186,7 @@ impl Render for RemoveWorkspace {
                     .child(error)
             }));
         let foot = crate::dialog_parts::foot()
-            .child(button("cancel-remove", "Cancel", ButtonKind::Secondary, ButtonSize::Medium).on_click(cx.listener(
+            .child(button("cancel-remove", "Cancel", ButtonKind::Secondary, ButtonSize::Large).on_click(cx.listener(
                 |this, _, window, cx| {
                     if !this.busy {
                         window.close_dialog(cx);
@@ -206,6 +206,5 @@ impl Render for RemoveWorkspace {
             .child(crate::dialog_parts::head(title, None, Some(close)))
             .child(body)
             .child(foot)
-            .child(crate::dialog_parts::lit_edge())
     }
 }

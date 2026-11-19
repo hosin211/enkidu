@@ -45,7 +45,7 @@
    ],
    "running": 0,
    "mergeable": "MERGEABLE",
-   "headSha": "4973abc0def1",
+   "headSha": "2414abc0def1",
    "headAt": "2026-11-08T08:25:00.000Z",
    "unresolved": 2,
    "updatedAt": "2026-11-08T09:48:00.000Z",
@@ -170,7 +170,7 @@
     "commitCount": 5,
     "recentCommits": [
      {
-      "oid": "4973abc",
+      "oid": "2414abc",
       "headline": "Skip rows with a zero total"
      },
      {
@@ -207,7 +207,7 @@
    "failing": [],
    "running": 0,
    "mergeable": "MERGEABLE",
-   "headSha": "4962abc0def1",
+   "headSha": "2395abc0def1",
    "headAt": "2026-11-08T06:00:00.000Z",
    "unresolved": 1,
    "updatedAt": "2026-11-08T09:22:00.000Z",
@@ -310,7 +310,7 @@
    "failing": [],
    "running": 3,
    "mergeable": "MERGEABLE",
-   "headSha": "4964abc0def1",
+   "headSha": "2413abc0def1",
    "headAt": "2026-11-08T09:53:00.000Z",
    "unresolved": 0,
    "updatedAt": "2026-11-08T09:54:00.000Z",
@@ -355,7 +355,7 @@
     "commitCount": 1,
     "recentCommits": [
      {
-      "oid": "4964abc",
+      "oid": "2413abc",
       "headline": "Hotfix: stock counts twice after a return"
      }
     ]
@@ -376,7 +376,7 @@
    "failing": [],
    "running": 0,
    "mergeable": "MERGEABLE",
-   "headSha": "4940abc0def1",
+   "headSha": "2375abc0def1",
    "headAt": "2026-11-08T07:00:00.000Z",
    "unresolved": 0,
    "updatedAt": "2026-11-07T08:00:00.000Z",
@@ -442,7 +442,7 @@
    "failing": [],
    "running": 0,
    "mergeable": "MERGEABLE",
-   "headSha": "4931abc0def1",
+   "headSha": "2326abc0def1",
    "headAt": "2026-11-08T07:00:00.000Z",
    "unresolved": 0,
    "updatedAt": "2026-11-07T04:00:00.000Z",
@@ -464,7 +464,7 @@
    "failing": [],
    "running": 0,
    "mergeable": "MERGEABLE",
-   "headSha": "4950abc0def1",
+   "headSha": "2390abc0def1",
    "headAt": "2026-11-08T07:00:00.000Z",
    "unresolved": 0,
    "updatedAt": "2026-11-05T10:00:00.000Z",
@@ -486,7 +486,7 @@
    "failing": [],
    "running": 0,
    "mergeable": "MERGEABLE",
-   "headSha": "4921abc0def1",
+   "headSha": "2312abc0def1",
    "headAt": "2026-11-08T07:00:00.000Z",
    "unresolved": 0,
    "updatedAt": "2026-11-06T10:00:00.000Z",
@@ -508,7 +508,7 @@
    "failing": [],
    "running": 0,
    "mergeable": "MERGEABLE",
-   "headSha": "4977abc0def1",
+   "headSha": "2415abc0def1",
    "headAt": "2026-11-08T07:00:00.000Z",
    "unresolved": 0,
    "updatedAt": "2026-11-08T07:00:00.000Z",
@@ -550,7 +550,7 @@
     "commitCount": 1,
     "recentCommits": [
      {
-      "oid": "4977d0c",
+      "oid": "2415d0c",
       "headline": "Bump Django to 5.2.8"
      }
     ]
@@ -1309,7 +1309,7 @@
  ],
  "items": [
   {
-   "id": "checks:demo-org/shop#2414:4973abc0def1",
+   "id": "checks:demo-org/shop#2414:2414abc0def1",
    "kind": "pipeline_failed",
    "source": "github",
    "projectId": "p1",
@@ -1514,7 +1514,7 @@
    "subject": "demo-org/shop#2413",
    "at": 1794131580000,
    "kind": "pushed",
-   "text": "Pushed 4964abc"
+   "text": "Pushed 2413abc"
   },
   {
    "subject": "demo-org/shop#2414",
@@ -1544,7 +1544,7 @@
    "subject": "demo-org/shop#2414",
    "at": 1794126300000,
    "kind": "pushed",
-   "text": "Pushed 4973abc"
+   "text": "Pushed 2414abc"
   },
   {
    "subject": "SH-21616",

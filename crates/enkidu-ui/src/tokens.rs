@@ -15,9 +15,14 @@ pub const fn hex(value: u32) -> Rgba {
     }
 }
 
-/// White at an opacity (the hairlines and fills of the dark layers).
+/// White at an opacity (the lines and fills).
 pub const fn white(alpha: f32) -> Rgba {
     Rgba { r: 1.0, g: 1.0, b: 1.0, a: alpha }
+}
+
+/// Black at an opacity (the dimming behind what floats).
+pub const fn black(alpha: f32) -> Rgba {
+    Rgba { r: 0.0, g: 0.0, b: 0.0, a: alpha }
 }
 
 /// A color with its opacity changed.
@@ -64,77 +69,79 @@ pub fn tone(hue: f32, chroma: f32) -> Rgba {
     oklch(0.77, chroma, hue)
 }
 
-// The layers: higher is lighter (DESIGN.md, "Color").
-pub const FRAME: Rgba = hex(0x0a0b0e);
-pub const CANVAS: Rgba = hex(0x111217);
-pub const CHROME: Rgba = hex(0x15161c);
-/// A card of the Work board when pointed at: the chrome with 3 % of white over it.
-pub const CARD_HOVER: Rgba = hex(0x1c1d23);
-/// Below an island's body: a well, such as a diff's gap.
-pub const SUNKEN: Rgba = hex(0x0c0d11);
-pub const RAISED: Rgba = hex(0x191b21);
-pub const TIP: Rgba = hex(0x272a31);
-pub const ISLAND_EDGE: Rgba = white(0.07);
-/// The edge of the part the keyboard is in: 3.47 to 1 against the frame (DESIGN.md, "States").
-pub const ISLAND_EDGE_FOCUS: Rgba = alpha(ACCENT, 0.60);
-pub const HIGHLIGHT: Rgba = white(0.05);
+// The parts (DESIGN.md, "Color"): the stage, what you read and write, is true black; the frame around it stands a
+// hair above.
+/// The stage.
+pub const WELL: Rgba = hex(0x000000);
+/// The frame: the top row, the rail, the files' column, the status line.
+pub const PANE: Rgba = hex(0x0a0a0a);
+/// What floats: true black too. Its edge ([`LINE_STRONG`]) and the dimming of what is behind it set it apart.
+pub const SHEET: Rgba = hex(0x000000);
+/// A card of the Work board when pointed at: the frame's black with 4 % of white over it.
+pub const CARD_HOVER: Rgba = over(white(0.04), PANE);
+pub const TIP: Rgba = hex(0x292929);
+/// The edge of the pane your typing goes to, and of a card or a row the arrow keys are on: 3.6 to 1 against the
+/// frame.
+pub const KEY_EDGE: Rgba = alpha(ACCENT, 0.60);
 
 // Text.
-pub const INK: Rgba = hex(0xeceef2);
-pub const INK_2: Rgba = hex(0xa6aab3);
-pub const INK_3: Rgba = hex(0x7c818c);
+pub const INK: Rgba = hex(0xededed);
+pub const INK_2: Rgba = hex(0xa8a8a8);
+pub const INK_3: Rgba = hex(0x878787);
 /// Text on a white (primary) button.
-pub const ON_INK: Rgba = hex(0x0a0b0e);
+pub const ON_INK: Rgba = hex(0x0a0a0a);
 
 // Lines and fills.
-pub const RULE: Rgba = white(0.065);
-pub const RULE_STRONG: Rgba = white(0.11);
+/// The stage's edge and the line between two panes: seen at a glance, 1.71 to 1 on the frame and 1.59 on the stage.
+pub const LINE: Rgba = white(0.19);
+/// A control's edge, and the edge of what floats: 2.31 to 1 on the frame.
+pub const LINE_STRONG: Rgba = white(0.27);
 /// Under the pointer.
-pub const HOVER: Rgba = white(0.045);
+pub const HOVER: Rgba = white(0.05);
 /// A soft fill between the pointer's and the chosen one's: a ghost button while it is pressed, a neutral chip.
 pub const SOFT: Rgba = white(0.08);
 /// What is chosen: a row, a tab, a chip (DESIGN.md, "States": always stronger than [`HOVER`]).
-pub const SELECTED: Rgba = white(0.12);
+pub const SELECTED: Rgba = white(0.14);
 /// The pointer on what is chosen.
-pub const SELECTED_HOVER: Rgba = white(0.16);
-/// The chosen fill as it is seen on the frame, with no opacity left: the tab pill's own color. A pill casts a
-/// shadow, and GPUI paints a shadow under the whole of what casts it, so a see-through pill would show its own.
-pub const SELECTED_ON_FRAME: Rgba = over(SELECTED, FRAME);
-pub const THUMB: Rgba = white(0.115);
+pub const SELECTED_HOVER: Rgba = white(0.18);
+pub const THUMB: Rgba = white(0.14);
 
-// Yours, and Claude's.
-pub const ACCENT: Rgba = hex(0x7aa2ff);
-pub const ACCENT_STRONG: Rgba = hex(0x4f7dff);
-pub const ACCENT_SOFT: Rgba = alpha(ACCENT, 0.14);
+// What is yours, and Claude's.
+/// What is yours: the edge of the tab on screen and of the pane you type in, the cursor, a field's ring, remarks.
+pub const ACCENT: Rgba = hex(0x7daafd);
+/// Where you are: the edge of the tab on screen, the bar of the row on screen. Blue is what is yours.
+pub const HERE: Rgba = ACCENT;
+/// The button that types into Claude, and a ticked box: white on it stands at 4.66 to 1.
+pub const ACCENT_STRONG: Rgba = hex(0x376ceb);
+pub const ACCENT_SOFT: Rgba = alpha(ACCENT, 0.16);
 pub const FOCUS: Rgba = ACCENT;
-/// What the blue marks of where you are turn to while the window is behind another app.
-pub const BEHIND: Rgba = hex(0x646872);
-pub const CLAUDE: Rgba = hex(0xe8845f);
+/// What the blue marks turn to while the window is behind another app.
+pub const BEHIND: Rgba = hex(0x6e6e6e);
+pub const CLAUDE: Rgba = hex(0xea8b60);
+/// The blue of the app's icon: the second wedge of the mark on the empty screens lights in it.
+pub const MARK_BLUE: Rgba = hex(0x4f7dff);
 
 // The signal lamps: Claude's state.
-pub const LAMP_AMBER: Rgba = hex(0xffb547);
-pub const LAMP_RED: Rgba = hex(0xff6369);
-pub const LAMP_GREEN: Rgba = hex(0x3dd68c);
-pub const LAMP_BLUE: Rgba = hex(0x7aa2ff);
+pub const LAMP_AMBER: Rgba = hex(0xf9b73f);
+pub const LAMP_RED: Rgba = hex(0xfc5858);
+pub const LAMP_GREEN: Rgba = hex(0x3cd788);
+pub const LAMP_BLUE: Rgba = ACCENT;
 pub const LAMP_OFF: Rgba = white(0.20);
-/// The plate a lamp sits on in a tab, and its edge.
-pub const PLATE: Rgba = hex(0x181a1f);
-pub const PLATE_EDGE: Rgba = white(0.10);
 
 // The diff, from the lamps so the window reads as one system.
-pub const ADD_BG: Rgba = alpha(LAMP_GREEN, 0.10);
-pub const ADD_WORD: Rgba = alpha(LAMP_GREEN, 0.30);
-pub const ADD_INK: Rgba = hex(0x62e0a2);
-pub const DEL_BG: Rgba = alpha(LAMP_RED, 0.10);
-pub const DEL_WORD: Rgba = alpha(LAMP_RED, 0.30);
-pub const DEL_INK: Rgba = hex(0xff8d92);
+pub const ADD_BG: Rgba = alpha(LAMP_GREEN, 0.12);
+pub const ADD_WORD: Rgba = alpha(LAMP_GREEN, 0.27);
+pub const ADD_INK: Rgba = hex(0x7de4a7);
+pub const DEL_BG: Rgba = alpha(LAMP_RED, 0.12);
+pub const DEL_WORD: Rgba = alpha(LAMP_RED, 0.27);
+pub const DEL_INK: Rgba = hex(0xfe8a88);
 pub const GAP_BG: Rgba = white(0.03);
-pub const REMARK_BAND: Rgba = alpha(ACCENT, 0.13);
+pub const REMARK_BAND: Rgba = alpha(ACCENT, 0.16);
 
-/// Behind a dialog: a plain dark scrim (GPUI has no blur).
-pub const SCRIM: Rgba = Rgba { r: 4.0 / 255.0, g: 5.0 / 255.0, b: 8.0 / 255.0, a: 0.62 };
+/// Behind what floats: the window dimmed (GPUI has no blur of the window's own content).
+pub const SCRIM: Rgba = black(0.60);
 
-// The terminal: the palette's colors on the island's own, its cursor signal blue.
+// The terminal: the palette's colors on the stage's own black, its cursor blue.
 pub const TERMINAL_SELECTION: Rgba = alpha(ACCENT, 0.25);
 pub const TERMINAL_CURSOR: Rgba = ACCENT;
 
@@ -147,7 +154,7 @@ pub const TEXT_LINE: Pixels = px(18.);
 /// Secondary 12/16.
 pub const TEXT_SMALL: Pixels = px(12.);
 pub const TEXT_SMALL_LINE: Pixels = px(16.);
-/// The status line, 11.5/16.
+/// The smallest, 11.5/16.
 pub const TEXT_STATUS: Pixels = px(11.5);
 pub const TEXT_STATUS_LINE: Pixels = px(16.);
 /// Captions, 11/14.
@@ -165,7 +172,7 @@ pub const EMPTY_TITLE_LINE: Pixels = px(24.);
 pub const WEIGHT_BODY: FontWeight = FontWeight::NORMAL;
 /// Labels.
 pub const WEIGHT_LABEL: FontWeight = FontWeight::MEDIUM;
-/// Titles, the Live button and the tab on screen.
+/// Titles, the Live button and what is on screen.
 pub const WEIGHT_TITLE: FontWeight = FontWeight::SEMIBOLD;
 /// Code in the diff, 12/20.
 pub const MONO_TEXT: Pixels = px(12.);
@@ -174,39 +181,56 @@ pub const TERMINAL_TEXT: Pixels = px(12.5);
 /// Terminal rows are the font's own height times this.
 pub const TERMINAL_LINE_SCALE: f32 = 1.22;
 
-// Space, size, shape (DESIGN.md, "Space, size, shape"). A 4 px grid.
+// Space, size, shape (DESIGN.md, "Space, size, shape"). A 4 px grid, and one scale: 4, 8, 12, 16, 24, 32.
 pub const GRID: Pixels = px(4.);
-pub const SEGMENT_HEIGHT: Pixels = px(22.);
-pub const SMALL_CONTROL_HEIGHT: Pixels = px(24.);
-pub const PROJECT_TAB_HEIGHT: Pixels = px(26.);
-pub const CONTROL_HEIGHT: Pixels = px(28.);
-pub const TAB_HEIGHT: Pixels = px(30.);
-pub const INPUT_HEIGHT: Pixels = px(32.);
-pub const PROJECTS_ROW: Pixels = px(38.);
-pub const TABS_ROW: Pixels = px(40.);
-/// An island's title band.
-pub const BAND: Pixels = px(36.);
-/// A list row of two lines, and a tree's row.
-pub const ROW: Pixels = px(36.);
-pub const TREE_ROW: Pixels = px(26.);
-pub const STATUS_LINE: Pixels = px(26.);
-/// Islands sit this far apart and from the window's edges.
-pub const GAP: Pixels = px(8.);
-/// The signal-blue bar at the left of the row of what is on screen.
+/// The top row: the project's name, its workspaces as tabs, and what acts on the one on screen.
+pub const TOP_ROW: Pixels = px(44.);
+/// A bar: a pane's bar, the bar of the files' column.
+pub const BAR: Pixels = px(40.);
+/// A bar inside a pane: the tools over a tree, a file's header, a board column's head.
+pub const SUB_BAR: Pixels = px(32.);
+/// A row of a list or a tree.
+pub const LIST_ROW: Pixels = px(28.);
+/// A control. One in a dialog is [`DIALOG_CONTROL`].
+pub const CONTROL: Pixels = px(28.);
+/// The status line, at the window's foot.
+pub const STATUS_LINE: Pixels = px(28.);
+/// A chip, a pill and a key.
+pub const CHIP: Pixels = px(20.);
+/// A badge and a file's letter.
+pub const BADGE: Pixels = px(16.);
+/// Text starts this far from a part's edge.
+pub const INSET: Pixels = px(16.);
+/// An icon that leads a row or is a button, and a small mark beside words.
+pub const ICON: Pixels = px(16.);
+pub const MARK: Pixels = px(12.);
+/// The rail at the left: its width, a button on it, and a project's picture in a button.
+pub const RAIL: Pixels = px(56.);
+pub const RAIL_BUTTON: Pixels = px(40.);
+pub const RAIL_PICTURE: Pixels = px(24.);
+/// The files' column at the right of the stage, until its width is dragged.
+pub const PANEL: Pixels = px(304.);
+/// Where no column stands, the stage ends this far before the window's right edge.
+pub const STAGE_MARGIN: Pixels = px(8.);
+/// A control in a dialog: a field, a button, a switch with words.
+pub const DIALOG_CONTROL: Pixels = px(32.);
+/// The blue bar at the left of the row of what is on screen, where a list has a picked row as well.
 pub const SELECTED_BAR: Pixels = px(2.);
-/// The signal-blue edge of the workspace tab on screen.
+/// The blue edge of the tab on screen and of the pane your typing goes to.
 pub const ON_SCREEN_EDGE: Pixels = px(1.5);
 
 // Radii by hierarchy.
-/// Tags, kbd, small badges.
-pub const RADIUS_TAG: Pixels = px(5.);
-/// Buttons, inputs, rows, project tabs.
+/// Keys, a file's letter, a ticked box: what is 16 px or so.
+pub const RADIUS_SMALL: Pixels = px(4.);
+/// Chips.
+pub const RADIUS_TAG: Pixels = px(6.);
+/// Controls and rows.
 pub const RADIUS_CONTROL: Pixels = px(8.);
-/// Workspace tabs and their pill, rail buttons.
-pub const TAB_RADIUS: Pixels = px(9.);
-/// Islands, menus, remark cards, toasts.
-pub const ISLAND_RADIUS: Pixels = px(12.);
-/// Dialogs, the palette, Search.
+/// Cards, remark cards, a button on the rail.
+pub const RADIUS_CARD: Pixels = px(10.);
+/// The stage.
+pub const RADIUS_STAGE: Pixels = px(12.);
+/// What floats: menus, dialogs, the palette, Search, the switcher, toasts.
 pub const RADIUS_DIALOG: Pixels = px(14.);
 
 // Motion (DESIGN.md, "Motion"): strong ease-out curves, under 300 ms, only transform and opacity.
@@ -237,8 +261,10 @@ pub const FLASH: Duration = Duration::from_millis(1800);
 pub const TOAST_IN: Duration = Duration::from_millis(300);
 pub const TOAST_OUT: Duration = Duration::from_millis(180);
 
-/// Where the traffic lights sit: their top left corner, so they are centred in the projects row.
-pub const TRAFFIC_LIGHTS: (f32, f32) = (18., 12.);
+/// Where the traffic lights sit: their top left corner, so they are centred in the top row, 16 px from the window's
+/// edge. What stands after them in the row starts at [`AFTER_LIGHTS`].
+pub const TRAFFIC_LIGHTS: (f32, f32) = (16., 15.);
+pub const AFTER_LIGHTS: Pixels = px(84.);
 
 /// The value a cubic-bezier curve gives at `t` (0 to 1), as CSS draws it: the curve's x is solved for `t`, its y
 /// returned. For GPUI animations, which take an easing function.
@@ -270,19 +296,15 @@ mod tests {
 
     fn named(token: &str) -> Option<Rgba> {
         Some(match token {
-            "frame" => FRAME,
-            "canvas" => CANVAS,
-            "chrome" => CHROME,
-            "raised" => RAISED,
+            "well" => WELL,
+            "pane" => PANE,
+            "sheet" => SHEET,
             "tip" => TIP,
-            "island-edge" => ISLAND_EDGE,
-            "island-edge-focus" => ISLAND_EDGE_FOCUS,
-            "highlight" => HIGHLIGHT,
             "ink" => INK,
             "ink-2" => INK_2,
             "ink-3" => INK_3,
-            "rule" => RULE,
-            "rule-strong" => RULE_STRONG,
+            "line" => LINE,
+            "line-strong" => LINE_STRONG,
             "hover" => HOVER,
             "soft" => SOFT,
             "selected" => SELECTED,
@@ -324,7 +346,8 @@ mod tests {
         if let Some(name) = name {
             *base = match name {
                 "white" => white(1.0),
-                "signal blue" | "blue" => ACCENT,
+                "black" => black(1.0),
+                "blue" => ACCENT,
                 "green" => LAMP_GREEN,
                 "red" => LAMP_RED,
                 other => panic!("a color DESIGN.md names that this test doesn't know: {other}"),
@@ -378,7 +401,7 @@ mod tests {
         }
         checked.sort();
         checked.dedup();
-        assert_eq!(checked.len(), 35, "{checked:?}");
+        assert_eq!(checked.len(), 31, "{checked:?}");
     }
 
     /// The contrast between two opaque colors as WCAG counts it: 1 is none, 21 is black on white.
@@ -390,15 +413,16 @@ mod tests {
     }
 
     /// DESIGN.md, "States": what says where you are and where your typing goes can be seen (3 to 1 or more against
-    /// what is beside it, as WCAG 1.4.11 asks of a state), and what is chosen is stronger than what the pointer is
-    /// on. Before 14 Nov 2026 the tab on screen stood at 1.05 to 1 against its row.
+    /// what is beside it, as WCAG 1.4.11 asks of a state), what is chosen is stronger than what the pointer is on,
+    /// and a line between two things is seen at a glance.
     #[test]
     fn the_marks_can_be_seen() {
-        // what a mark stands on: the top rows, an island, its title band, a dialog
-        for (name, ground) in [("the frame", FRAME), ("an island", CANVAS), ("a band", CHROME), ("a dialog", RAISED)] {
-            // the border of the tab on screen and the bar of the row on screen; and both while the window is behind
-            let (blue, gray) = (contrast(ACCENT, ground), contrast(BEHIND, ground));
-            assert!(blue >= 3.0, "signal blue on {name}: {blue}");
+        // what a mark stands on: the stage, the frame, what floats
+        for (name, ground) in [("the stage", WELL), ("the frame", PANE), ("what floats", SHEET)] {
+            // the blue of where you are and of the keyboard, and both while the window is behind
+            let (here, blue, gray) = (contrast(HERE, ground), contrast(ACCENT, ground), contrast(BEHIND, ground));
+            assert!(here >= 3.0, "where you are on {name}: {here}");
+            assert!(blue >= 3.0, "the keyboard's blue on {name}: {blue}");
             assert!(gray >= 3.0, "the gray of a window behind on {name}: {gray}");
             // rest, pointer, chosen, the pointer on what is chosen: each stronger than the one before
             let (pointed, chosen, both) = (over(HOVER, ground), over(SELECTED, ground), over(SELECTED_HOVER, ground));
@@ -407,18 +431,25 @@ mod tests {
             assert!(contrast(both, ground) > contrast(chosen, ground), "{name}");
             assert!(contrast(over(SOFT, ground), ground) > contrast(pointed, ground), "{name}");
             assert!(contrast(chosen, ground) > contrast(over(SOFT, ground), ground), "{name}");
+            // where two things meet, and a control's edge
+            let (line, edge) = (contrast(over(LINE, ground), ground), contrast(over(LINE_STRONG, ground), ground));
+            assert!(line >= 1.5, "a line on {name}: {line}");
+            assert!(edge >= 2.0, "a control's edge on {name}: {edge}");
         }
-        // the edge of the part the keyboard is in: against the frame around it, and (3.00 to two places) against
-        // the edge of a part at rest
-        let edge = over(ISLAND_EDGE_FOCUS, FRAME);
-        assert!(contrast(edge, FRAME) >= 3.0, "{}", contrast(edge, FRAME));
-        let rest = contrast(edge, over(ISLAND_EDGE, FRAME));
-        assert!(rest >= 2.99, "the keyboard's edge against a resting edge: {rest}");
-        // a card of the Work board under the arrow keys wears the same edge, on an island
-        let card = contrast(over(ISLAND_EDGE_FOCUS, CANVAS), CANVAS);
-        assert!(card >= 3.0, "{card}");
-        // the tab on screen's name against another tab's, as it was
+        // the frame stands a hair above the stage, and never as much as a line: the stage's edge parts them
+        let step = contrast(PANE, WELL);
+        assert!((1.04..1.2).contains(&step), "the frame against the stage: {step}");
+        assert_eq!(HERE, ACCENT, "blue is what is yours: where you are is blue");
+        // the pane you type in, and a card or a row under the arrow keys, wear the keyboard's edge
+        assert!(contrast(over(KEY_EDGE, PANE), PANE) >= 3.0);
+        assert!(contrast(over(KEY_EDGE, WELL), WELL) >= 3.0);
+        // hints can be read on every ground, and the name of what is on screen stands out from the others
+        for ground in [WELL, PANE, SHEET] {
+            assert!(contrast(INK_3, ground) >= 4.5, "{}", contrast(INK_3, ground));
+        }
         assert!(contrast(INK, INK_2) >= 1.9);
+        // white words on the button that types into Claude
+        assert!(contrast(hex(0xffffff), ACCENT_STRONG) >= 4.5);
     }
 
     #[test]
@@ -450,11 +481,11 @@ mod tests {
                 ms(DUR_QUICK) == 160 && ms(crate::pieces::MENU_LEAVE) == 110 && ms(crate::tips::LEAVE) == 110,
             ),
             ("| Dialogs | rise 8 px and fade, 220 ms,", DIALOG_TRAVEL == 8. && ms(DUR_BASE) == 220),
-            ("| The tab pill, segmented thumbs | glide 220 ms to the new choice |", ms(DUR_BASE) == 220),
+            ("| A switch's thumb | glides 220 ms to the new choice |", ms(DUR_BASE) == 220),
             ("| Needs you | a ping goes out from the red lamp every 1.7 s |", ms(PING_EVERY) == 1700),
             ("| A new state | the lamp pops once (460 ms, a small overshoot) |", ms(POP) == 460),
-            ("the island rises in (220 ms)", ms(DUR_BASE) == 220),
-            ("its row flashes signal blue and settles (1.8 s)", ms(FLASH) == 1800),
+            ("the changes rise in (220 ms)", ms(DUR_BASE) == 220),
+            ("its row flashes white and settles (1.8 s)", ms(FLASH) == 1800),
             ("| Counts, +/− | tick into place (220 ms) when they change, never on first show |", ms(DUR_BASE) == 220),
         ] {
             assert!(table.contains(said), "DESIGN.md no longer says {said:?}");
@@ -473,7 +504,7 @@ mod tests {
         for (said, size, line) in [
             ("Body 13/18", TEXT, TEXT_LINE),
             ("secondary 12/16", TEXT_SMALL, TEXT_SMALL_LINE),
-            ("status line 11.5/16", TEXT_STATUS, TEXT_STATUS_LINE),
+            ("the smallest 11.5/16", TEXT_STATUS, TEXT_STATUS_LINE),
             ("caption 11/14", CAPTION, CAPTION_LINE),
             ("panel title 13/20 semibold", PANEL_TITLE, PANEL_TITLE_LINE),
             ("dialog title 15/20 semibold", DIALOG_TITLE, DIALOG_TITLE_LINE),
@@ -489,7 +520,7 @@ mod tests {
         assert!(said_of_type.contains("12.5 in the terminal") && f32::from(TERMINAL_TEXT) == 12.5);
         assert!(said_of_type.contains("JetBrains Mono") && MONO_FONT == "JetBrains Mono");
         assert!(
-            said_of_type.contains("Weights 400, 500 for labels, 600 for titles, the Live button and the tab on screen")
+            said_of_type.contains("Weights 400, 500 for labels, 600 for titles, the Live button and what is on screen")
         );
         assert_eq!([WEIGHT_BODY.0, WEIGHT_LABEL.0, WEIGHT_TITLE.0], [400., 500., 600.]);
     }
@@ -517,32 +548,38 @@ mod tests {
     #[test]
     fn sizes_and_radii_are_design_mds() {
         let space = DESIGN.split("## Space, size, shape").nth(1).unwrap().split("\n## ").next().unwrap();
+        let space = space.split_whitespace().collect::<Vec<_>>().join(" ");
         for (said, value) in [
-            ("22 (segments)", SEGMENT_HEIGHT),
-            ("24 (small)", SMALL_CONTROL_HEIGHT),
-            ("26 (project tabs)", PROJECT_TAB_HEIGHT),
-            ("28 (default)", CONTROL_HEIGHT),
-            ("(workspace tabs)", TAB_HEIGHT),
-            ("32 (inputs in dialogs)", INPUT_HEIGHT),
-            ("Projects row 38 px", PROJECTS_ROW),
-            ("tabs row 40 px", TABS_ROW),
-            ("island title bands 36 px", BAND),
-            ("rows 36 px (two lines)", ROW),
-            ("26 px (tree)", TREE_ROW),
-            ("status line 26 px", STATUS_LINE),
-            ("5 (tags", RADIUS_TAG),
-            ("8 (buttons", RADIUS_CONTROL),
-            ("9 (workspace tabs", TAB_RADIUS),
-            ("12 (islands", ISLAND_RADIUS),
-            ("14 (dialogs", RADIUS_DIALOG),
+            ("The top row 44", TOP_ROW),
+            ("a bar 40", BAR),
+            ("a bar inside a pane 32", SUB_BAR),
+            ("a row 28", LIST_ROW),
+            ("a control 28", CONTROL),
+            ("the status line 28", STATUS_LINE),
+            ("a control in a dialog 32", DIALOG_CONTROL),
+            ("and a key 20", CHIP),
+            ("a file's letter 16", BADGE),
+            ("text starts 16 px", INSET),
+            ("The rail is 56 px wide", RAIL),
+            ("its buttons are 40 px", RAIL_BUTTON),
+            ("a project's picture in one 24", RAIL_PICTURE),
+            ("The files' column is 304", PANEL),
+            ("ends 8 px before the window's right edge", STAGE_MARGIN),
+            ("4 (keys", RADIUS_SMALL),
+            ("6 (chips)", RADIUS_TAG),
+            ("8 (controls", RADIUS_CONTROL),
+            ("10 (cards", RADIUS_CARD),
+            ("12 (the stage)", RADIUS_STAGE),
+            ("14 (what floats", RADIUS_DIALOG),
         ] {
             assert!(space.contains(said), "DESIGN.md no longer says {said:?}");
             let number = said.chars().filter(|c| c.is_ascii_digit()).collect::<String>();
-            if !number.is_empty() {
-                assert_eq!(f32::from(value), number.parse::<f32>().unwrap(), "{said}");
-            }
+            assert_eq!(f32::from(value), number.parse::<f32>().unwrap(), "{said}");
         }
-        assert_eq!(f32::from(TAB_HEIGHT), 30.0);
-        assert!(space.contains("Islands sit 8 px apart") && f32::from(GAP) == 8.0);
+        assert!(space.contains("one scale for every space: 4, 8, 12, 16, 24 or 32 px") && f32::from(GRID) == 4.0);
+        // an icon in one of two sizes
+        let icons = DESIGN.split("\n## Icons").nth(1).unwrap().split("\n## ").next().unwrap();
+        assert!(icons.contains("16 px where an icon leads a row or is a button, 12 px for a small mark"));
+        assert_eq!((f32::from(ICON), f32::from(MARK)), (16.0, 12.0));
     }
 }

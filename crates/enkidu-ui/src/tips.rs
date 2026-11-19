@@ -2,7 +2,8 @@
 //! next tooltip along a toolbar is instant").
 //!
 //! A tooltip comes 450 ms after the pointer rests on something that has one, on the side of that thing (below it,
-//! 6 px away, or above when there is no room), easing in out of it. It goes as the pointer leaves, fading for
+//! 6 px away, or above when there is no room; at its right for a button of the rail, where a tooltip under it would
+//! cover the next button), easing in out of it. It goes as the pointer leaves, fading for
 //! 110 ms. The next one within a quarter of a second needs no wait and no motion: reading along a toolbar. A press
 //! on something sends its tooltip away at once and keeps it away until the pointer has left it, so it never comes
 //! up over the dialog or the menu that press opened. Typing and the wheel send it away too.
@@ -24,7 +25,7 @@ use gpui_kit::{
     SharedString, Task, Window, WindowId, canvas, deferred, div, point, px,
 };
 
-use crate::tokens::{DUR_QUICK, EASE_OUT, INK, INK_2, TIP, alpha, bezier, hex, hsla, white};
+use crate::tokens::{DUR_QUICK, EASE_OUT, INK, INK_2, RADIUS_CONTROL, TIP, alpha, bezier, hex, hsla, white};
 
 const BLACK: gpui_kit::Rgba = hex(0x000000);
 
@@ -50,6 +51,8 @@ struct Trigger {
     action: Option<Rc<Box<dyn Action>>>,
     /// The key context the action's key is bound in, when it isn't bound everywhere.
     context: Option<&'static str>,
+    /// Its tooltip stands at its right, not under it.
+    beside: bool,
     /// Gone once a frame is drawn without it.
     alive: Weak<()>,
 }
@@ -250,7 +253,7 @@ impl Render for Tips {
             .items_center()
             .gap(px(8.))
             .max_w(px(320.))
-            .rounded(px(7.))
+            .rounded(RADIUS_CONTROL)
             .bg(TIP)
             .px(px(8.))
             .py(px(4.))
@@ -269,9 +272,11 @@ impl Render for Tips {
                     .text_color(INK_2)
                     .child(key.appearance(false))
             }));
-        // it eases in out of what it belongs to: from above when it hangs under it
+        // it eases in out of what it belongs to: from above when it hangs under it, from the left when it stands
+        // at its right
         let under = trigger.bounds.bottom() + px(48.) < window.viewport_size().height;
-        let from = if under { -RISE } else { RISE };
+        let beside = trigger.beside;
+        let from = if under || beside { -RISE } else { RISE };
         let turn = self.turn;
         let moved: AnyElement = match look {
             Look::There => div().child(body).into_any_element(),
@@ -281,7 +286,10 @@ impl Render for Tips {
                 .with_animation(
                     SharedString::from(format!("tip-in-{turn}")),
                     Animation::new(DUR_QUICK).with_easing(|t| bezier(EASE_OUT, t)),
-                    move |tip, t| tip.top(px(from * (1. - t))).opacity(t),
+                    move |tip, t| {
+                        let away = px(from * (1. - t));
+                        if beside { tip.left(away) } else { tip.top(away) }.opacity(t)
+                    },
                 )
                 .into_any_element(),
             Look::Out => div()
@@ -292,7 +300,11 @@ impl Render for Tips {
                 .into_any_element(),
         };
         let placed = Positioner::side(trigger.bounds)
-            .placement(if under { Placement::Bottom } else { Placement::Top })
+            .placement(match (beside, under) {
+                (true, _) => Placement::Right,
+                (false, true) => Placement::Bottom,
+                (false, false) => Placement::Top,
+            })
             .offset(px(AWAY))
             .margin(px(8.))
             .child(moved);
@@ -309,11 +321,8 @@ fn tip_shadow() -> Vec<BoxShadow> {
         spread_radius: px(spread),
         inset: false,
     };
-    vec![
-        shadow(white(0.085), 0., 0., 1.),
-        shadow(alpha(BLACK, 0.35), 2., 6., 0.),
-        shadow(alpha(BLACK, 0.6), 12., 32., -6.),
-    ]
+    // a tooltip stands on its own gray, so it needs no ring: a soft shadow under it
+    vec![shadow(alpha(BLACK, 0.4), 6., 10., 0.)]
 }
 
 /// The window's tooltip, for the window's root to draw as its last child. It also sends a tooltip away when
@@ -357,13 +366,19 @@ pub trait Tipped: ParentElement + Sized {
     /// Its tooltip: `words`, and the key of `action` beside them when it has one. A test finds it as "tip" and reads
     /// its label.
     fn tipped(self, words: impl Into<SharedString>, action: Option<Box<dyn Action>>) -> Self {
-        tip_on(self, words.into(), action, None)
+        tip_on(self, words.into(), action, None, false)
+    }
+
+    /// The same, with the tooltip at the thing's right: for a button in a column at the window's left edge (the
+    /// rail), where a tooltip under it would cover the next button.
+    fn tipped_beside(self, words: impl Into<SharedString>, action: Option<Box<dyn Action>>) -> Self {
+        tip_on(self, words.into(), action, None, true)
     }
 
     /// The same for an action whose key is bound in the key context `context` only (the opened file's Escape,
     /// Search's toggles): the key is looked up there, wherever the keyboard is.
     fn tipped_in(self, words: impl Into<SharedString>, action: Box<dyn Action>, context: &'static str) -> Self {
-        tip_on(self, words.into(), Some(action), Some(context))
+        tip_on(self, words.into(), Some(action), Some(context), false)
     }
 }
 
@@ -374,6 +389,7 @@ fn tip_on<E: ParentElement>(
     words: SharedString,
     action: Option<Box<dyn Action>>,
     context: Option<&'static str>,
+    beside: bool,
 ) -> E {
     {
         let action = action.map(Rc::new);
@@ -393,7 +409,7 @@ fn tip_on<E: ParentElement>(
                 },
                 move |bounds, (hitbox, id, alive), window, cx| {
                     let tips = Tips::of(window, cx);
-                    let trigger = Trigger { id: id.clone(), bounds, words, action, context, alive };
+                    let trigger = Trigger { id: id.clone(), bounds, words, action, context, beside, alive };
                     window.on_mouse_event({
                         let (tips, hitbox) = (tips.clone(), hitbox.clone());
                         move |_: &MouseMoveEvent, phase, window, cx| {

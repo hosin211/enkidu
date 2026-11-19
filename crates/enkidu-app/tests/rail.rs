@@ -1,7 +1,7 @@
-//! Item 1.16: the projects row on the frame's live store, with a real core on a temporary folder and throwaway git
-//! repos. Add project picks a folder and the core adds it, and what went wrong is said; the project on screen opens
-//! its menu, which removes a project only once it has no workspaces; a project whose workspaces need you, while
-//! another one is on screen, shows how many.
+//! Item 1.16: the projects on the rail on the frame's live store, with a real core on a temporary folder and
+//! throwaway git repos. Add project picks a folder and the core adds it, and what went wrong is said; the name of
+//! the project on screen opens its menu, which removes a project only once it has no workspaces; a project whose
+//! tabs are not on screen counts in red how many of its Claudes need you.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -16,7 +16,8 @@ use enkidu_model::frame::Frame;
 use futures::channel::mpsc::{UnboundedSender, unbounded};
 use gpui_kit::test::{TestQueryExt as _, TestWindowExt as _};
 use gpui_kit::{
-    AnyWindowHandle, AppContext as _, Bounds, Entity, TestAppContext, Window, WindowBounds, WindowOptions, px, size,
+    AnyWindowHandle, AppContext as _, Bounds, ElementId, Entity, TestAppContext, Window, WindowBounds, WindowOptions,
+    px, size,
 };
 
 struct Setup {
@@ -171,10 +172,14 @@ fn add_project_picks_a_folder_and_the_project_comes_on_screen(cx: &mut TestAppCo
     assert!(setup.shared.db.projects().unwrap().iter().any(|p| p.id == added.id), "the core keeps it");
     assert!(
         until_seen(cx, setup.window, |window| {
-            window.try_find_by_label("shop: project menu").is_some()
-                && window.find(("project", 0usize)).label() == Some("first")
+            window.try_find(("project", 1usize)).is_some_and(|added| {
+                added.label() == Some("shop")
+                    && added.selected() == Some(true)
+                    && added.bounds().top() > window.find(("project", 0usize)).bounds().bottom()
+            }) && window.find(("project", 0usize)).label() == Some("first")
+                && window.find("project-menu").label() == Some("shop: project menu")
         }),
-        "its tab opens its menu, and the first project is a tab to switch to"
+        "it stands under the first project on the rail, picked, and its name stands in the top row"
     );
 
     // a folder already added, and one that isn't a git repository: each is said, and nothing is added
@@ -204,7 +209,7 @@ fn the_project_menu_removes_a_project_only_once_it_has_no_workspaces(cx: &mut Te
     let shop_path = setup.home.path().join("shop").to_string_lossy().to_string();
 
     // shop has a workspace: its menu says where it is, and won't remove it
-    click(cx, setup.window, ("project", 0usize));
+    click(cx, setup.window, "project-menu");
     assert!(
         until_seen(cx, setup.window, |window| window.try_find_by_label("Remove its workspaces first").is_some()),
         "the menu opened"
@@ -226,52 +231,136 @@ fn the_project_menu_removes_a_project_only_once_it_has_no_workspaces(cx: &mut Te
     assert_eq!(setup.frame.read_with(cx, |f, _| f.projects.len()), 2);
     cx.update_window(setup.window, |_, window, cx| window.press("escape", cx)).unwrap();
 
-    // spare has none: on screen, its menu removes it, and the first project left comes on screen
+    // spare has none: on the rail it comes on screen, and its menu removes it (shop's menu first takes its moment
+    // to go: it fades for 110 ms where it stood)
+    cx.executor().advance_clock(Duration::from_millis(300));
+    assert!(
+        seen_within(cx, setup.window, 100, |window| window.try_find_by_label("Remove its workspaces first").is_none()),
+        "shop's menu has gone"
+    );
     click(cx, setup.window, ("project", 1usize));
-    assert_eq!(setup.frame.read_with(cx, |f, _| f.current_project.clone()), Some("p2".into()));
-    click(cx, setup.window, ("project", 1usize));
+    assert_eq!(setup.frame.read_with(cx, |f, _| f.current_project.clone()), Some("p2".into()), "spare is on screen");
+    assert!(
+        until_seen(cx, setup.window, |window| window.find("project-menu").label() == Some("spare: project menu")),
+        "its name stands in the top row"
+    );
+    click(cx, setup.window, "project-menu");
     assert!(
         until_seen(cx, setup.window, |window| window.try_find_by_label("Remove project").is_some()),
         "spare's menu offers Remove project"
     );
     cx.update_window(setup.window, |_, window, cx| window.click("remove-project", cx)).unwrap();
-    assert!(until(cx, &setup.frame, |f| f.projects.len() == 1), "spare is gone from the row");
+    assert!(until(cx, &setup.frame, |f| f.projects.len() == 1), "spare is gone from the rail");
     assert_eq!(setup.frame.read_with(cx, |f, _| f.current_project.clone()), Some("p1".into()));
     let left: Vec<String> = setup.shared.db.projects().unwrap().into_iter().map(|p| p.id).collect();
     assert_eq!(left, ["p1"], "and from the core");
 }
 
+/// DESIGN.md, "Icons": a project shows its own icon on the rail when its folder has one, else its letter; its
+/// settings can ask for the letter, or name another picture.
 #[gpui_kit::test]
-fn a_project_whose_workspaces_need_you_says_how_many_while_another_is_on_screen(cx: &mut TestAppContext) {
+fn a_project_shows_its_own_icon_when_its_folder_has_one(cx: &mut TestAppContext) {
+    let picture = |path: &Path| {
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        image::RgbaImage::from_pixel(8, 8, image::Rgba([79, 125, 255, 255])).save(path).unwrap();
+    };
+    let setup = start(
+        cx,
+        |home| {
+            // shop's folder has the icon its IDE shows; tools' has none
+            picture(&home.join("shop/.idea/icon.png"));
+            picture(&home.join("shop/art/mark.png"));
+            std::fs::create_dir_all(home.join("tools")).unwrap();
+            vec![project("p1", "shop", &home.join("shop")), project("p2", "tools", &home.join("tools"))]
+        },
+        &[],
+        &[],
+    );
+    let shown = |window: &Window| {
+        window.try_find(("project-icon", 0usize)).and_then(|icon| icon.description().map(String::from))
+    };
+    assert!(
+        until_seen(cx, setup.window, |w| shown(w).is_some_and(|path| path.ends_with("shop/.idea/icon.png"))),
+        "shop's button shows the icon found in its folder"
+    );
+    cx.update_window(setup.window, |_, window, _| {
+        let icon = window.find(("project-icon", 0usize));
+        assert_eq!(icon.label(), Some("shop's own icon"));
+        // 24 px, in the middle of its 40 px button
+        let (button, picture) = (window.find(("project", 0usize)).bounds(), icon.bounds());
+        assert_eq!((picture.size, button.size), (size(px(24.), px(24.)), size(px(40.), px(40.))));
+        assert_eq!(picture.center(), button.center());
+        assert!(window.try_find(("project-icon", 1usize)).is_none(), "tools has none: its letter");
+    })
+    .unwrap();
+
+    // its settings name another picture, from the project's folder
+    let mut settings = setup.shared.project_settings("p1").unwrap();
+    settings.rail.picture = "art/mark.png".into();
+    setup.shared.save_project_settings("p1", &settings).unwrap();
+    cx.update(enkidu_app::stores::Stores::read_icons);
+    assert!(until_seen(cx, setup.window, |w| shown(w).is_some_and(|path| path.ends_with("shop/art/mark.png"))));
+    // and ask for the letter
+    settings.rail.icon = false;
+    setup.shared.save_project_settings("p1", &settings).unwrap();
+    cx.update(enkidu_app::stores::Stores::read_icons);
+    assert!(until_seen(cx, setup.window, |w| shown(w).is_none()), "the letter again");
+    // a project that is added is looked at too
+    let other = enkidu_testkit::repo(setup.home.path(), "site");
+    picture(&other.join("public/favicon.png"));
+    pick(cx, &setup, Some(other));
+    assert!(until(cx, &setup.frame, |f| f.projects.len() == 3), "the project was added");
+    assert!(
+        until_seen(cx, setup.window, |w| {
+            w.try_find(("project-icon", 2usize))
+                .is_some_and(|icon| icon.description().is_some_and(|path| path.ends_with("site/public/favicon.png")))
+        }),
+        "the new project's own icon"
+    );
+}
+
+#[gpui_kit::test]
+fn a_project_whose_tabs_are_not_on_screen_counts_who_needs_you(cx: &mut TestAppContext) {
     let setup = start(
         cx,
         |home| vec![project("p1", "shop", &home.join("shop")), project("p2", "tools", &home.join("tools"))],
         &[workspace("w1", "p1", "stock-fix"), workspace("w2", "p2", "lint"), workspace("w3", "p2", "docs")],
         &[("w2", "needs_you")],
     );
-    let count =
-        |window: &Window, ix: usize| window.try_find(("needs-you", ix)).and_then(|c| c.label().map(String::from));
+    let words = |window: &Window, id: ElementId| window.try_find(id).and_then(|c| c.label().map(String::from));
+    let count = |project: usize| -> ElementId { ("project-waiting", project).into() };
     assert!(
-        until_seen(cx, setup.window, |w| count(w, 1).as_deref() == Some("1 workspace needs you")),
-        "tools shows 1, from what the core knew at the start"
+        until_seen(cx, setup.window, |w| words(w, count(1)).as_deref() == Some("1 workspace needs you")),
+        "tools counts lint, from what the core knew at the start"
     );
-
-    // the core's news: another of tools' workspaces needs you, then shop's own
-    setup.news.unbounded_send(Event::StatusChanged { workspace_id: "w3".into(), status: "needs_you".into() }).unwrap();
-    assert!(until_seen(cx, setup.window, |w| count(w, 1).as_deref() == Some("2 workspaces need you")));
-    setup.news.unbounded_send(Event::StatusChanged { workspace_id: "w1".into(), status: "needs_you".into() }).unwrap();
-    cx.run_until_parked();
-    cx.update_window(setup.window, |_, window, cx| {
-        window.render_frame(cx);
-        assert_eq!(count(window, 0), None, "the project on screen shows no count: its tabs are right below");
+    cx.update_window(setup.window, |_, window, _| {
+        assert!(window.try_find(count(0)).is_none(), "nothing about nothing: shop has no count");
+        // the count stands at the button's upper right corner
+        let (button, badge) = (window.find(("project", 1usize)).bounds(), window.find(count(1)).bounds());
+        assert_eq!((badge.top(), badge.right()), (button.top(), button.right()));
     })
     .unwrap();
 
-    // tools comes on screen: now shop shows its one
+    // the core's news: another of tools' workspaces needs you, then shop's own
+    setup.news.unbounded_send(Event::StatusChanged { workspace_id: "w3".into(), status: "needs_you".into() }).unwrap();
+    assert!(until_seen(cx, setup.window, |w| words(w, count(1)).as_deref() == Some("2 workspaces need you")));
+    setup.news.unbounded_send(Event::StatusChanged { workspace_id: "w1".into(), status: "needs_you".into() }).unwrap();
+    assert!(until_seen(cx, setup.window, |w| words(w, ("tab-words", 0usize).into()).as_deref() == Some("Needs you")));
+    cx.update_window(setup.window, |_, window, _| {
+        assert!(window.try_find(count(0)).is_none(), "shop is on screen: its own tab says it");
+    })
+    .unwrap();
+
+    // tools comes on screen: its tabs say so now, and shop counts its own
     click(cx, setup.window, ("project", 1usize));
-    assert!(until_seen(cx, setup.window, |w| count(w, 0).as_deref() == Some("1 workspace needs you")
-        && count(w, 1).is_none()));
-    // and when it is answered, the count goes
+    assert_eq!(setup.frame.read_with(cx, |f, _| f.current_project.clone()), Some("p2".into()));
+    assert!(until_seen(cx, setup.window, |w| {
+        words(w, count(0)).as_deref() == Some("1 workspace needs you")
+            && words(w, count(1)).is_none()
+            && words(w, ("tab-words", 0usize).into()).as_deref() == Some("Needs you")
+            && words(w, ("tab-words", 1usize).into()).as_deref() == Some("Needs you")
+    }));
+    // and when it is answered, its count goes
     setup.news.unbounded_send(Event::StatusChanged { workspace_id: "w1".into(), status: "working".into() }).unwrap();
-    assert!(until_seen(cx, setup.window, |w| count(w, 0).is_none()));
+    assert!(until_seen(cx, setup.window, |w| words(w, count(0)).is_none()));
 }

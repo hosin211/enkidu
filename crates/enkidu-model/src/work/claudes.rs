@@ -763,7 +763,7 @@ mod tests {
         assert!(text.contains(remark), "{text}");
         assert!(text.contains("> The CSV writer should use the outlet's decimal separator"), "{text}");
         assert!(text.contains("don't post anything to GitHub or Jira"), "{text}");
-        let checks = send_text(item_of(&work, export, "checks:demo-org/shop#2414:4973abc0def1"), export, &work);
+        let checks = send_text(item_of(&work, export, "checks:demo-org/shop#2414:2414abc0def1"), export, &work);
         assert!(checks.contains("Checks are failing on the latest commit of PR #2414"), "{checks}");
         assert!(checks.contains("Link: https://ci.example.com/run/88123"), "{checks}");
         let bundles = by_key(&groups, "SH-21112");
@@ -785,11 +785,11 @@ mod tests {
         NOW - minutes * 60_000
     }
 
-    fn sh12524() -> Workspace {
+    fn price_lists() -> Workspace {
         ws("wA", "sh-21000-price-lists-keep-their-order", "feature/SH-21000-price-lists-keep-their-order")
     }
 
-    fn sh12783() -> Workspace {
+    fn gift_cards() -> Workspace {
         ws("wB", "SH-21349-api-gift-card-balances", "feature/SH-21349-api-gift-card-balances")
     }
 
@@ -817,14 +817,14 @@ mod tests {
         }
     }
 
-    fn pr4937() -> Pr {
+    fn gift_cards_pr() -> Pr {
         pr(2350, "feature/SH-21349-api-gift-card-balances", "OPEN")
     }
 
     /// The card of these tests: a ticket key (or none), its PRs, and the sessions linked to it with how; in an index
     /// that holds just those.
     fn card(key: Option<&str>, prs: Vec<Pr>, sessions: Vec<(Session, &str)>) -> (Snapshot, Group) {
-        let list = [sh12524(), sh12783()];
+        let list = [price_lists(), gift_cards()];
         let work = Snapshot {
             prs,
             sessions: sessions.iter().map(|(session, _)| session.clone()).collect(),
@@ -877,9 +877,9 @@ mod tests {
     /// "puts the Claude in the workspace on the card's branch first, and a Claude busy with another ticket last".
     #[test]
     fn puts_the_claude_on_the_cards_branch_first_and_a_claude_busy_with_another_ticket_last() {
-        let list = [sh12524(), sh12783()];
+        let list = [price_lists(), gift_cards()];
         let linked = vec![(s_a(), "created it"), (s_b(), "worked on its branch")];
-        let (work, g) = card(Some("SH-21349"), vec![pr4937()], linked);
+        let (work, g) = card(Some("SH-21349"), vec![gift_cards_pr()], linked);
         let claudes = card_claudes(&g, &work, &list, &statuses(&[("wA", "idle"), ("wB", "done")]), None, None);
         let said: Vec<String> = (claudes.options.iter())
             .map(|o| {
@@ -906,14 +906,14 @@ mod tests {
         let SendTarget::Workspace { workspace, .. } = target else { panic!("{target:?}") };
         assert_eq!(workspace.name, "SH-21349-api-gift-card-balances");
         // before the workspace followed its folder to the PR's branch: still not the busy one
-        let stale = [sh12524(), Workspace { branch: "SH-21349-api-gift-card-balances".into(), ..sh12783() }];
+        let stale = [price_lists(), Workspace { branch: "SH-21349-api-gift-card-balances".into(), ..gift_cards() }];
         assert_eq!(picked(&card_claudes(&g, &work, &stale, &none(), None, None)), "s-wB");
     }
 
     /// "starts a new Claude when the only Claudes linked were named in a prompt, and keeps them there to pick".
     #[test]
     fn starts_a_new_claude_when_the_only_claudes_linked_were_named_in_a_prompt() {
-        let list = [sh12524(), sh12783()];
+        let list = [price_lists(), gift_cards()];
         let (work, g) = card(Some("SH-20259"), Vec::new(), vec![(s_a(), "named in a prompt")]);
         let claudes = card_claudes(&g, &work, &list, &none(), None, None);
         assert_eq!(claudes.options.iter().map(|o| o.session.id.as_str()).collect::<Vec<_>>(), ["s-wA"]);
@@ -934,12 +934,12 @@ mod tests {
     /// "starts a new conversation in the card's workspace, or a new workspace when it has none".
     #[test]
     fn starts_a_new_conversation_in_the_cards_workspace_or_a_new_workspace_when_it_has_none() {
-        let list = [sh12524(), sh12783()];
-        let (work, g) = card(Some("SH-21349"), vec![pr4937()], vec![(s_b(), "worked on its branch")]);
+        let list = [price_lists(), gift_cards()];
+        let (work, g) = card(Some("SH-21349"), vec![gift_cards_pr()], vec![(s_b(), "worked on its branch")]);
         let fresh = task_target(&g, &work, &list, &none(), Some(&ClaudeChoice::New));
         let SendTarget::Switch { workspace, session } = fresh else { panic!("{fresh:?}") };
         assert_eq!((workspace.id.as_str(), session), ("wB", None));
-        let none_there = task_target(&g, &work, &[sh12524()], &none(), Some(&ClaudeChoice::New));
+        let none_there = task_target(&g, &work, &[price_lists()], &none(), Some(&ClaudeChoice::New));
         let SendTarget::New { branch, mode, .. } = none_there else { panic!("{none_there:?}") };
         assert_eq!((branch.as_str(), mode), ("feature/SH-21349-api-gift-card-balances", BranchMode::Existing));
         // always a new workspace when you ask for one, though the card has one: a name that is free
@@ -952,8 +952,8 @@ mod tests {
     /// "lists the workspace on the card's branch before any hook linked its conversation".
     #[test]
     fn lists_the_workspace_on_the_cards_branch_before_any_hook_linked_its_conversation() {
-        let list = [sh12524(), sh12783()];
-        let (work, g) = card(Some("SH-21349"), vec![pr4937()], Vec::new());
+        let list = [price_lists(), gift_cards()];
+        let (work, g) = card(Some("SH-21349"), vec![gift_cards_pr()], Vec::new());
         let claudes = card_claudes(&g, &work, &list, &none(), None, None);
         let said: Vec<String> = claudes.options.iter().map(|o| format!("{} {}", o.session.id, o.how)).collect();
         assert_eq!(said, ["s-wB its workspace is on this branch"]);
@@ -965,27 +965,27 @@ mod tests {
     /// or a new one".
     #[test]
     fn moves_a_workspace_to_an_older_conversation_of_its_own_and_brings_one_from_outside_in() {
-        let list = [sh12524(), sh12783()];
+        let list = [price_lists(), gift_cards()];
         // the workspace's Claude moved on to another conversation since
         let older = a_session("old-1", Some("wB"), at(300));
-        let (work, g) = card(Some("SH-21349"), vec![pr4937()], vec![(older, "made a commit in it")]);
+        let (work, g) = card(Some("SH-21349"), vec![gift_cards_pr()], vec![(older, "made a commit in it")]);
         let back = task_target(&g, &work, &list, &none(), Some(&ClaudeChoice::read("old-1")));
         let SendTarget::Switch { workspace, session } = back else { panic!("{back:?}") };
         assert_eq!((workspace.id.as_str(), session.map(|s| s.id).as_deref()), ("wB", Some("old-1")));
         // a conversation from the main folder (Warp): into the workspace on the card's branch, else a new one there
         let warp = Session { cwd: format!("{HOME}/code/shop.example"), ..a_session("warp-1", None, at(60)) };
-        let (work, g2) = card(Some("SH-21349"), vec![pr4937()], vec![(warp.clone(), "created it")]);
+        let (work, g2) = card(Some("SH-21349"), vec![gift_cards_pr()], vec![(warp.clone(), "created it")]);
         let into = task_target(&g2, &work, &list, &none(), Some(&ClaudeChoice::read("warp-1")));
         let SendTarget::Switch { workspace, session } = into else { panic!("{into:?}") };
         assert_eq!((workspace.id.as_str(), session.map(|s| s.id).as_deref()), ("wB", Some("warp-1")));
-        let brought = task_target(&g2, &work, &[sh12524()], &none(), None);
+        let brought = task_target(&g2, &work, &[price_lists()], &none(), None);
         let SendTarget::Outside { session, branch, mode, .. } = brought else { panic!("{brought:?}") };
         let came = ("warp-1", "feature/SH-21349-api-gift-card-balances", BranchMode::Existing);
         assert_eq!((session.id.as_str(), branch.as_str(), mode), came);
         // with no open PR to bring it in on, a new Claude unless you pick it
         let merged = pr(2350, "feature/SH-21349-api-gift-card-balances", "MERGED");
         let (work, g3) = card(Some("SH-21349"), vec![merged], vec![(warp, "created it")]);
-        assert_eq!(picked(&card_claudes(&g3, &work, &[sh12524()], &none(), None, None)), "new");
+        assert_eq!(picked(&card_claudes(&g3, &work, &[price_lists()], &none(), None, None)), "new");
     }
 
     /// "goes where you or Claude linked it, even to a Claude busy with another ticket, and not where it only made
@@ -993,8 +993,8 @@ mod tests {
     #[test]
     fn goes_where_you_or_claude_linked_it_even_to_a_claude_busy_with_another_ticket() {
         let pick = |how: &str| {
-            let (work, g) = card(Some("SH-21349"), vec![pr4937()], vec![(s_a(), how)]);
-            picked(&card_claudes(&g, &work, &[sh12524()], &none(), None, None)).to_string()
+            let (work, g) = card(Some("SH-21349"), vec![gift_cards_pr()], vec![(s_a(), how)]);
+            picked(&card_claudes(&g, &work, &[price_lists()], &none(), None, None)).to_string()
         };
         assert_eq!(pick("linked by you"), "s-wA");
         assert_eq!(pick("linked by Claude"), "s-wA");
@@ -1005,7 +1005,7 @@ mod tests {
     /// "Another workspace's Claude").
     #[test]
     fn a_workspaces_claude_you_picked_for_the_card_is_on_it_though_nothing_links_them() {
-        let list = [sh12524(), sh12783()];
+        let list = [price_lists(), gift_cards()];
         let (work, g) = card(Some("SH-20259"), Vec::new(), Vec::new());
         let yours = ClaudeChoice::read("s-wA");
         let claudes = card_claudes(&g, &work, &list, &statuses(&[("wA", "working")]), Some(&yours), None);

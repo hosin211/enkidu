@@ -138,7 +138,7 @@ fn a_claude_that_exited_says_so_and_resumes_its_conversation(cx: &mut TestAppCon
     assert!(argv.windows(2).any(|w| w[0] == "--resume" && w[1] == first["sessionId"].as_str().unwrap()), "{argv:?}");
     assert!(app.until(cx, |w| said(w, ("term-tab", 0usize)).as_deref() == Some("Claude")), "one tab, running again");
     assert_eq!(tabs(cx, &app).len(), 1);
-    assert!(app.until_terminal(cx, "· resumed"));
+    assert!(app.until_terminal(cx, "· resumed"), "{}", app.terminal_text(cx));
 }
 
 #[gpui_kit::test]

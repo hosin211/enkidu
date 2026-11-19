@@ -83,8 +83,8 @@ fn a_file_opens_where_the_diffs_are_and_escape_goes_back(cx: &mut TestAppContext
     look(cx, &app, |w| {
         // its own band in place of "Changes": the way back, the file, what happened to it, its lines
         assert!(w.try_find("diff-view").is_none(), "the diffs stayed");
-        // the Changed files panel still says how many files changed
-        assert_eq!(said(w, "changes-count").as_deref(), Some("1 file"));
+        // the panel's tab still says how many files changed
+        assert_eq!(said(w, "panel-count").as_deref(), Some("1"));
         assert_eq!(said(w, "file-band").as_deref(), Some("src/app.py"));
         assert_eq!(said(w, "close-file").as_deref(), Some("Back to the changes"));
         assert_eq!(said(w, "file-kind").as_deref(), Some("Modified"));
@@ -179,7 +179,7 @@ fn a_remark_is_written_on_any_line_of_an_opened_file(cx: &mut TestAppContext) {
         assert!(card.top() >= line && card.top() - line < gpui_kit::px(40.), "{card:?} under {line:?}");
         assert_eq!(said(w, "file-remarks").as_deref(), Some("1 remark"));
         assert_eq!(said(w, "review-bar").as_deref(), Some("1 remark not sent yet"));
-        assert_eq!(said(w, ("tab-words", 0usize)).as_deref(), Some("1 remark not sent yet"));
+        assert_eq!(said(w, ("tab-remarks", 0usize)).as_deref(), Some("1 remark not sent yet"));
     });
 
     // a drag from line 1 to line 3: a remark on the three lines
@@ -464,7 +464,7 @@ fn an_opened_file_marks_what_differs_from_the_last_commit_and_follows_claudes_ed
 
     // a file that is all new has no marks: every line would have one, and its badge says what it is
     std::fs::write(folder.join("src/fresh.py"), "def fresh():\n    return 1\n").unwrap();
-    assert!(app.until(cx, |w| said(w, "changes-count").as_deref() == Some("2 files")), "the new file isn't listed");
+    assert!(app.until(cx, |w| said(w, "panel-count").as_deref() == Some("2")), "the new file isn't listed");
     open(cx, &app, "src/fresh.py", None);
     assert!(app.until(cx, |w| said(w, "file-lines").as_deref() == Some("2 lines")), "the new file never opened");
     look(cx, &app, |w| {

@@ -7,8 +7,8 @@ use enkidu_core::commands::OwnTaskDraft;
 use enkidu_core::work::model::OwnTask;
 use enkidu_model::frame::Frame;
 use enkidu_model::work::board::own_state;
-use enkidu_ui::pieces::{ButtonKind, ButtonSize, Observed, button, project_badge, project_hue, text_field};
-use enkidu_ui::tab_pill::tab_row;
+use enkidu_ui::pieces::{ButtonKind, ButtonSize, Observed, button, project_hue, text_field};
+use enkidu_ui::tab_pill::{word_segment, word_switch};
 use enkidu_ui::tokens as theme;
 use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::WindowExt as _;
@@ -209,7 +209,7 @@ impl OwnTaskDialog {
 
 /// A field's name above it.
 fn label(words: &'static str) -> gpui_kit::Div {
-    div().mb(px(6.)).text_size(theme::TEXT_SMALL).font_weight(FontWeight::MEDIUM).text_color(theme::INK).child(words)
+    div().mb(px(8.)).text_size(theme::TEXT_SMALL).font_weight(FontWeight::MEDIUM).text_color(theme::INK).child(words)
 }
 
 /// The three states as a row to pick from: To do, In progress, Done. `pick` is told the one pressed.
@@ -225,27 +225,12 @@ pub fn state_row(
         .map(|choice| {
             let (on, words) = (*choice == state, own_state(choice).1);
             let pick = pick.clone();
-            div()
-                .id(SharedString::from(format!("{id}-{choice}")))
-                .test_support()
-                .role(Role::Tab)
-                .aria_label(words)
-                .aria_selected(on)
-                .h(theme::SEGMENT_HEIGHT)
-                .px(px(10.))
-                .flex()
-                .items_center()
-                .text_size(theme::TEXT_SMALL)
-                .text_color(if on { theme::INK } else { theme::INK_2 })
-                .cursor_pointer()
-                .child(words)
+            word_segment(SharedString::from(format!("{id}-{choice}")), words, on)
                 .on_click(move |_, window, cx| pick(choice, window, cx))
         })
         .collect();
     let selected = STATES.iter().position(|choice| *choice == state).unwrap_or(0);
-    div()
-        .flex()
-        .child(div().p(px(2.)).rounded(px(8.)).bg(theme::FRAME).child(tab_row(id, selected, choices, window, cx)))
+    div().flex().child(word_switch(id, selected, choices, window, cx))
 }
 
 impl Render for OwnTaskDialog {
@@ -259,38 +244,40 @@ impl Render for OwnTaskDialog {
         let project = match (&self.editing, self.projects.len()) {
             (None, 2..) => {
                 let picked = self.project;
-                let choices = self.projects.iter().enumerate().map(|(at, (_, name, place))| {
+                let choices = self.projects.iter().enumerate().map(|(at, (id, name, place))| {
                     let on = at == picked;
+                    // its picture, the one the rail shows
+                    let icon = crate::stores::Stores::icon_of(id, cx);
                     div()
                         .id(("own-task-project", at))
                         .test_support()
                         .role(Role::RadioButton)
                         .aria_label(SharedString::from(name.clone()))
                         .aria_selected(on)
-                        .h(px(28.))
-                        .px(px(9.))
+                        .h(theme::DIALOG_CONTROL)
+                        .px(px(12.))
                         .flex()
                         .items_center()
-                        .gap(px(7.))
+                        .gap(px(8.))
                         .rounded(theme::RADIUS_CONTROL)
                         .border_1()
                         .border_color(if on {
                             enkidu_ui::tokens::alpha(theme::ACCENT, 0.55)
                         } else {
-                            theme::RULE_STRONG
+                            theme::LINE_STRONG
                         })
                         .when(on, |choice| choice.bg(theme::ACCENT_SOFT))
                         .text_size(theme::TEXT_SMALL)
                         .text_color(if on { theme::INK } else { theme::INK_2 })
                         .cursor_pointer()
-                        .child(project_badge(name, project_hue(*place), 16.))
+                        .child(crate::rail::project_picture(name, project_hue(*place), 16., icon))
                         .child(name.clone())
                         .on_click(cx.listener(move |this, _, _, cx| {
                             this.project = at;
                             cx.notify();
                         }))
                 });
-                Some(div().child(label("Project")).child(div().flex().flex_wrap().gap(px(6.)).children(choices)))
+                Some(div().child(label("Project")).child(div().flex().flex_wrap().gap(px(8.)).children(choices)))
             }
             _ => None,
         };
@@ -319,7 +306,7 @@ impl Render for OwnTaskDialog {
         // Delete asks once more before it does it
         let delete = (!new).then(|| match self.confirming {
             false => div().flex_1().flex().child(
-                button("own-task-delete", "Delete", ButtonKind::Ghost, ButtonSize::Medium)
+                button("own-task-delete", "Delete", ButtonKind::Ghost, ButtonSize::Large)
                     .text_color(theme::LAMP_RED)
                     .on_click(cx.listener(|this, _, _, cx| {
                         this.confirming = true;
@@ -332,14 +319,14 @@ impl Render for OwnTaskDialog {
                 .items_center()
                 .gap(px(8.))
                 .child(div().text_size(theme::TEXT_SMALL).text_color(theme::INK_2).child("Delete this task?"))
-                .child(button("own-task-keep", "Keep it", ButtonKind::Secondary, ButtonSize::Medium).on_click(
+                .child(button("own-task-keep", "Keep it", ButtonKind::Secondary, ButtonSize::Large).on_click(
                     cx.listener(|this, _, _, cx| {
                         this.confirming = false;
                         cx.notify();
                     }),
                 ))
                 .child(
-                    button("own-task-delete-it", "Delete it", ButtonKind::Danger, ButtonSize::Medium)
+                    button("own-task-delete-it", "Delete it", ButtonKind::Danger, ButtonSize::Large)
                         .on_click(cx.listener(|this, _, window, cx| this.delete(window, cx))),
                 ),
         });
@@ -358,9 +345,9 @@ impl Render for OwnTaskDialog {
             ))
             .child(
                 div()
-                    .px(px(20.))
-                    .pt(px(14.))
-                    .pb(px(18.))
+                    .px(px(24.))
+                    .pt(px(12.))
+                    .pb(px(24.))
                     .flex()
                     .flex_col()
                     .gap(px(16.))
@@ -378,11 +365,11 @@ impl Render for OwnTaskDialog {
                     .children(delete)
                     .children(error)
                     .child(
-                        button("own-task-cancel", "Cancel", ButtonKind::Secondary, ButtonSize::Medium)
+                        button("own-task-cancel", "Cancel", ButtonKind::Secondary, ButtonSize::Large)
                             .on_click(|_, window, cx| window.close_dialog(cx)),
                     )
                     .child(
-                        button("own-task-save", save_words, ButtonKind::Primary, ButtonSize::Medium)
+                        button("own-task-save", save_words, ButtonKind::Primary, ButtonSize::Large)
                             .when(!enabled, |save| save.opacity(0.45).cursor_default())
                             .on_click(cx.listener(move |this, _, window, cx| {
                                 if enabled {
@@ -391,6 +378,5 @@ impl Render for OwnTaskDialog {
                             })),
                     ),
             )
-            .child(crate::dialog_parts::lit_edge())
     }
 }

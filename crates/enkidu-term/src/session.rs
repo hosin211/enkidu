@@ -863,7 +863,7 @@ mod tests {
         let t = kept(20, 4);
         t.feed(b"\x1b]11;?\x07");
         let reply = String::from_utf8(t.sent()).unwrap();
-        assert!(reply.starts_with("\x1b]11;rgb:1111/1212/1717"), "{reply:?}");
+        assert!(reply.starts_with("\x1b]11;rgb:0000/0000/0000"), "the stage's own black: {reply:?}");
     }
 
     #[test]

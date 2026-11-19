@@ -118,8 +118,7 @@ fn types_the_remarks_into_claudes_prompt_without_pressing_enter_gives_claude_the
     assert!(app.until(cx, |w| w.try_find("review-bar").is_none()), "the bar stayed");
     cx.update_window(app.window, |_, w, cx| {
         w.render_frame(cx);
-        assert!(w.try_find("status-remarks").is_none());
-        assert_ne!(said(w, ("tab-words", 0usize)).as_deref(), Some("2 remarks not sent yet"));
+        assert_eq!(said(w, ("tab-remarks", 0usize)), None, "its row counts none any more");
         assert!(w.try_find("remarks-note").is_none(), "the note went with them");
     })
     .unwrap();
@@ -248,7 +247,7 @@ fn discard_asks_first_and_an_empty_note_closes_with_escape(cx: &mut TestAppConte
     assert!(app.until(cx, |w| w.try_find("review-bar").is_none() && w.try_find("island-changes").is_some()));
     cx.update_window(app.window, |_, w, cx| {
         w.render_frame(cx);
-        assert!(w.try_find("file-remarks").is_none() && w.try_find("status-remarks").is_none());
+        assert!(w.try_find("file-remarks").is_none() && w.try_find(("tab-remarks", 0usize)).is_none());
     })
     .unwrap();
 }

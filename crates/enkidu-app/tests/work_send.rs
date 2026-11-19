@@ -719,7 +719,7 @@ fn runs_the_morning_summary_by_hand_from_settings_and_doesnt_when_jira_cant_be_r
     let before = printed(&app).len();
     // Jira signed out: the summary doesn't run, and says why
     fakes.twg("logged-out");
-    app.click(cx, ("project", 0usize));
+    app.click(cx, "project-menu");
     assert!(app.until(cx, |w| w.try_find("project-settings").is_some()));
     app.click(cx, "project-settings");
     assert!(app.until(cx, |w| w.try_find("default-base").is_some()), "the project's page never showed");

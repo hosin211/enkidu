@@ -1,4 +1,4 @@
-//! Live in the window (item 4.5; DESIGN.md, "Live"): the play button at the right of the tabs row, at one width in
+//! Live in the window (item 4.5; DESIGN.md, "Live"): the play button at the right of the top row, at one width in
 //! every state so nothing beside it moves, and the switch itself. Go live copies the workspace's changes into the
 //! project's main folder, where the dev environment runs, and they follow every edit; Stop puts the main folder back.
 //! The core does the copying, off the drawing thread; a toast says what it did, and what the project's own command

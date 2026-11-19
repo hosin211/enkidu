@@ -4,79 +4,86 @@ Enkidu is a developer's own tool for the day's tasks. Every task gets a workspac
 glance which Claude works, which one needs you and which one is done, you review the work line by line, and you
 bring one workspace's changes into the folder where your dev environment runs (Live). In the oldest story we have,
 Enkidu is the companion made to stand beside Gilgamesh: the one who works beside you. The interface should feel
-like a well-made Mac tool you keep open all day: calm, dense, exact, and alive where something happens.
+like a well-made Mac tool you keep open all day: calm, exact, and alive where something happens.
 
-**Dark only, in layers.** The window is a frame that holds islands, in a cool blue-black: the frame is the darkest,
-each pane (the changes, Claude, a tool panel) is an island one step up with a lit top edge, and menus, dialogs and
-toasts float another step up. Color carries meaning: the lamps are Claude's state, signal blue is what is yours, and
-small colored icons tell file types and projects apart. There is no light theme. The research behind this (Linear,
-Vercel Geist, Radix, JetBrains Islands, Raycast, Emil Kowalski's motion rules, and apps like this one) came first.
+**True black, one stage.** The window is a dark frame that holds one stage. What you read and write stands on the
+stage, in true black: Claude's terminal, the diff, an opened file, the board. What you choose with stands on the
+frame around it, a hair above: the project's workspaces as tabs in the top row, the projects on a rail at the left,
+the workspace's files in a column at the right, the status line at the foot. Color carries meaning: the lamps are
+Claude's state, blue is what is yours, and small colored icons tell file types and projects apart. There is no light
+theme. The research behind this (Linear, Vercel Geist, Radix, Apple's guidelines, Emil Kowalski's motion rules, and
+apps like this one) came first.
 
 All tokens live in `crates/enkidu-ui/src/tokens.rs`. Components use the token names; the only colors computed in code
-are the icon hues (`tone()` there). The window's own background is the frame color, so nothing flashes on launch.
+are the icon hues (`tone()` there). The window's own background is the frame's black, so nothing flashes on launch.
 
 ## Principles
 
-1. **Layers, not black.** Higher is lighter: frame `#0A0B0E`, islands `#111217`, their title bands `#15161C`,
-   floating layers `#191B21`, tooltips `#272A31`. Every layer has a 1 px edge and a lit top edge, drawn over its
-   content so a terminal can't cover it. Shadows stay translucent.
-2. **Each section stands on its own.** Every pane is an island with a 12 px corner, 8 px from the next; the space
-   between two islands is also where you drag to resize them. The island the keyboard is in gets a signal-blue edge
-   and a faint glow, so you always know where your typing goes.
-3. **Color means something.** The signal lamps are Claude's state (amber working, red needs you, green done). Signal
-   blue (`accent`) is what is yours: focus, the tab on screen, remarks, the button that types into Claude. File types, projects and
-   terminals carry small colored icons. The diff keeps green and red. Nothing is colored for decoration.
-4. **Compact, but said in words.** Signs where they are universal (the lamps, counts, +/−), words where they help:
-   "Needs you" on a tab, "Claude is working" and the branch in the status line. With little room, tabs drop their
-   extra words first.
-5. **Nothing about nothing.** What isn't there takes no room and no words: no "No changes yet", no counts of zero,
+1. **One black, the stage the darkest.** The stage is true black (`#000000`): Claude's terminal, the diff, an opened
+   file, the board. The frame around it stands a hair above (`#0A0A0A`): the top row, the rail, the files' column,
+   the status line. What floats is true black too; a clear edge and the dimming of what is behind it set it apart.
+2. **You choose on the frame, you work on the stage.** The projects are on the rail, the project's workspaces in the
+   top row, the workspace's files in the column at the right. The stage holds Claude's side and yours: Claude at the
+   left, where you type, and the changes beside it; one click puts the changes above.
+3. **Lines you can see, drawn once.** The stage has an edge, and where two panes meet in it there is one line of
+   1 px, strong enough to be seen at a glance (1.6 to 1 against its ground, or more). On black a part is set apart
+   by a line, not by its tone. No box stands inside a box, and nothing has a shadow but what floats.
+4. **One scale.** Every space is 4, 8, 12, 16, 24 or 32 px; every bar, row and control has one height; an icon has
+   one of two sizes ("Space, size, shape").
+5. **Blue is what is yours.** The tab of the workspace on screen has a blue edge. The pane your typing goes to has
+   one too, and its cursor is blue. What you wrote is blue: your remarks, and the button that types them into
+   Claude. A box you ticked is blue.
+6. **Color means something.** The signal lamps are Claude's state (amber working, red needs you, green done). File
+   types, projects and terminals carry small colored icons. The diff keeps green and red. Nothing is colored for
+   decoration.
+7. **Compact, but said in words.** Signs where they are universal (the lamps, counts, +/−), words where they help:
+   "Needs you" on a workspace's tab, and the status line, which says in words what the lamps say in signs: the
+   branch, "Claude is working", the pull request.
+8. **Nothing about nothing.** What isn't there takes no room and no words: no "No changes yet", no counts of zero,
    no empty pane, no field for something the keyboard opens (Search), no button twice on one screen. Loading words
    ("Reading the file…", "Starting Claude…") show only when a wait is long enough to notice (0.4 to 0.8 s); a quick
    load goes from nothing straight to the result.
-6. **Motion with a job.** Things move to show a state (the working ring, the ping, the running line), to say where
-   they came from (menus from their trigger, the tab pill gliding), to answer a press, or to soften a jump (the
-   changes rising in, toasts). Strong ease-out curves, under 300 ms. What the keyboard opens many times a day (the
-   palette, Search) is instant. `prefers-reduced-motion` stops everything that moves and keeps only fades.
-7. **Sentence case, plain verbs.** "Go live", "Type 3 remarks into Claude", never "SUBMIT". No all-caps labels, no
-   dot-joined meta strings, no arrows in button text.
-8. **Everything remembers.** Window size and position, the layout and its split, the panel and its width, the last
-   workspace of every project, the diff layout, unsent remarks and every workspace's changes as last seen all
-   survive a restart.
-9. **Instant first, fresh second.** Show what we already know right away (remembered changes, branches, diffs), then
-   refresh in the background. Never block a click on git.
+9. **Motion with a job.** Things move to show a state (the working ring, the ping, the running line), to say where
+   they came from (menus from their trigger), to answer a press, or to soften a jump (the changes rising in,
+   toasts). Strong ease-out curves, under 300 ms. What the keyboard opens many times a day (the palette, Search, the
+   switcher) is instant. `prefers-reduced-motion` stops everything that moves and keeps only fades.
+10. **Sentence case, plain verbs.** "Go live", "Type 3 remarks into Claude", never "SUBMIT". No all-caps labels, no
+    dot-joined meta strings, no arrows in button text.
+11. **Everything remembers.** Window size and position, the layout and its split, the files' column and its width,
+    whether the lists are hidden, the last workspace of every project, the diff layout, unsent remarks and every
+    workspace's changes as last seen all survive a restart.
+12. **Instant first, fresh second.** Show what we already know right away (remembered changes, branches, diffs), then
+    refresh in the background. Never block a click on git.
 
 ## Color
 
 | Token | Value | Use |
 |---|---|---|
-| `frame` | `#0A0B0E` | the window around the islands: the top rows, the gaps, the rail, the status line |
-| `canvas` | `#111217` | the islands: terminal, diff, panels |
-| `chrome` | `#15161C` | an island's title band, sticky file headers |
-| `raised` | `#191B21` | menus, dialogs, the palette, toasts, remark cards |
-| `tip` | `#272A31` | tooltips |
-| `island-edge` / `island-edge-focus` | white at 7% / signal blue at 60% | an island's edge; the island the keyboard is in (3.47 to 1 against the frame) |
-| `highlight` | white at 5% | the lit top edge of every layer |
-| `ink` | `#ECEEF2` | primary text |
-| `ink-2` | `#A6AAB3` | secondary text, icons in use |
-| `ink-3` | `#7C818C` | hints, icons at rest, line numbers (4.6:1 on an island) |
-| `rule` / `rule-strong` | white at 6.5% / 11% | hairlines; control edges |
-| `hover` / `soft` / `selected` / `selected-hover` / `thumb` | white at 4.5% / 8% / 12% / 16% / 11.5% | the pointer's fill; a ghost button while pressed, a neutral chip; what is chosen (a row, a tab, a chip); the pointer on what is chosen; a segmented control's thumb |
-| `accent` / `accent-strong` / `accent-soft` | `#7AA2FF` / `#4F7DFF` / blue at 14% | yours: where you are (the edge of the tab on screen, the bar of the row on screen), where your typing goes, remarks, the button that types into Claude, a new file's flash; the mark's second wedge, the one beside you |
-| `behind` | `#646872` | the blue marks of where you are, while the window is behind another app |
-| `claude` | `#E8845F` | Claude's coral, on its terminal tab |
+| `well` | `#000000` | the stage, what you read and write: Claude's terminal, the diff, an opened file, the board |
+| `pane` | `#0A0A0A` | the frame around it: the top row, the rail, the files' column, the status line; a file's header in the diff; bars and fields inside what floats |
+| `sheet` | `#000000` | what floats: menus, dialogs, Search, the palette, the switcher, toasts, remark cards |
+| `tip` | `#292929` | tooltips |
+| `line` / `line-strong` | white at 19% / 27% | the stage's edge and the line between two panes (1.71 to 1 on the frame, 1.59 on the stage); a control's edge and the edge of what floats (2.31 to 1) |
+| `ink` | `#EDEDED` | text (not pure white: pure white on pure black glares) |
+| `ink-2` | `#A8A8A8` | second text, icons in use |
+| `ink-3` | `#878787` | hints, icons at rest, line numbers (5.5 to 1 on the frame) |
+| `hover` / `soft` / `selected` / `selected-hover` / `thumb` | white at 5% / 8% / 14% / 18% / 14% | the pointer's fill; a ghost button while pressed, a neutral chip; what is chosen (a row, a tab, a chip); the pointer on what is chosen; a switch's thumb |
+| `accent` / `accent-strong` / `accent-soft` | `#7DAAFD` / `#376CEB` / blue at 16% | what is yours: the edge of the tab on screen and of the pane you type in, the cursor, a field's ring, remarks; the button that types into Claude and a ticked box (white on it stands at 4.66 to 1); a remark's band |
+| `behind` | `#6E6E6E` | the blue marks, while the window is behind another app |
+| `claude` | `#EA8B60` | Claude's own mark, on its terminal tab |
 
 Signal lamps:
 
 | Token | Value | Meaning |
 |---|---|---|
-| `lamp-amber` | `#FFB547` | working (a ring turns around it; the line under Claude's tabs runs) |
-| `lamp-red` | `#FF6369` | needs you (a ping goes out from it) |
-| `lamp-green` | `#3DD68C` | done, and Live |
+| `lamp-amber` | `#F9B73F` | working (a ring turns around it; the line under Claude's tabs runs) |
+| `lamp-red` | `#FC5858` | needs you (a ping goes out from it) |
+| `lamp-green` | `#3CD788` | done, and Live |
 | `lamp-off` | white at 20% | idle: a hollow ring |
 
-Diff, derived from the lamps so the window reads as one system: `add-bg` green at 10%, `add-word` green at 30%,
-`add-ink #62E0A2`; `del-bg` red at 10%, `del-word` red at 30%, `del-ink #FF8D92`; `gap-bg` white at 3%;
-`remark-band` blue at 13%.
+Diff, derived from the lamps so the window reads as one system: `add-bg` green at 12%, `add-word` green at 27%,
+`add-ink #7DE4A7`; `del-bg` red at 12%, `del-word` red at 27%, `del-ink #FE8A88`; `gap-bg` white at 3%;
+`remark-band` blue at 16%.
 
 Syntax colors are an IDE's: the dark scheme of JetBrains' IDEs, PyCharm's (keywords orange, strings green, numbers
 teal, comments gray, a definition's name blue, decorators olive, `self` and built-in names violet), so each kind of
@@ -84,40 +91,36 @@ word reads at a glance. None of them is the diff's red
 or green. Settings, General, Code has quiet colors as the other choice: Shiki's **Vesper** theme, mostly white text
 with soft peach and mint accents.
 
-The terminal uses the same palette for its ANSI colors and sits on the island's own color (`crates/enkidu-term/src/palette.rs`), so
-Claude's output matches the window; its cursor is signal blue.
+The terminal uses the same palette for its ANSI colors and sits on the stage's own black
+(`crates/enkidu-term/src/palette.rs`), so Claude's output matches the window; its cursor is blue. A program that asks
+the terminal for its background is told that black.
 
 ## States
 
-What a tab, a row or a part of the window can be, and how each is drawn. Nothing else marks a state. Before these
-rules there were so many small highlights that it was hard to tell which workspace was on screen; the tab on screen
-is marked by its border.
+What a row, a tab or a part of the window can be, and how each is drawn. Nothing else marks a state.
 
 | State | It means | Drawn as |
 |---|---|---|
 | Rest | nothing | nothing |
 | Pointer | the pointer is on it | the `hover` fill |
-| Picked | this one is chosen: the arrow keys are on this row, or this tab or this half of a switch is the one shown | the `selected` fill; on the tabs of the top rows and of the terminal the name is ink, semibold |
-| On screen | this is where you are | **The workspace tab:** Picked, and the pill's edge in signal blue, 1.5 px (7.91 to 1 against the row). **A row** that lists what is on screen (the file in Changed files and Files, the workspace and the layout in the palette): a 2 px signal-blue bar at its left |
-| Keyboard | your typing goes here | a part's edge in `island-edge-focus`; a text field's blue ring; on a workspace tab a 2 px blue ring that stands 2 px inside the tab's edge, so it is never taken for the edge of the tab on screen (`shots/out/tab-keyboard.png`) |
-| Window behind | Enkidu is not the front app | the blue edge and the blue bars turn `behind`, and no part has the keyboard's edge |
+| Picked | this one is chosen: the arrow keys are on this row, or this tab or this half of a switch is the one shown | the `selected` fill; a tab that is shown is a pill with that fill, its name in ink, semibold |
+| On screen | this is where you are | **The workspace's tab** in the top row: a pill in the stage's black with a blue edge of 1.5 px, its name semibold. **Work or a project** on the rail: the `selected` fill. **A row** that lists what is on screen (the file in Changes and in Files): Picked, its name in ink, semibold. Where a list has a picked row and the row on screen at once (the palette, a run's tasks), the row on screen also has a 2 px blue bar at its left |
+| Keyboard | your typing goes here | the pane you type in has a blue edge of 1.5 px (Claude's, or the changes'); a text field has a blue ring; in the terminal the cursor is a full blue block (hollow while the keyboard is elsewhere); a card or a row the arrow keys are on has a blue edge |
+| Window behind | Enkidu is not the front app | the blue marks turn `behind`, and no pane has the keyboard's edge |
 
-- **Rest, pointer, picked: each stronger than the one before**, in every control. Picked is 1.23 to 1.27 to 1 against
-  pointed at (it was the other way round on the tabs before 14 Nov).
-- **Blue is spent once in the tabs row: on the tab on screen.** What waits on you there is not blue: a PR number that
-  waits and the count of unsent remarks are ink. The project on screen and the terminal on screen are Picked, without
-  blue, so blue boxes don't stack at the top left; the blue under them is the edge of the part you type in.
+- **Rest, pointer, picked: each stronger than the one before**, in every control. Picked stands at 1.25 to 1 or more
+  against pointed at, on every ground.
+- **Blue is spent once in the top row: on the tab on screen.** What waits on you there is not blue: it is red (the
+  lamp, "Needs you"). A tab of a pane and a terminal on screen are Picked, without the edge.
 - **Chosen never rests on brightness that means something else too.** An exited terminal that is on screen keeps a
   readable name, and the word beside it says "exited". In the file tree a changed file has its letter, and its name
   is bright only while it is the file on screen.
-- **Three ranks in the top rows:** where you are, then what needs you (red), then the rest, quiet. A done lamp on a
-  tab that is not on screen is dimmed to 55%, the badge of a project that is not on screen is gray, the red counts
-  have no glow, and Go live's triangle is green only when pointed at.
-- **A test keeps it** (`the_marks_can_be_seen`, in `enkidu-ui`): the blue edge, the blue bar and their gray stand at 3
-  to 1 or more against the frame, an island, a title band and a dialog; the keyboard's edge at 3 to 1 against the
-  frame; picked at 1.2 to 1 or more against pointed at. And the picture test reads its own pictures: the edge of
-  the tab on screen is blue in `window.png` and gray in `window-behind.png`, and in `tabs-squint.png`, the top rows
-  of five workspaces blurred, the tab on screen still stands at 1.2 to 1 or more against its row.
+- **Three ranks in the top row:** where you are, then what needs you (red), then the rest, quiet. A done lamp on a
+  workspace that is not on screen is dimmed to 55%, the red counts have no glow, and Go live's triangle is green
+  only when pointed at.
+- **A test keeps it** (`the_marks_can_be_seen`, in `enkidu-ui`): the blue marks and their gray stand at 3 to 1 or
+  more against the stage, the frame and what floats; a line between two things at 1.5 to 1 or more; picked at
+  1.2 to 1 or more against pointed at.
 
 ## Icons
 
@@ -127,22 +130,27 @@ is marked by its border.
   TOML violet, shell green, SQL teal, images purple; locks, fonts and plain text stay gray. Folders are a quiet steel.
 - **What happened to a file** (`FileGlyph`): a letter on its own tint, as git colors it: M tan, A and U green, D red,
   R blue. A folder that holds changes has a tan dot.
-- **Projects** (`ProjectBadge`): the first letter in white on the project's own color, lit from above like an app
-  icon. The color comes from the project's place in the top row (blue, green, orange, violet, teal, pink, indigo), so
-  two projects never share one.
+- **Projects** (`ProjectBadge`): a project shows its own icon when it has one, else the first letter of its name
+  in white on the project's own color. It is the same picture wherever the project is shown: on the rail, on a card
+  of the switcher, where a task of your own asks for its project. The color comes from the project's place on the
+  rail (blue, green, orange, violet, teal, pink, indigo), so two projects never share one. The icon is looked for
+  in the project's folder, by name, where an IDE or a framework keeps one: `.idea/icon.svg` or `.idea/icon.png`
+  first, then an icon or a favicon in the usual places (the folder itself, `public`, `static`, `assets` and the
+  like), then a logo. Project settings can name another picture, or say that the letter is wanted.
 - **Terminals**: Claude's tab carries a filled coral sparkle; a shell, a green terminal.
 - **Definitions in Search**: a letter per kind on its own tint (classes blue, functions violet, methods teal…).
-- Lucide at 14–15 px, stroke 1.75, everywhere. The layout switch uses its own small window pictures.
+- Lucide, stroke 1.6, in two sizes: 16 px where an icon leads a row or is a button, 12 px for a small mark beside
+  words. The layout switch uses its own small window pictures.
 
 ## The mark
 
 - **Two wedges standing side by side**, their heads up: you, and the one who works beside you. A wedge is the stroke
   of cuneiform, the writing the story of Gilgamesh and Enkidu was pressed into clay with.
 - **The icon** (`bundle/icon.svg`, `bundle/icon.icns`): the first wedge in warm white (`#F3EEE4`), the second in the
-  app's own blue (`accent-strong`, `#4F7DFF`), on the window's dark (`#1A2032` down to `#0B0E16`), on macOS's own
-  tile (824 px on a 1,024 px canvas, with its soft shadow).
+  app's own blue (`#4F7DFF`), on a dark ground (`#1A2032` down to `#0B0E16`), on macOS's own tile (824 px on a
+  1,024 px canvas, with its soft shadow).
 - **The empty screens** draw the same mark in the window's own gray, 70 px wide at most: the two wedges are pressed
-  in one after the other, and the second one lights blue (`accent-strong`), as in the icon. It plays once.
+  in one after the other, and the second one lights blue, as in the icon. It plays once.
 
 ## Motion
 
@@ -153,59 +161,74 @@ transform and opacity move; never ease-in.
 | What | How | Why |
 |---|---|---|
 | A press (`press::pressable`) | scale 0.97, 120 ms | the button heard you |
-| Menus, tooltips | grow from their trigger, 160 ms; out in 110; the next tooltip along a toolbar is instant | where they came from |
-| Dialogs | rise 8 px and fade, 220 ms, over a fading, lightly blurred scrim | a step above the window |
-| The tab pill, segmented thumbs | glide 220 ms to the new choice | which one is on screen |
-| Working | a ring turns around the amber lamp; the hairline under Claude's tabs runs amber; "Claude is working" shimmers | Claude is busy |
+| Menus, tooltips | grow from their trigger, 160 ms; out in 110; the next tooltip along a bar is instant | where they came from |
+| Dialogs | rise 8 px and fade, 220 ms, over the dimmed window | a step above the window |
+| A switch's thumb | glides 220 ms to the new choice | which one is chosen |
+| The tab on screen | its blue edge glides to the tab you pick, 220 ms | where you went |
+| Working | a ring turns around the amber lamp; the hairline under Claude's tabs runs amber; "Claude is working" shimmers in the status line | Claude is busy |
 | Needs you | a ping goes out from the red lamp every 1.7 s | it waits for you |
 | A new state | the lamp pops once (460 ms, a small overshoot) | something just changed |
-| The changes arrive | the island rises in (220 ms); a panel slides in from the right edge | Claude's first edit, a panel you opened |
-| A new changed file | its row flashes signal blue and settles (1.8 s); in a closed folder, the folder's row does | what just turned up |
+| The changes arrive | the changes rise in (220 ms); the files' column slides in from the right edge | Claude's first edit, the column you opened |
+| A new changed file | its row flashes white and settles (1.8 s); in a closed folder, the folder's row does | what just turned up |
 | Counts, +/− | tick into place (220 ms) when they change, never on first show | more lines changed |
 | Badges | pop in with a small overshoot | a new count |
 | Toasts | rise from the corner (300 ms), leave to the right (180 ms) | news, and where it went |
 | The empty screens | the mark's two wedges are pressed in one after the other, then the second one lights blue | seen rarely, so it may take its time |
 | A recording in a report | plays by itself while it is in sight, at its own pace | you asked Claude to show it working |
-| The palette, Search | none | opened from the keyboard many times a day |
+| The palette, Search, the switcher | none | opened from the keyboard many times a day |
+| The lists hiding and coming back | none | the terminal gets its new width in one step |
 
 ## Type
 
-- UI: SF Pro through `system-ui`, antialiased. Body 13/18, secondary 12/16, status line 11.5/16, caption 11/14,
+- UI: SF Pro through `system-ui`, antialiased. Body 13/18, secondary 12/16, the smallest 11.5/16, caption 11/14,
   panel title 13/20 semibold, dialog title 15/20 semibold, empty-state title 17/24 semibold. Weights 400, 500 for
-  labels, 600 for titles, the Live button and the tab on screen.
+  labels, 600 for titles, the Live button and what is on screen.
 - Code: JetBrains Mono, 12/20 in the diff and 12.5 in the terminal, ligatures off so `->` stays `->`. Branch names
-  in the status line are mono too. Both sizes are yours to change: ⌘+ and ⌘− resize the text of what has the
-  keyboard (the code's while the changes have it, the terminal's while a terminal has it), ⌘0 puts it back, and
-  Settings, General, Code has both; a line of code keeps its share of height (5 to 3).
+  are mono too. Both sizes are yours to change: ⌘+ and ⌘− resize the text of what has the keyboard (the code's
+  while the changes have it, the terminal's while a terminal has it), ⌘0 puts it back, and Settings, General, Code
+  has both; a line of code keeps its share of height (5 to 3).
 - Numbers that change (counts, +/−) use tabular figures of the UI face.
 
 ## Space, size, shape
 
-- 4 px grid. Control heights: 22 (segments), 24 (small), 26 (project tabs), 28 (default), 30
-  (workspace tabs), 32 (inputs in dialogs).
-- Projects row 38 px (the macOS window buttons are centred in it), tabs row 40 px, island title bands 36 px, list
-  rows 36 px (two lines) or 26 px (tree), status line 26 px. Islands sit 8 px apart and 8 px from the window's edges.
-- Radii by hierarchy: 5 (tags, kbd, small badges), 8 (buttons, inputs, rows, project tabs), 9 (workspace tabs and
-  their pill, rail buttons), 12 (islands, menus, remark cards, toasts), 14 (dialogs, the palette, Search). Live is a
-  pill: it is a signal, not a command.
-- The row of what is on screen has a 2 px signal-blue bar on its left, so it reads at a glance ("States").
-- Buttons: primary is white, lit from above like a key; Open in Claude and Type remarks into Claude are signal blue (`accent`); secondary is a
-  hairline on a faint fill; all answer a press.
+- A 4 px grid, and one scale for every space: 4, 8, 12, 16, 24 or 32 px. The one exception is the 2 px inside a
+  switch, around its thumb.
+- Heights: The top row 44, a bar 40 (a pane's bar, the bar of the files' column), a bar inside a pane 32 (the tools
+  over a tree, a file's header, a board column's head), a row 28, a control 28, the status line 28, a control in a
+  dialog 32, a chip, a pill and a key 20, a badge and a file's letter 16.
+- Insets: text starts 16 px from a part's edge, and a fill 8 px from it. A button's box ends 12 px before the other
+  edge. In a dialog the inset is 24 px and the foot with its buttons is 64 px high; a box inside a dialog or a page
+  has 12 px above and below what it holds and 16 at its sides.
+- A text field's words start 8 px inside it. A menu's rows are 28 px high, their words 8 px inside the row's fill.
+- A lamp is 16 px with an 8 px light: 6 px while it works, inside its ring.
+- Between things: a sign and its word 8; things in a bar 8; two tabs 4; a small mark and its word 4.
+- The rail is 56 px wide; its buttons are 40 px, a project's picture in one 24. The files' column is 304 (its width
+  drags and is remembered, never more than 40% of the window). The stage starts where the rail ends, and ends 8 px
+  before the window's right edge where no column stands.
+- In a tree a step is 16 px; a folder's arrow stands in a 16 px slot, 4 px before its icon, and a file's icon stands
+  under its folder's. In the diff the line numbers end at 48 and 88, the sign stands in the next 24, the code starts
+  at 112.
+- Radii by hierarchy: 4 (keys, a file's letter, a ticked box), 6 (chips), 8 (controls, rows), 10 (cards, remark
+  cards, a button on the rail), 12 (the stage), 14 (what floats: menus, dialogs, the palette, Search, the switcher,
+  toasts). A tab, a switch and a count are pills. Live is a pill too: it is a signal, not a command.
+- Buttons: primary is white with black words; Open in Claude and Type remarks into Claude are blue (`accent-strong`);
+  secondary has a clear edge and no fill; one that deletes is red with black words; all answer a press. Two
+  sizes: a control's 28 px with 8 px inside it, and a dialog's 32 with 16.
+- A box that is ticked and a round mark that is picked are blue (`accent-strong`), their sign white.
 
 ## Live
 
-A play button at the right of the tabs row, one fixed width so nothing beside it moves:
+A play button in the top row, one fixed width so nothing beside it moves:
 
 | State | Looks like |
 |---|---|
-| Off | ▶ Go live: a hairline pill; the triangle turns green when pointed at |
+| Off | ▶ Go live: a pill with a clear edge; the triangle turns green when pointed at |
 | Starting / Stopping | a spinner and "Starting…" / "Stopping…" |
 | Live | a green pill with three playing bars and "Live" |
 | Live, pointed at | ■ Stop, same green: clicking stops it |
 
-On a tab and in the palette, Live is the small green pill with the bars (a compact tab keeps only the bars), and the
-status line says "Live in shop's dev environment". One workspace per project can be Live; going live elsewhere stops
-the old one first, and the tooltip says so.
+On a workspace's tab and in the palette, Live is the small green pill with the bars. One workspace per project can be
+Live; going live elsewhere stops the old one first, and the tooltip says so.
 
 What it does: the dev environment runs from the project's main folder, so **Go live copies the workspace's changes
 into the main folder**: the files in its changes list (modified, new and deleted, as `git status` shows them), and it
@@ -221,60 +244,61 @@ changes follow while it is Live."
 ## Layout
 
 ```
-Changes above the terminal (default)
-┌────────────────────────────────────────────────────────────────────────────────┐
-│● ● ●  S shop ⌄  E enkidu ❶  ⊕                                                  ⌘ ⚙ │ 38 projects
-├────────────────────────────────────────────────────────────────────────────────┤
-│ ◌ stock-fix 5 │ ● sh-21309 Needs you │ ● pr-2175 ▮▮ Live │ +     ◫ ⬓ ▭ ▶ Go live ⋯ │ 40 tabs
-│ ╭──────────────────────────────────────────────╮ ╭───────────────────╮ ╭──╮     │
-│ │ Changes                          ▤ ◫ ⤢       │ │ Changed files     │ │▤⁵│     │
-│ │ ▸ M stock.py  src/orders   1 remark  +13 −6  │ │ ⌄ src/orders 2    │ │⌸ │     │
-│ │ Before               │ After                 │ │   stock.py  +13 M │ ╰──╯     │
-│ │ diff, every file stacked, remarks on lines   │ │   test_stock.py A │          │
-│ │ ● 1 remark not sent yet   Type 1 remark into │ │                   │          │
-│ ╰──────────────────────────────────────────────╯ │                   │          │
-│ ╭──────────────────────────────────────────────╮ │                   │          │
-│ │ Claude  +                                    │ │                   │          │
-│ │ terminal                                     │ │                   │          │
-│ ╰──────────────────────────────────────────────╯ ╰───────────────────╯          │
-│ ⎇ fix/stock-double-count from development │ ● Claude is working    5 changed files │ 26 status
-└────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ ● ● ●  shop ⌄ │ (◌ stock-fix 18)  ● sh-21309 Needs you  ● pr-remarks ▮Live  +   ◫⬓▭ ▶ Go live ⋯ │ 44 top row
+├────┬───────────────────────────────────────────────────────────────┬─────────────────────────┤
+│ ▣❾ │╭ ✳ Claude ×  +               │ Changes 18 files +41 −12  ▤◫ ⤢ ╮│ (Changes 18)  Files     │ 40 a pane's bar
+│ ── ││ terminal                     │ ⌄ stock.py src/orders M +8 −3 ││ All files ⌄        ⊞ ⊟  │ 32
+│(S) ││                              │  diff, every file stacked,    ││ ⌄ src/orders  5 files   │
+│ E  ││                              │  remarks on lines             ││    models.py   +1  M    │ 28 rows
+│ +  ││                              │                               ││   (stock.py  +8 −3 M)   │
+│    ││                              │                               ││    …                    │
+│ ⌘  ││                              │                               ││                         │
+│ ⚙  │╰──────────────────────────────┴───────────────────────────────╯│                         │
+├────┴───────────────────────────────────────────────────────────────┴─────────────────────────┤
+│ ⎇ fix/stock-double-count from development │ ◌ Claude is working │ PR #2395: …   18 changed files +41 −12 │ ~/…/stock-fix │ 28 status line
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+  56 the rail              the stage (12 px corners, an edge)             304 the files' column
 ```
 
-- **Projects on top, their workspaces under them.** The projects row is the app's level: each project by its name
-  (its workspaces are the tabs under it, so they aren't counted); the one on screen opens its menu (new workspace,
-  settings, Finder, remove), another one is a click away and shows a red count when one of its workspaces needs you.
-  There is no search field: ⇧⇧, ⌘P, ⌘O, ⇧⌘F and the palette open Search. The tabs row is the workspace's level: the
-  project's workspaces as tabs (the signal, the name, then what it waits for: "Needs you", Live, unsent remarks or
-  the number of changed files), New workspace, and on the right what acts on the workspace on screen: the layout,
-  Live and its menu. ⌘1–9 are the tabs, ⌃⇥ / ⌃⇧⇥ (or ⌘⇧] / ⌘⇧[) the next and previous tab, ← and → move between
-  tabs from the keyboard. The palette (⌘K) reaches every workspace of every project.
-- **Compact when it has to be.** With little room, tabs drop their extra words first (Live keeps its bars, counts
-  keep their numbers, "Needs you" stays), then shrink like a browser's; when even that doesn't fit, the strip
-  scrolls and fades at the cut edge. With no workspaces yet there is no tab row: the empty screen under the
-  projects says what a workspace is and has the one New workspace button (and with no project, the one Add project).
-  The workspace's menu (the … at the right of the row): its name, Show in Finder, Copy path, Copy branch name,
-  Project settings, then Hide workspace and Remove workspace…, which asks first.
+- **The top row is the project on screen.** After the window's three lights stands the project's name; it opens the
+  project's menu (new workspace, settings, Finder, remove). Then its workspaces as tabs: the lamp, the name, then
+  what it waits for ("Needs you" alone; else Live, the remarks you have not sent yet in blue, the number of changed
+  files), and its pull request as a dot in its state's color. The tab on screen is a pill in the stage's black with
+  a blue edge. After the tabs: the workspaces you have put away (an eye and how many), and the + that makes a
+  workspace. At the right, what acts on the workspace on screen: the layout, Go live, and its menu (the … : Show in
+  Finder, Copy path, Copy branch name, Project settings, then Hide workspace and Remove workspace…, which asks
+  first). ⌘1–9 are the tabs, ⌘⇧] and ⌘⇧[ the next and the previous one, ← and → move between tabs from the
+  keyboard. Tabs that don't fit shorten their names: the tab on screen keeps its own whole, and every other one
+  keeps what can be read of it, some eight letters. When even that is not enough the row scrolls, fades at the edge
+  it is cut at, and keeps the tab on screen in view. With no workspaces yet the empty screen says what a workspace
+  is and has the one New workspace button (and with no project, the one Add project).
+- **The rail is everything you have.** First Work, with a red count when something waits on you. Then every
+  project: its own icon or its letter ("Icons"). A click goes to that project, on the workspace you had there; the
+  project on screen has the chosen fill. A project that is not on screen has a red count when one of its Claudes
+  needs you. Then the + that adds a project. At the foot: the command palette, and Settings. A button of the rail
+  says what it is in a tooltip at its right, so the tooltip never covers the next button. There is no search field:
+  ⇧⇧, ⌘P, ⌘O, ⇧⌘F and the palette open Search. The palette (⌘K) reaches every workspace of every project.
 - **Your own order, and workspaces put away**.
   - **Order:** drag a tab along the row and let it go on the tab whose place it should take. While you drag, the
     tab you hold follows the pointer, its place in the row dims, and a blue line stands at the edge of the tab under
     the pointer where yours will land (no tooltip comes while a tab is held). The order is the project's and is
-    kept with where you were (the app's `view.json`, beside the workspace you had in each project); ⌘1–9, ⌃⇥ and
-    the palette follow it. A new workspace joins at the end.
-  - **Hide:** "Hide workspace" in the workspace's menu (the … at the right, for the workspace on screen), above
+    kept with where you were (the app's `view.json`, beside the workspace you had in each project); ⌘1–9 and the
+    palette follow it. A new workspace joins at the end.
+  - **Hide:** "Hide workspace" in the workspace's menu (the … in the top row, for the workspace on screen), above
     Remove workspace…; a right-click on any tab opens the same menu for that tab's workspace, so one can be put away
     without going to it. Its tab goes, and nothing else: its folder, its branch, its conversation and whatever runs
-    in its terminals stay as they are (nothing is stopped). Was it on screen, the next tab shows. A hidden workspace
-    is quiet: it is not in the project's red count, ⌘1–9 and ⌃⇥ pass it by, and at the next launch its Claude does
+    in its terminals stay as they are (nothing is stopped). Was it on screen, the next one shows. A hidden workspace
+    is quiet: it is not in the red count, ⌘1–9 and the switcher pass it by, and at the next launch its Claude does
     not come back until the workspace does.
-  - **Hidden workspaces** stand behind a small button right after the tabs, an eye with a line through it and their
-    number, there only while the project has any. Its menu, "Hidden workspaces", lists them (its lamp, its name,
-    and since when: "since Mon 2 Nov"); a click brings one back to its place in the order and on screen. What is
-    hidden is kept with where you were, like the order. Going to a hidden workspace any other way brings
-    it back too: the palette lists it with "hidden", and a card's or a run's "Open …" shows it. With every
-    workspace of a project hidden the row holds that button and New workspace, and the screen under it says so.
+  - **Hidden workspaces** stand behind a small button after the tabs, an eye with a line through it and how many,
+    there only while the project has any. Its menu, "Hidden workspaces", lists them (its lamp, its name, and since
+    when: "since Mon 2 Nov"); a click brings one back to its place in the order and on screen. What is hidden is
+    kept with where you were, like the order. Going to a hidden workspace any other way brings it back too: the
+    palette lists it with "hidden", and a card's or a run's "Open …" shows it. With every workspace of a project
+    hidden the top row holds that button and the +, and the screen says so.
 - **The main folder as a workspace**. The New workspace dialog asks first **where Claude
-  works**: "A new workspace" (its own checkout on its own branch: the name and the branch, as before) or "The main
+  works**: "A new workspace" (its own checkout on its own branch: the name and the branch) or "The main
   folder". For the main folder the dialog shows the folder and one sentence (Claude works in the project's own
   folder, on the branch it is on; nothing is made or copied there; removing the workspace later only forgets it),
   and its button says "Open the main folder". Its tab is named `main-folder` and is a workspace like any other (its
@@ -283,15 +307,21 @@ Changes above the terminal (default)
   into the main folder), so there is no Go live beside it. Asked for again, the main folder that is open already
   comes on screen. The screen of a project without workspaces names both ways. On the main folder's side no field
   is shown, so the dialog itself holds the keyboard: Enter opens the folder, Esc closes the dialog.
-- **The status line** says in words what the tabs say in signs, for the workspace on screen: its branch and where it
-  started, "Claude is working" (or idle, needs you, done) with its lamp, Live, the remarks not sent yet, the changed
-  files with +/− (nothing when there are none), and the folder (a click copies the path).
+- **The stage** is one sheet with 12 px corners and an edge. It holds the panes of the workspace on screen, a line
+  between two of them. Each pane has a bar of 40 px on the stage's own black: Claude's with its terminals as tabs,
+  the changes' with their count and lines. The pane your typing goes to has the blue edge.
+- **The status line says it in words**, for the workspace on screen: its branch and where it started; what Claude
+  is doing ("Claude is working", idle, needs you, done) with its lamp; Live; its pull request when something waits
+  there ("PR #2395: changes requested, 1 remark waiting": in red when it blocks, plainly when it only waits); the
+  remarks you have not sent yet, in blue. At its right: the changed files with +/−, and the folder, whose path a
+  click copies. A toast stands in the window's bottom right corner above this line, never over it.
 - **The lamp tells the truth.** Claude's hooks set working, needs you and done. Claude Code runs no hook when you
   interrupt it, so Esc or Ctrl+C in Claude's terminal, then Claude redrawing and going quiet for 1.5 s, sets the
   workspace back to idle; a key that interrupted nothing changes nothing.
-- **Three layouts**, switched from the tabs row (◫ ⬓ ▭), the palette, Settings or the keyboard: changes above the
-  terminal (⌥⌘L toggles with beside), changes beside it, or the terminal alone (⌥⌘B). ⇧⌘E gives the changes the
-  whole workspace. The space between two islands drags to resize and remembers; double-click it to reset.
+- **Three layouts**, switched from the top row (◫ ⬓ ▭), the palette, Settings or the keyboard: the changes beside
+  the terminal, at its right (⌥⌘L toggles with above), the changes above it, or the terminal alone (⌥⌘B). ⇧⌘E
+  gives the changes the whole stage. The line between two panes drags to resize and remembers; double-click it to
+  reset.
 - **The changes are what isn't committed yet**: every file that differs from HEAD (staged or not) and every new file,
   never a comparison with development or another base. While a merge is on (stopped on a conflict, or `--no-commit`),
   git stages everything the merge brings in, so to git it is all uncommitted (it can be hundreds of files when a main
@@ -299,12 +329,13 @@ Changes above the terminal (default)
   the merge makes of it on its own (`git merge-tree`): it shows the conflicts (against HEAD, markers and all) and what
   you or Claude change on top, and Live copies only those. Once the merge is committed, HEAD is the base again.
 - **Nothing to review, nothing shown.** With no changes, no remarks and no file open, Claude's terminal has the whole
-  workspace, whatever the layout; the first edit (or a remark, or a file opened) brings the changes back where the
-  layout puts them. The Changed files panel, if open, keeps its title and nothing under it. The window opens with
+  stage, whatever the layout; the first edit (or a remark, or a file opened) brings the changes back where the
+  layout puts them. The files' column, if open, keeps its tabs and nothing under them. The window opens with
   every workspace's changes as last seen (git's fresh list follows), so the layout doesn't jump after it shows.
-- **The right edge is a tool bar** (like an IDE's): Changed files (▤, with their number) and Files (⌸). Each opens
-  its panel beside the bar, full height; a second click, or ⌥⌘1 / ⌥⌘2, closes it. The panel's width drags and
-  is remembered. Changed files is a tree of the folders the changed files are in, as an IDE shows a commit: each
+- **The files' column** stands on the frame at the right of the stage, with two tabs: Changes (with their number)
+  and Files. ⌥⌘1 and ⌥⌘2 (also in the View menu) show a tab, or fold the column away when it is the one shown. The
+  column's width drags and is remembered. Changes is a tree of the folders the changed files are in, as an IDE
+  shows a commit: each
   folder says how many changed files it holds, a folder that only holds one folder shares its row ("src/orders"), and
   in every folder its folders come first, then its files, both by name. The diffs are stacked in that same order, so
   the mark of the file on screen moves down the tree as you scroll them. Every folder is open at first; a click closes
@@ -313,8 +344,8 @@ Changes above the terminal (default)
   folder, the ones inside closed folders too, so the top folders are left with their counts, and a folder opened after
   that shows its own folders closed. At the left of that row stands the filter Find in files has: "All files", or one
   kind of file such as `*.py`, with how many changed files each kind has (there while the changed files are of more
-  than one kind). A picked kind keeps its files in the tree, with the folders that hold them, and the button turns
-  signal blue; the band still counts every changed file, and the diffs stay whole. A file's row is one line: its name,
+  than one kind). A picked kind keeps its files in the tree, with the folders that hold them, and the button is
+  picked; the tab still counts every changed file, and the diffs stay whole. A file's row is one line: its name,
   its remarks, its lines and its letter (its tooltip has the whole path). Click one to scroll its diff into view; the
   keyboard goes there with you, so the arrows scroll it and ⌘+ and ⌘− resize its code. The file on screen is
   marked, and while its folder is closed that folder is; a file that turns up lights up once, or its closed folder
@@ -323,6 +354,19 @@ Changes above the terminal (default)
   row ("a/b/c"), an amber dot on folders that hold changes, the change letter on changed files, and a filter that
   ranks file names first. Clicking a file opens it where the diffs are, with syntax colors; a changed file offers
   "Show changes", and Escape goes back.
+- **The hidden mode.** ⌘S (also in the View menu and the palette) puts both lists away: the rail and the files'
+  column. The stage has the window's width. The top row keeps what you must not lose: the project's tabs as they
+  are, the other projects' workspaces as small dots after them (a thin line between projects, the one that needs
+  you ringed in red; a click on a dot goes there), and, after the window's three lights, the one button that brings
+  the lists back. ⌥⌘1 and ⌥⌘2 then open the files over the stage, at the right; they go again with Esc or when you
+  pick a file. Everything else is the keyboard's: ⌘1–9, the switcher, ⌘K, ⇧⇧, ⌘I. The mode is remembered.
+- **The switcher.** ⌃⇥ goes to the workspace you were in before. Held, it shows every workspace as a card, the most
+  lately used first, and each ⌃⇥ (⇧ to go back) moves the blue edge to the next; letting go of ⌃ goes there, Esc
+  stays, a click on a card goes to it. A card says what is behind it: its project's picture, its lamp and name, Live,
+  where Claude stands in words ("Needs you", "Working for 12 s", "Done 4 min ago", "Idle since 10:42": the time is
+  there once the state changed while the app ran), the last lines of its terminal (what Claude asks is there), what
+  is changed (18 files +41 −12) and its pull request with its state. Hidden workspaces are not in it. It floats
+  over the stage, four cards in a row. It goes through every project's workspaces; ⇧⌘] and ⇧⌘[ stay in the top row.
 - **What differs, in an opened file.** The lines that differ from the last commit carry a stripe beside their number,
   as in PyCharm: a new line, a changed one, and a small mark where lines went. The colors are the code scheme's own
   (PyCharm's green, blue and gray with "Like an IDE"; with "Quiet" the tones of the file badges). They come from the
@@ -331,7 +375,7 @@ Changes above the terminal (default)
 - **Remarks on any line.** In the diff and in an opened file alike, pressing a line number writes a remark under that
   line; dragging over line numbers (or Shift-clicking) makes it a range. A diff's file header opens the whole file
   (📄), to leave remarks on lines the diff doesn't show. Remarks on files without changes are listed under the diffs,
-  by file, with "Open file". They all go to Claude together, from the blue bar at the foot of the changes or of the
+  by file, with "Open file". They all go to Claude together, from the bar at the foot of the changes or of the
   opened file: "Review remarks on the code in this workspace", then each remark with its file:line and the lines it
   is about.
 - **Search**, like PyCharm's Search Everywhere: one popup with three tabs, opened from the keyboard or the palette
@@ -345,7 +389,7 @@ Changes above the terminal (default)
   (unversioned) ones and the submodules', never what git ignores. ⇧⇧ (Shift tapped twice) opens the tab used last; ⇥
   switches tabs; ↩ opens the result at its line, the line marked and centred. Only two clean taps of Shift count, so
   typing capitals never opens it. How it stays fast on a huge repo: SEARCH.md.
-- **Go to definition.** With ⌘ held, a name its language's server finds in the workspace is a link (signal blue,
+- **Go to definition.** With ⌘ held, a name its language's server finds in the workspace is a link (blue,
   underlined), in an opened file and in a diff's side as it is now. ⌘-click goes to its definition: the file opens
   at its line. ⌘[ goes back to where the click was made and ⌘] forward again, and the file's first button says
   where back is ("Back to views.py"). One place is gone to. Several places open a small list, each row with what it
@@ -414,24 +458,28 @@ The card in front of the board:
 ╰──────────────────────────────────────────────────────────┴────────────────────────────────╯
 ```
 
-- **Where it lives.** "Work" is the first tab of the projects row (it spans projects), with a red count when
+- **Where it lives.** "Work" is the first button of the rail (it spans projects), with a red count when
   something waits on you and a red mark instead when a source can't be read. ⌘I opens it and goes back; so does Esc.
-  It takes the place of the workspace's tabs and islands; the projects row and the status line stay.
-- **The header row** (40 px, where the workspace tabs were): **Tasks | Hidden 4** once you have hidden a task (the
+  It takes the top row and the stage: the board has the whole stage, with no files' column beside it. The rail
+  stays, on the Workflows page too.
+- **The header** stands in the top row, after the word "Work": **Tasks | Hidden 4** once you have hidden a task (the
   board, or only the tasks you hid; Hidden has a red dot when something waits on you there); "Needs you" with its
   count, on the board (cards with something waiting on you; on, it shows only those; with nothing waiting it isn't
   there); the filter field (/) for keys, titles, branches and names, in the view you are in; each source's lamp
   (green read, amber reading, red can't read, hollow off) with its age on hover; Check connections; Refresh. While a
   read runs, the hairline under the row runs amber, like Claude's working line. No project chips: the projects are
-  the tabs above, and the board holds every project's tasks. Needs you is
+  on the rail, and the board holds every project's tasks. Needs you is
   remembered; the page always opens on the board.
+- **The status line** says how each source was read ("GitHub read 2 min ago as sam-lee"; in red, "Jira can't be
+  read", when it can't), and at its right the keys that work right now: on the board ← → ↑ ↓ move, ↩ open, X pick,
+  / filter, ⌘I back; in front of a card J K move, S tell Claude, X leave out, E done, Z snooze, ⌘↩ send, Esc close;
+  on the Workflows page Esc back to the board.
 - **A broken source says so, first.** Above the board, one line per source that can't be read: what is wrong and what
   to do ("Jira can't be read: twg isn't signed in. Run `twg login --force`."), and how old the data under it is.
   Cards keep their place; one whose waiting items come from that source is dimmed, with the time of its last good read.
 - **A column per Jira status** of the cards on the board, in the workflow's order, worked out from the statuses' own
   words and categories (Jira's to do, in progress and done): On Hold first, at the far left (parked work out of
-  the way), then Backlog, New, Analysed, Ready for Dev, Planned, In Progress, Code Review, QA, Release; Done. Each column is an island: its ring, its name as Jira writes it,
-  its count. The ring is hollow for to do, fills further as the work moves right (blue, review violet, QA amber,
+  the way), then Backlog, New, Analysed, Ready for Dev, Planned, In Progress, Code Review, QA, Release; Done. Each column has its head (its ring, its name as Jira writes it, its count) and a line between it and the next. The ring is hollow for to do, fills further as the work moves right (blue, review violet, QA amber,
   release teal: the status pill's hues), pauses on hold and turns into a green check when done. The board is
   everything read: the backlog's statuses are columns like the rest, and no column folds; what you don't want to see,
   you hide. A status still to come stands before the one it leads to ("To be analysed", then "Analysed"). Where the
@@ -454,7 +502,7 @@ The card in front of the board:
   picks it too. A bar rises at the bottom: "3 cards picked", Hide (on the board) or Unhide (in Hidden), Clear (Esc).
   Hidden tasks leave the board. **Hidden** in the header shows only them, in their statuses' columns, where they are
   picked and unhidden; Tasks or Esc goes back to the board, and so does unhiding the last one. They count neither in
-  Needs you nor on the Work tab, but Hidden has a red dot when something waits on you there, so nothing is lost by
+  Needs you nor in Work's count on the rail, but Hidden has a red dot when something waits on you there, so nothing is lost by
   hiding. The card in front of the board has Hide (or Unhide) too, and closes after it. Hidden tasks live in the
   app's database (a restart, or a reinstall, keeps them), and each card's timeline says when.
 - **The card in front of the board** (a dialog, 1040 px): the type, the key, Hide, Open in Jira, then the title, then
@@ -495,8 +543,7 @@ The card in front of the board:
 - **Keys:** on the board, the arrows (or h j k l) move from card to card, ↩ opens one, X picks it, / filters, Esc
   lets go of the picked cards, then leaves Hidden, then goes back (⌘I too). In front of a card, j/k (↑/↓) move through what needs you, x
   leaves it out of the message (or puts it back), n writes its instruction, s writes to Claude, ⌘↩ opens it in Claude, e marks it
-  done, z snoozes it for a day, ↩ opens where it was said, Esc leaves a field, then closes. The status line shows the
-  keys that work right now. Moving with the keyboard never animates.
+  done, z snoozes it for a day, ↩ opens where it was said, Esc leaves a field, then closes. Moving with the keyboard never animates.
 - **Motion with a job:** the card rises in like every dialog; a card that moved to another column glows once, so you
   see it move; counts tick; a PR's dot pops when its checks flip; the running line while reading. Reduced motion
   keeps fades only.
@@ -556,7 +603,7 @@ starting a new workspace from a card, running tasks one after another at night w
 the pictures Claude took when it finished.
 
 - **The board menu** is the first thing in the header: a kanban glyph and "All tasks", or the board's name (the glyph
-  blue then). It opens a menu: All tasks, then "Jira boards", each with "sprint" (scrum) or "kanban" on its right.
+  in ink then). It opens a menu: All tasks, then "Jira boards", each with "sprint" (scrum) or "kanban" on its right.
   Picked, only that board's tickets stay, exactly as its own page in Jira shows them (a scrum board: your tickets in
   its running sprint, in the statuses of its columns); a PR that names no ticket is on no board. The pick is kept in
   the app's database. While the board's tickets are read (a second or two) the page says nothing; after, a board with
@@ -692,8 +739,7 @@ written once in Settings; and a new task made from inside the workflow dialog.
 
 - **A task of your own is a card.** **New task**, in the board's header, opens a small dialog: a title, what it is
   about (optional; Markdown, and Claude gets it with the task), the project it is for (the one on screen unless you
-  pick another) and its state. Its card carries a person in signal blue and "Your task" (signal blue is what is
-  yours), then the project's name, where a ticket has its type and key. Nothing is read from anywhere and nothing is
+  pick another) and its state. Its card carries a person in blue and "Your task" (blue is what you wrote), then the project's name, where a ticket has its type and key. Nothing is read from anywhere and nothing is
   sent anywhere: it lives in the app's own database (`work_own_tasks`).
 - **Three states: To do, In progress, Done.** What is still to do stands in a column of its own, **To do**, among
   the columns of what is to do. In progress and Done stand with Jira's tickets of that state, in the column named as
